@@ -30,14 +30,19 @@ export interface AppConfig {
   };
 }
 
-const CONFIG_URL = new URL('default-config.json', window.location.href).href;
+function getConfigUrl(): string {
+  // Derive base from pathname: /pra/ or /pra -> /pra/
+  const path = window.location.pathname;
+  const base = path.endsWith('/') ? path : path.substring(0, path.lastIndexOf('/') + 1);
+  return `${base}default-config.json`;
+}
 
 let cachedConfig: AppConfig | null = null;
 
 export async function loadConfig(): Promise<AppConfig> {
   if (cachedConfig) return cachedConfig;
   try {
-    const res = await fetch(CONFIG_URL);
+    const res = await fetch(getConfigUrl(), { cache: 'no-cache' });
     cachedConfig = await res.json();
     return cachedConfig!;
   } catch {
