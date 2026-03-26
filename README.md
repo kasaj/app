@@ -6,7 +6,7 @@ A space to pause and return to yourself.
 
 PRA is a minimalist mindfulness app for daily practice. It helps create space for pause, track progress, and build healthy habits.
 
-**[Launch App →](https://kasaj.github.io/pra/)**
+**[Launch App →](https://kasaj.github.io/Pra/)**
 
 ## Features
 
@@ -20,7 +20,7 @@ PRA is a minimalist mindfulness app for daily practice. It helps create space fo
 
 ## Install on Mobile (iOS/Android)
 
-1. Open the [app](https://kasaj.github.io/pra/) in your browser
+1. Open the [app](https://kasaj.github.io/Pra/) in your browser
 2. **iOS Safari**: Share → Add to Home Screen
 3. **Android Chrome**: Menu → Add to Home Screen
 
