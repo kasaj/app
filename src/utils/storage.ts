@@ -1,6 +1,6 @@
 import { Activity, DayEntry } from '../types';
 
-const STORAGE_KEY = 'samobyti_data';
+const STORAGE_KEY = 'pra_data';
 
 export const generateId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

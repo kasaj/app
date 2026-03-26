@@ -1,7 +1,7 @@
 import { ActivityDefinition, ActivityType } from '../types';
 import { Translations } from '../i18n/translations';
 
-const ACTIVITIES_STORAGE_KEY = 'samobyti_activities';
+const ACTIVITIES_STORAGE_KEY = 'pra_activities';
 
 // Default activity types that have translations
 const TRANSLATABLE_TYPES = ['sobe', 'pohyb', 'meditace', 'rozjimani', 'komentar', 'objeti', 'vyzva', 'krok'] as const;

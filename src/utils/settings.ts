@@ -1,6 +1,6 @@
 import { UserSettings } from '../types';
 
-const SETTINGS_KEY = 'samobyti_settings';
+const SETTINGS_KEY = 'pra_settings';
 
 export const loadSettings = (): UserSettings => {
   try {

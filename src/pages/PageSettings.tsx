@@ -91,7 +91,7 @@ function generateHistoryMarkdown(data: DayEntry[], lang: string): string {
     weekData.push({ day: dayName, count, avgRating: dayAvg });
   }
 
-  let md = `# Samobyti - ${lang === 'cs' ? 'Historie' : 'History'}\n\n`;
+  let md = `# PRA - ${lang === 'cs' ? 'Historie' : 'History'}\n\n`;
   md += `${lang === 'cs' ? 'Exportováno' : 'Exported'}: ${new Date().toLocaleString(lang === 'cs' ? 'cs-CZ' : 'en-US')}\n\n`;
 
   // Summary section
@@ -157,7 +157,7 @@ function generateActivitiesMarkdown(lang: string): string {
     ? { name: 'Název', emoji: 'Ikona', desc: 'Popis', duration: 'Délka', timed: 'Časová', moment: 'Okamžik' }
     : { name: 'Name', emoji: 'Icon', desc: 'Description', duration: 'Duration', timed: 'Timed', moment: 'Moment' };
 
-  let md = `# Samobyti - ${lang === 'cs' ? 'Aktivity' : 'Activities'}\n\n`;
+  let md = `# PRA - ${lang === 'cs' ? 'Aktivity' : 'Activities'}\n\n`;
   md += `${lang === 'cs' ? 'Exportováno' : 'Exported'}: ${new Date().toLocaleString(lang === 'cs' ? 'cs-CZ' : 'en-US')}\n\n`;
 
   // Table header
@@ -209,12 +209,12 @@ export default function PageSettings() {
   const handleExportHistory = useCallback(() => {
     const data = loadAllData();
     const markdown = generateHistoryMarkdown(data, language);
-    downloadFile(markdown, `samobyti-history-${new Date().toISOString().split('T')[0]}.md`);
+    downloadFile(markdown, `pra-history-${new Date().toISOString().split('T')[0]}.md`);
   }, [language]);
 
   const handleExportActivities = useCallback(() => {
     const markdown = generateActivitiesMarkdown(language);
-    downloadFile(markdown, `samobyti-activities-${new Date().toISOString().split('T')[0]}.md`);
+    downloadFile(markdown, `pra-activities-${new Date().toISOString().split('T')[0]}.md`);
   }, [language]);
 
   return (
