@@ -23,10 +23,14 @@
       },
       "en": {
         "name": "Pause",
-        "description": "Stop for a few minutes, observe, be present with yourself",
+        "description": "Consciously stop for a few minutes, observe, be present with yourself...",
         "variants": [
-          "Breathing",
+          "Nose breathing",
+          "Long exhale (calming)",
           "Body scan",
+          "Observation",
+          "Stabilization",
+          "Life energy",
           "Silent pause"
         ]
       }
@@ -47,14 +51,14 @@
         ]
       },
       "en": {
-        "name": "Movement",
-        "description": "Stretching, strengthening or walking with body awareness",
+        "name": "Movement - Activity",
+        "description": "Get the energy flowing in the body, at least a drop of sweat, warm up...",
         "variants": [
-          "Walking",
+          "Sport",
           "Stretching",
           "Strengthening",
-          "Yoga",
-          "Dance"
+          "Balance",
+          "Yoga"
         ]
       }
     },
@@ -77,12 +81,16 @@
         ]
       },
       "en": {
-        "name": "Contemplation",
-        "description": "Silent sitting, open question, inner space",
+        "name": "Contemplation - Nourishment",
+        "description": "Conscious action such as silent sitting, mindful eating, open question, inner space, observing nature, feelings, thoughts",
         "variants": [
-          "Silent sitting",
+          "Meditation",
+          "Imagination",
           "Contemplation",
           "Journaling",
+          "Food",
+          "Pleasure",
+          "Suffering",
           "Gratitude"
         ]
       }
@@ -104,13 +112,15 @@
         ]
       },
       "en": {
-        "name": "Comment",
-        "description": "Reflection, intention, word or sentence to guide the day",
+        "name": "Comment - Note",
+        "description": "Conscious self-reflection, anchoring, intention, note",
         "variants": [
-          "Morning intention",
-          "Evening reflection",
-          "Gratitude",
-          "Affirmation"
+          "Intention",
+          "Fail",
+          "Note",
+          "Experience",
+          "Thought",
+          "Feeling"
         ]
       }
     },
@@ -132,13 +142,16 @@
         ]
       },
       "en": {
-        "name": "Embrace",
-        "description": "Conscious contact with another person",
+        "name": "Embrace - Relationships",
+        "description": "Conscious contact with another person, interpersonal relationships, society, community",
         "variants": [
-          "Hug",
-          "Handshake",
-          "Eye contact",
-          "Conversation"
+          "Embrace",
+          "Sharing",
+          "Meeting",
+          "Understanding",
+          "Rejection",
+          "Society",
+          "Family"
         ]
       }
     },
@@ -158,13 +171,14 @@
         ]
       },
       "en": {
-        "name": "Challenge",
-        "description": "Consciously facing what I avoid. Single concrete action amid confusion",
+        "name": "Challenge - Courage",
+        "description": "Consciously facing what I avoid, a small step through the middle, a concrete action toward growth",
         "variants": [
-          "Facing fear",
-          "Difficult conversation",
+          "Confronting fear",
+          "Accepting pain",
+          "Admitting a feeling",
           "New habit",
-          "Small step"
+          "Small step in chaos"
         ]
       }
     }
@@ -195,24 +209,24 @@
     "en": {
       "title": "Info",
       "subtitle": "Context and intent",
-      "intro": "The quality of consciousness is not built through information, but through the repeated practice of small steps that follow a natural sequence: thought → word → action → habit → character → destiny.",
+      "intro": "The quality of awareness depends on what state a person is in, what they create, and how finely they perceive reality and themselves — and it reflects back into the world and into us. It is a constant process of becoming; the only certainty is change.\n\nThe mechanics of life: thought → word → action → habit → character → destiny.\n\nConsciousness can perceive reality as a whole — physical (objective), inner (subjective), and social (agreement, not fact) dimensions — not parts. We are transcendental beings, yet also herd-like, logical-emotional creatures.\n\nIn the psyche there are colorful images — without identifying with them, we remain ourselves, in the best version of ourselves. The world is within us and works so that we can express ourselves, so let us trust it.",
       "quotes": [
         { "text": "I am not what happened to me, I am what I choose to become.", "author": "Carl Gustav Jung" },
         { "text": "No problem can be solved from the same level of consciousness that created it.", "author": "Albert Einstein" },
         { "text": "Where awareness goes, energy flows.", "author": "Dandapani" }
       ],
-      "why": "But before we ask how to cultivate this sequence, and what exactly to do, we must ask something deeper: why. A person without rootedness in meaning, direction, purpose — cannot sustain any practice over time. Why is the root from which everything else grows.",
-      "how": "Only then comes how — and here it is not about technique, but about a way of being. Discipline is a form of love for what we are becoming. It is the bridge between intention and reality.",
-      "what": "And only on this foundation does it make sense to speak of what — of method, content, concrete practice. Content without direction is noise, method without form is chaos. But what, which grows from why and is carried by how, carves itself into character.",
+      "why": "But before we ask how to cultivate this sequence and what exactly to do, we must ask something deeper: why. A person without rootedness in meaning, direction, purpose — cannot sustain any practice over time. Why is the root from which everything else grows.",
+      "how": "Only then comes how — and here it is not about technique, but about a way of being. Discipline is a form of love for what we are becoming. What is your bridge between intention and reality?",
+      "what": "And only on this foundation does it make sense to speak of what — of method and concrete practice. Content without direction is noise, method without form is chaos. What grows from why and becomes transformative?",
       "bioTitle": "Biological foundation",
       "bioText": "Practice is anchored in the nervous system: attention, breath and movement directly regulate the autonomic nervous system, reduce cortisol, strengthen the parasympathetic system and enable integration of body and mind.",
       "psychTitle": "Psychological framework",
       "psychText": "Works with archetypes, shadow (Jung), acceptance (Buddhism, Stoicism) and self-determination (Maslow, Frankl).",
       "philoTitle": "Philosophical foundation",
       "philoText": "Stands at the intersection of being (Heidegger), presence (Tao) and ethics of the middle (Aristotle's mesotes — heart between head and emotion).",
-      "noteWhy": "",
-      "noteHow": "",
-      "noteWhat": ""
+      "noteWhy": "E.g.: I help others and kindly spread good (truth). I protect those close to me and good (truth).",
+      "noteHow": "E.g.: Prudence across three dimensions of reality — inner, physical, social. Courage to accept reality (ego, emotions, evasion, shadow) and be responsible for it.",
+      "noteWhat": "E.g.: Conscious practice and healthy lifestyle (sleep, food, relationships, movement, naturalness)."
     }
   }
 }
