@@ -166,6 +166,10 @@ export default function PageInfo() {
             </div>
           </section>
         )}
+
+        <footer className="text-center text-sm text-themed-faint pt-4">
+          Author <a href="https://kasaj.cz" target="_blank" rel="noopener noreferrer" className="text-themed-accent-solid hover:underline">kasaj.cz</a>
+        </footer>
       </div>
     </div>
   );
