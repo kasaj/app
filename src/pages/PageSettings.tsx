@@ -196,6 +196,7 @@ export default function PageSettings() {
   const { language, setLanguage, t } = useLanguage();
   const [name, setName] = useState('');
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
+  const [exportTab, setExportTab] = useState<'backup' | 'config'>('backup');
   const [theme, setThemeState] = useState<Theme>(loadTheme);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -344,68 +345,93 @@ export default function PageSettings() {
 
         {/* Export / Import */}
         <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-4">
-            {t.settings.export}
-          </h2>
-          <div className="space-y-3">
-            {/* Backup - highlighted */}
-            <div className="rounded-xl p-3 border-2 bg-themed-input" style={{ borderColor: 'var(--accent-border)' }}>
-              <div className="text-themed-accent font-medium mb-2">{t.settings.backupExport}</div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-lg text-themed-primary">
+              {t.settings.export}
+            </h2>
+            <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
+              <button
+                onClick={() => setExportTab('backup')}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  exportTab === 'backup'
+                    ? 'bg-themed-card text-themed-accent shadow-sm'
+                    : 'text-themed-faint hover:text-themed-secondary'
+                }`}
+              >
+                {t.settings.backupExport}
+              </button>
+              <button
+                onClick={() => setExportTab('config')}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  exportTab === 'config'
+                    ? 'bg-themed-card text-themed-accent shadow-sm'
+                    : 'text-themed-faint hover:text-themed-secondary'
+                }`}
+              >
+                {t.settings.exportConfig}
+              </button>
+            </div>
+          </div>
+
+          {exportTab === 'backup' && (
+            <div className="space-y-3">
+              <div className="text-sm text-themed-muted mb-2">{t.settings.backupExportDesc}</div>
               <div className="flex gap-2">
                 <button
                   onClick={handleExportBackup}
                   className="flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors"
                   style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
                 >
-                  {t.settings.backupExport}
+                  Export
                 </button>
                 <label
                   className="flex-1 py-2 px-3 rounded-lg text-sm font-medium text-center cursor-pointer border transition-colors"
                   style={{ borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }}
                 >
-                  {t.settings.backupImport}
+                  Import
                   <input ref={backupInputRef} type="file" accept=".json" onChange={handleImportBackup} className="hidden" />
                 </label>
               </div>
             </div>
-            <p className="text-xs text-themed-faint italic">{t.settings.backupHint}</p>
+          )}
 
-            {/* Config only - standard */}
-            <div className="rounded-xl p-3 bg-themed-input border border-themed">
-              <div className="text-themed-muted text-sm mb-2">{t.settings.exportConfigDesc}</div>
+          {exportTab === 'config' && (
+            <div className="space-y-3">
+              <div className="text-sm text-themed-muted mb-2">{t.settings.exportConfigDesc}</div>
               <div className="flex gap-2">
                 <button
                   onClick={handleExportConfig}
-                  className="flex-1 py-2 px-3 rounded-lg text-sm font-medium bg-themed-input border border-themed
-                           text-themed-secondary hover:border-themed-medium transition-colors"
+                  className="flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors"
+                  style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
                 >
-                  {t.settings.exportConfig}
+                  Export
                 </button>
                 <label
-                  className="flex-1 py-2 px-3 rounded-lg text-sm font-medium text-center cursor-pointer bg-themed-input border border-themed
-                           text-themed-secondary hover:border-themed-medium transition-colors"
+                  className="flex-1 py-2 px-3 rounded-lg text-sm font-medium text-center cursor-pointer border transition-colors"
+                  style={{ borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }}
                 >
-                  {t.settings.importConfig}
+                  Import
                   <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportConfig} className="hidden" />
                 </label>
               </div>
             </div>
+          )}
 
-            {importStatus && (
-              <div className={`p-3 rounded-xl text-sm ${
-                importStatus === 'success'
-                  ? 'bg-themed-accent text-themed-accent'
-                  : 'bg-themed-error text-themed-error'
-              }`}>
-                {importStatus === 'success' ? t.settings.importSuccess : t.settings.importError}
-              </div>
-            )}
-          </div>
+          {importStatus && (
+            <div className={`p-3 rounded-xl text-sm mt-3 ${
+              importStatus === 'success'
+                ? 'bg-themed-accent text-themed-accent'
+                : 'bg-themed-error text-themed-error'
+            }`}>
+              {importStatus === 'success' ? t.settings.importSuccess : t.settings.importError}
+            </div>
+          )}
         </section>
 
-        {/* Statement */}
+        {/* Statement + tip */}
         <section className="card" style={{ borderLeft: '3px solid var(--text-faint)' }}>
           <p className="text-sm text-themed-muted">{t.settings.statement}</p>
+          <p className="text-xs text-themed-faint italic mt-2">{t.settings.backupHint}</p>
         </section>
 
         {/* Install */}

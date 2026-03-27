@@ -125,7 +125,7 @@ export default function PageTime() {
   const { t, language } = useLanguage();
   const [data, setData] = useState(() => loadAllData());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [trendRange, setTrendRange] = useState<'week' | 'month'>('week');
+  const [trendRange, setTrendRange] = useState<'day' | 'week' | 'month'>('week');
   const [editingRecord, setEditingRecord] = useState<Activity | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
@@ -212,39 +212,66 @@ export default function PageTime() {
     return { display, percent };
   }, [summaryStats.firstDate, summaryStats.totalSeconds, now]);
 
-  // Trend data (week or month)
+  // Trend data (day/week/month)
   const trendData = useMemo(() => {
-    const today = new Date();
-    const days = trendRange === 'week' ? 7 : 30;
-    const start = new Date(today);
-    start.setDate(start.getDate() - (days - 1));
-
     const result: Array<{ day: string; avgRating: number; count: number }> = [];
 
-    for (let i = 0; i < days; i++) {
-      const date = new Date(start);
-      date.setDate(start.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-      const dayEntry = data.find((d) => d.date === dateStr);
-
-      let avgRating: number = 0;
-      let count = 0;
-      if (dayEntry) {
-        count = dayEntry.activities.length;
-        const ratings: number[] = [];
-        dayEntry.activities.forEach((a) => {
-          if (a.ratingAfter) ratings.push(a.ratingAfter);
-          else if (a.rating) ratings.push(a.rating);
-        });
-        if (ratings.length > 0) {
-          avgRating = Math.round((ratings.reduce((sum, r) => sum + r, 0) / ratings.length) * 10) / 10;
+    if (trendRange === 'day') {
+      // Today's activities by hour
+      const todayStr = new Date().toISOString().split('T')[0];
+      const dayEntry = data.find((d) => d.date === todayStr);
+      for (let h = 6; h <= 22; h++) {
+        const label = `${h}:00`;
+        let avgRating = 0;
+        let count = 0;
+        if (dayEntry) {
+          const hourActivities = dayEntry.activities.filter((a) => {
+            const hour = new Date(a.startedAt).getHours();
+            return hour === h;
+          });
+          count = hourActivities.length;
+          const ratings: number[] = [];
+          hourActivities.forEach((a) => {
+            if (a.ratingAfter) ratings.push(a.ratingAfter);
+            else if (a.rating) ratings.push(a.rating);
+          });
+          if (ratings.length > 0) {
+            avgRating = Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10;
+          }
         }
+        result.push({ day: label, avgRating, count });
       }
+    } else {
+      const today = new Date();
+      const days = trendRange === 'week' ? 7 : 30;
+      const start = new Date(today);
+      start.setDate(start.getDate() - (days - 1));
 
-      const dayName = trendRange === 'week'
-        ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
-        : `${date.getDate()}.${date.getMonth() + 1}`;
-      result.push({ day: dayName, avgRating, count });
+      for (let i = 0; i < days; i++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayEntry = data.find((d) => d.date === dateStr);
+
+        let avgRating = 0;
+        let count = 0;
+        if (dayEntry) {
+          count = dayEntry.activities.length;
+          const ratings: number[] = [];
+          dayEntry.activities.forEach((a) => {
+            if (a.ratingAfter) ratings.push(a.ratingAfter);
+            else if (a.rating) ratings.push(a.rating);
+          });
+          if (ratings.length > 0) {
+            avgRating = Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10;
+          }
+        }
+
+        const dayName = trendRange === 'week'
+          ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
+          : `${date.getDate()}.${date.getMonth() + 1}`;
+        result.push({ day: dayName, avgRating, count });
+      }
     }
 
     return result;
@@ -380,29 +407,22 @@ export default function PageTime() {
       <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-serif text-base text-themed-secondary">
-            {trendRange === 'week' ? t.time.weeklyTrend : t.time.monthlyTrend}
+            {trendRange === 'day' ? t.time.dailyTrend : trendRange === 'week' ? t.time.weeklyTrend : t.time.monthlyTrend}
           </h2>
           <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
-            <button
-              onClick={() => setTrendRange('week')}
-              className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                trendRange === 'week'
-                  ? 'bg-themed-card text-themed-accent shadow-sm'
-                  : 'text-themed-faint hover:text-themed-secondary'
-              }`}
-            >
-              {t.time.trendWeek}
-            </button>
-            <button
-              onClick={() => setTrendRange('month')}
-              className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                trendRange === 'month'
-                  ? 'bg-themed-card text-themed-accent shadow-sm'
-                  : 'text-themed-faint hover:text-themed-secondary'
-              }`}
-            >
-              {t.time.trendMonth}
-            </button>
+            {(['day', 'week', 'month'] as const).map((r) => (
+              <button
+                key={r}
+                onClick={() => setTrendRange(r)}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  trendRange === r
+                    ? 'bg-themed-card text-themed-accent shadow-sm'
+                    : 'text-themed-faint hover:text-themed-secondary'
+                }`}
+              >
+                {r === 'day' ? t.time.trendDay : r === 'week' ? t.time.trendWeek : t.time.trendMonth}
+              </button>
+            ))}
           </div>
         </div>
         <div className="card">
@@ -410,10 +430,10 @@ export default function PageTime() {
             <BarChart data={trendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: trendRange === 'month' ? 9 : 11, fill: colors.tick }}
+                tick={{ fontSize: trendRange === 'month' ? 9 : trendRange === 'day' ? 9 : 11, fill: colors.tick }}
                 axisLine={false}
                 tickLine={false}
-                interval={trendRange === 'month' ? 4 : 0}
+                interval={trendRange === 'month' ? 4 : trendRange === 'day' ? 2 : 0}
               />
               <YAxis
                 yAxisId="rating"
