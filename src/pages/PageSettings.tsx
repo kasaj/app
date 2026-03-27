@@ -421,7 +421,7 @@ export default function PageSettings() {
                 placeholder={t.settings.namePlaceholder}
                 className="w-full p-3 rounded-xl bg-themed-input border border-themed
                          focus:outline-none focus:border-themed-accent
-                         text-themed-primary placeholder:text-clay-400"
+                         text-themed-primary placeholder:text-themed-faint"
               />
             </div>
           </div>
@@ -572,7 +572,7 @@ export default function PageSettings() {
                 placeholder={t.settings.subscriptionPlaceholder}
                 className="w-full p-3 rounded-xl bg-themed-input border border-themed
                          focus:outline-none focus:border-themed-accent
-                         text-themed-primary placeholder:text-clay-400"
+                         text-themed-primary placeholder:text-themed-faint"
               />
             </div>
             <button

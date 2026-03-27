@@ -137,7 +137,7 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
                   placeholder={t.flow.notePlaceholder}
                   className="w-full p-4 rounded-xl bg-themed-input border border-themed
                            focus:outline-none focus:border-themed-accent resize-none h-20
-                           text-themed-primary placeholder:text-clay-400"
+                           text-themed-primary placeholder:text-themed-faint"
                 />
 
                 <button onClick={handleUntimedSubmit} className="btn-primary w-full">
@@ -193,7 +193,7 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
                   placeholder={t.flow.notePlaceholder}
                   className="w-full p-4 rounded-xl bg-themed-input border border-themed
                            focus:outline-none focus:border-themed-accent resize-none h-20
-                           text-themed-primary placeholder:text-clay-400"
+                           text-themed-primary placeholder:text-themed-faint"
                 />
 
                 <button onClick={handleTimedBeforeSubmit} className="btn-primary w-full">
@@ -230,7 +230,7 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
                 placeholder={t.flow.notePlaceholder}
                 className="w-full p-4 rounded-xl bg-themed-input border border-themed
                          focus:outline-none focus:border-themed-accent resize-none h-20
-                         text-themed-primary placeholder:text-clay-400"
+                         text-themed-primary placeholder:text-themed-faint"
               />
 
               <button onClick={handleTimedAfterSubmit} className="btn-primary w-full">

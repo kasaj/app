@@ -24,7 +24,7 @@ export default function StarRating({ value, onChange, size = 'md' }: StarRatingP
             value && star <= value ? 'opacity-100' : 'opacity-30'
           }`}
         >
-          <span className="text-ochre-400">&#9733;</span>
+          <span className="text-themed-ochre">&#9733;</span>
         </button>
       ))}
     </div>

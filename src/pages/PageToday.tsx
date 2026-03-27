@@ -142,9 +142,9 @@ export default function PageToday() {
           completedToday={completedTodayTypes.has(activity.type)}
         />
         {editMode && (
-          <div className="absolute top-2 right-2 w-5 h-5 bg-themed-accent rounded-full
-                        flex items-center justify-center">
-            <svg className="w-2.5 h-2.5 text-cream-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: 'var(--accent-solid)' }}>
+            <svg className="w-2.5 h-2.5" style={{ color: 'var(--accent-text-on-solid)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
@@ -163,11 +163,11 @@ export default function PageToday() {
         </div>
         <button
           onClick={() => setEditMode(!editMode)}
-          className={`px-3 py-1.5 text-sm rounded-xl transition-colors flex items-center gap-2 ${
-            editMode
-              ? 'bg-themed-accent text-cream-50'
-              : 'bg-clay-200 text-themed-secondary hover:bg-clay-300'
-          }`}
+          className="px-3 py-1.5 text-sm rounded-xl transition-colors flex items-center gap-2"
+          style={{
+            backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
+            color: editMode ? 'var(--accent-text-on-solid)' : 'var(--text-secondary)',
+          }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -178,7 +178,7 @@ export default function PageToday() {
       </header>
 
       {editMode && (
-        <div className="mb-4 p-3 bg-forest-50 rounded-xl border border-forest-200">
+        <div className="mb-4 p-3 rounded-xl border" style={{ backgroundColor: 'var(--accent-bg)', borderColor: 'var(--accent-border)' }}>
           <p className="text-sm text-themed-accent">{t.today.editHint}</p>
         </div>
       )}

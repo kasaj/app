@@ -135,7 +135,7 @@ export default function Timer({ durationMinutes, onComplete, onCancel }: TimerPr
             fill="none"
             stroke="currentColor"
             strokeWidth="4"
-            className="text-clay-200"
+            className="text-themed-faint"
           />
           <circle
             cx="50"
@@ -165,7 +165,7 @@ export default function Timer({ durationMinutes, onComplete, onCancel }: TimerPr
         <div className="flex gap-3">
           <button
             onClick={togglePause}
-            className="flex-1 px-4 py-2 rounded-xl bg-clay-200 text-themed-secondary hover:bg-clay-300 transition-colors"
+            className="flex-1 px-4 py-2 rounded-xl bg-themed-input text-themed-secondary hover:bg-themed-input transition-colors"
           >
             {isRunning ? t.timer.pause : t.timer.resume}
           </button>
@@ -178,7 +178,8 @@ export default function Timer({ durationMinutes, onComplete, onCancel }: TimerPr
         </div>
         <button
           onClick={handleFinishEarly}
-          className="w-full px-4 py-2 rounded-xl bg-themed-accent text-white hover:bg-forest-700 transition-colors"
+          className="w-full px-4 py-2 rounded-xl transition-colors"
+          style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
         >
           {t.timer.finishEarly}
         </button>

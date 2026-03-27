@@ -71,7 +71,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, t }: ActivityRo
         }`}
       >
         {selected && (
-          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-3 h-3 text-themed-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
         )}
@@ -505,7 +505,7 @@ export default function PageTime() {
             <button
               onClick={handleSelectAll}
               className="px-3 py-1.5 text-sm rounded-xl bg-themed-input text-themed-muted
-                       hover:bg-clay-200 transition-colors"
+                       hover:bg-themed-input transition-colors"
             >
               {selectedIds.size === allActivityIds.length ? t.time.deselectAll : t.time.selectAll}
             </button>
