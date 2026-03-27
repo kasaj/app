@@ -229,92 +229,65 @@ function generateHistoryMarkdown(data: DayEntry[], lang: string): string {
   return md;
 }
 
-interface ConfigActivity {
+interface ExportActivity {
   type: string;
   emoji: string;
   durationMinutes: number | null;
-  cs: { name: string; description: string; variants?: string[] };
-  en: { name: string; description: string; variants?: string[] };
+  name: string;
+  description: string;
+  variants?: string[];
 }
 
-interface AppConfig {
+interface ExportConfig {
   version: 1;
   exportedAt: string;
   name?: string;
-  language?: 'cs' | 'en';
-  theme?: 'classic' | 'modern' | 'dark';
-  activities: ConfigActivity[];
-  info: { cs: Record<string, unknown>; en: Record<string, unknown> };
+  language: string;
+  theme: string;
+  activities: ExportActivity[];
+  info: Record<string, unknown>;
 }
 
-function generateConfig(lang: string, currentTheme: string, profileName: string): AppConfig {
+function generateExport(lang: string, currentTheme: string, profileName: string): ExportConfig {
   const activities = loadActivities();
-  const cs = translations.cs;
-  const en = translations.en;
 
-  const configActivities: ConfigActivity[] = activities.map((activity) => {
-    const csTransKey = activity.type as keyof typeof cs.activities;
-    const enTransKey = activity.type as keyof typeof en.activities;
-    const csTrans = cs.activities[csTransKey];
-    const enTrans = en.activities[enTransKey];
+  const exportActivities: ExportActivity[] = activities.map((activity) => ({
+    type: activity.type,
+    emoji: activity.emoji,
+    durationMinutes: activity.durationMinutes,
+    name: activity.name,
+    description: activity.description,
+    variants: activity.variants,
+  }));
 
-    const csData: ConfigActivity['cs'] = csTrans
-      ? { name: csTrans.name, description: csTrans.desc, ...('variants' in csTrans ? { variants: [...csTrans.variants] } : {}) }
-      : { name: activity.name, description: activity.description, ...(activity.variants ? { variants: activity.variants } : {}) };
-
-    const enData: ConfigActivity['en'] = enTrans
-      ? { name: enTrans.name, description: enTrans.desc, ...('variants' in enTrans ? { variants: [...enTrans.variants] } : {}) }
-      : { name: activity.name, description: activity.description, ...(activity.variants ? { variants: activity.variants } : {}) };
-
-    return {
-      type: activity.type,
-      emoji: activity.emoji,
-      durationMinutes: activity.durationMinutes,
-      cs: csData,
-      en: enData,
-    };
-  });
+  // Get info for current language + user notes
+  let userNotes = { why: '', how: '', what: '' };
+  try {
+    const stored = localStorage.getItem(`pra_info_notes_${lang}`);
+    if (stored) userNotes = JSON.parse(stored);
+  } catch { /* default */ }
+  const cfgInfo = { ...(getCachedConfig()?.info?.[lang as 'cs' | 'en'] || {}) };
 
   return {
     version: 1,
     exportedAt: new Date().toISOString(),
     name: profileName,
-    language: lang as 'cs' | 'en',
-    theme: currentTheme as 'classic' | 'modern' | 'dark',
-    activities: configActivities,
-    info: (() => {
-      // Merge config info with user notes from localStorage (per language)
-      const loadLangNotes = (l: string) => {
-        try {
-          const stored = localStorage.getItem(`pra_info_notes_${l}`);
-          if (stored) return JSON.parse(stored);
-        } catch { /* default */ }
-        return { why: '', how: '', what: '' };
-      };
-      const csNotes = loadLangNotes('cs');
-      const enNotes = loadLangNotes('en');
-      const csInfo = { ...(getCachedConfig()?.info?.cs || {}) };
-      const enInfo = { ...(getCachedConfig()?.info?.en || {}) };
-      return {
-        cs: { ...csInfo, noteWhy: csNotes.why, noteHow: csNotes.how, noteWhat: csNotes.what },
-        en: { ...enInfo, noteWhy: enNotes.why, noteHow: enNotes.how, noteWhat: enNotes.what },
-      };
-    })(),
+    language: lang,
+    theme: currentTheme,
+    activities: exportActivities,
+    info: { ...cfgInfo, noteWhy: userNotes.why, noteHow: userNotes.how, noteWhat: userNotes.what },
   };
 }
 
-function importConfig(config: AppConfig, lang: string): ActivityDefinition[] {
-  const activities: ActivityDefinition[] = config.activities.map((item) => {
-    const localized = lang === 'cs' ? item.cs : item.en;
-    return {
-      type: item.type,
-      emoji: item.emoji,
-      durationMinutes: item.durationMinutes,
-      name: localized.name,
-      description: localized.description,
-      variants: localized.variants,
-    };
-  });
+function importExport(config: ExportConfig): ActivityDefinition[] {
+  const activities: ActivityDefinition[] = config.activities.map((item) => ({
+    type: item.type,
+    emoji: item.emoji,
+    durationMinutes: item.durationMinutes,
+    name: item.name,
+    description: item.description,
+    variants: item.variants,
+  }));
   saveActivities(activities);
   return activities;
 }
@@ -368,10 +341,24 @@ export default function PageSettings() {
   }, [language]);
 
   const handleExportConfig = useCallback(() => {
-    const config = generateConfig(language, theme, name);
+    const config = generateExport(language, theme, name);
     const json = JSON.stringify(config, null, 2);
-    downloadFile(json, `pra-config-${new Date().toISOString().split('T')[0]}.json`, 'application/json;charset=utf-8');
+    downloadFile(json, `pra-config-${language}-${new Date().toISOString().split('T')[0]}.json`, 'application/json;charset=utf-8');
   }, [language, theme, name]);
+
+  const [synced, setSynced] = useState(false);
+
+  const handleSync = useCallback(() => {
+    // Clear activities from localStorage so they reload from config
+    localStorage.removeItem('pra_activities');
+    // Clear config hash to force re-read
+    localStorage.removeItem('pra_config_hash');
+    setSynced(true);
+    setTimeout(() => {
+      setSynced(false);
+      window.location.reload();
+    }, 1000);
+  }, []);
 
   const handleReset = useCallback(() => {
     if (!window.confirm(t.settings.resetConfirm)) return;
@@ -400,7 +387,7 @@ export default function PageSettings() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const config = JSON.parse(event.target?.result as string) as AppConfig;
+        const config = JSON.parse(event.target?.result as string) as ExportConfig;
         if (!config.version || !Array.isArray(config.activities)) {
           throw new Error('Invalid config format');
         }
@@ -409,8 +396,8 @@ export default function PageSettings() {
           const settings = loadSettings();
           saveSettings({ ...settings, name: config.name });
         }
-        // Import activities
-        importConfig(config, config.language || language);
+        // Import activities (single language)
+        importExport(config);
         // Import language
         if (config.language && (config.language === 'cs' || config.language === 'en')) {
           localStorage.setItem('pra_language', config.language);
@@ -419,20 +406,16 @@ export default function PageSettings() {
         if (config.theme && (config.theme === 'classic' || config.theme === 'modern' || config.theme === 'dark')) {
           saveTheme(config.theme);
         }
-        // Import user notes from info (per language)
+        // Import user notes (single language from export)
         if (config.info) {
-          for (const l of ['cs', 'en'] as const) {
-            const infoLang = config.info[l];
-            if (infoLang) {
-              const notes = {
-                why: (infoLang as Record<string, unknown>).noteWhy as string || '',
-                how: (infoLang as Record<string, unknown>).noteHow as string || '',
-                what: (infoLang as Record<string, unknown>).noteWhat as string || '',
-              };
-              if (notes.why || notes.how || notes.what) {
-                localStorage.setItem(`pra_info_notes_${l}`, JSON.stringify(notes));
-              }
-            }
+          const lang = config.language || language;
+          const notes = {
+            why: (config.info as Record<string, unknown>).noteWhy as string || '',
+            how: (config.info as Record<string, unknown>).noteHow as string || '',
+            what: (config.info as Record<string, unknown>).noteWhat as string || '',
+          };
+          if (notes.why || notes.how || notes.what) {
+            localStorage.setItem(`pra_info_notes_${lang}`, JSON.stringify(notes));
           }
         }
         setImportStatus('success');
@@ -620,6 +603,25 @@ export default function PageSettings() {
         >
           {saved ? `${t.settings.saved} ✓` : t.settings.save}
         </button>
+
+        {/* Sync */}
+        <section className="card">
+          <button
+            onClick={handleSync}
+            className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
+          >
+            <svg className="w-5 h-5 text-themed-accent-solid" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <div>
+              <div className="text-themed-accent-solid font-medium">
+                {synced ? `${t.settings.syncSuccess} ✓` : t.settings.syncConfig}
+              </div>
+              <div className="text-sm text-themed-faint">{t.settings.syncConfigDesc}</div>
+            </div>
+          </button>
+        </section>
 
         {/* Reset */}
         <section className="card" style={{ borderColor: 'var(--warn-text)', borderWidth: '1px' }}>
