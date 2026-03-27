@@ -87,8 +87,7 @@ export default function Timer({ durationMinutes, onComplete, onCancel }: TimerPr
 
   const handleFinishEarly = useCallback(() => {
     const elapsed = totalSeconds - secondsLeft;
-    playGong();
-    setTimeout(() => onComplete(elapsed), 1500);
+    onComplete(elapsed);
   }, [totalSeconds, secondsLeft, onComplete]);
 
   const togglePause = useCallback(() => {
