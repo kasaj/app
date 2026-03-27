@@ -384,13 +384,6 @@ export default function PageTime() {
 
   const colors = getChartColors();
 
-  const getRatingColor = (rating: number): string => {
-    if (rating === 0) return colors.barEmpty;
-    if (rating <= 2) return colors.barLow;
-    if (rating <= 3) return colors.barMid;
-    return colors.barHigh;
-  };
-
   return (
     <div className="page-container">
       <header className="mb-6">
