@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/logo.png" alt="PRA" width="120" />
+</p>
+
 # PRA
 
 A conscious space for daily practice.
