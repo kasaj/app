@@ -53,6 +53,23 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
     setTimedStep('timer');
   };
 
+  const handleDone = () => {
+    // Record activity immediately with full planned duration, skip timer
+    const newActivity: Activity = {
+      id: generateId(),
+      type: activity.type,
+      startedAt,
+      completedAt: new Date().toISOString(),
+      durationMinutes: activity.durationMinutes,
+      actualDurationSeconds: (activity.durationMinutes || 0) * 60,
+      selectedVariant: selectedVariant || undefined,
+      ratingBefore: ratingBefore || undefined,
+      noteBefore: noteBefore || undefined,
+    };
+    addActivity(newActivity);
+    onClose();
+  };
+
   const handleTimerComplete = (elapsedSeconds: number) => {
     actualDurationRef.current = elapsedSeconds;
     setTimedStep('rating-after');
@@ -200,9 +217,18 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
                            text-themed-primary placeholder:text-themed-faint"
                 />
 
-                <button onClick={handleTimedBeforeSubmit} className="btn-primary w-full">
-                  {t.flow.start} ({activity.durationMinutes} min)
-                </button>
+                <div className="flex gap-3">
+                  <button onClick={handleTimedBeforeSubmit} className="btn-primary flex-1">
+                    {t.flow.start} ({activity.durationMinutes} min)
+                  </button>
+                  <button
+                    onClick={handleDone}
+                    className="flex-1 py-3 rounded-xl border transition-colors"
+                    style={{ borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }}
+                  >
+                    {t.flow.done}
+                  </button>
+                </div>
               </div>
             </div>
           )}
