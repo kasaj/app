@@ -8,9 +8,18 @@ interface ActivityCardProps {
   completedCount?: number;
   completedYesterday?: boolean;
   yesterdayCount?: number;
+  totalSeconds?: number;
 }
 
-export default function ActivityCard({ activity, onClick, completedToday, completedCount, completedYesterday, yesterdayCount }: ActivityCardProps) {
+function formatTotalTime(seconds: number): string {
+  if (seconds === 0) return '';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h${m > 0 ? ` ${m}m` : ''}`;
+  return `${m}m`;
+}
+
+export default function ActivityCard({ activity, onClick, completedToday, completedCount, completedYesterday, yesterdayCount, totalSeconds }: ActivityCardProps) {
   const { t } = useLanguage();
 
   return (
@@ -25,16 +34,23 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
         <span className="text-2xl">{activity.emoji}</span>
         <span className="font-serif text-themed-primary flex-1">{activity.name}</span>
 
-        {/* Previous session - gray */}
-        {completedYesterday && (
+        {/* Previous session + total time - gray */}
+        {(completedYesterday || (totalSeconds || 0) > 0) && (
           <span className="flex items-center gap-1 opacity-40">
-            <span className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--text-faint)' }}>
-              <svg className="w-2.5 h-2.5" style={{ color: 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-            {(yesterdayCount || 0) > 1 && (
-              <span className="text-xs text-themed-faint">{yesterdayCount}</span>
+            {completedYesterday && (
+              <>
+                <span className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--text-faint)' }}>
+                  <svg className="w-2.5 h-2.5" style={{ color: 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                {(yesterdayCount || 0) > 1 && (
+                  <span className="text-xs text-themed-faint">{yesterdayCount}</span>
+                )}
+              </>
+            )}
+            {(totalSeconds || 0) > 0 && (
+              <span className="text-xs text-themed-faint">{formatTotalTime(totalSeconds || 0)}</span>
             )}
           </span>
         )}

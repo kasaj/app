@@ -8,7 +8,7 @@ import {
   getTranslatedActivity,
   markActivityModified,
 } from '../utils/activities';
-import { getDayEntry, getTodayDate } from '../utils/storage';
+import { getDayEntry, getTodayDate, loadAllData } from '../utils/storage';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
@@ -88,6 +88,20 @@ export default function PageToday() {
       }
     });
     return counts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey, sessionStart]);
+
+  // Total time per activity type (all history)
+  const totalTimePerActivity = useMemo(() => {
+    const allData = loadAllData();
+    const times = new Map<string, number>();
+    allData.forEach((day) => {
+      day.activities.forEach((a) => {
+        const secs = a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60);
+        times.set(a.type, (times.get(a.type) || 0) + secs);
+      });
+    });
+    return times;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, sessionStart]);
 
@@ -203,6 +217,7 @@ export default function PageToday() {
           completedCount={completedTodayCounts.get(activity.type) || 0}
           completedYesterday={completedPreviousCounts.has(activity.type)}
           yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
+          totalSeconds={totalTimePerActivity.get(activity.type) || 0}
         />
         {editMode && (
           <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
@@ -222,21 +237,20 @@ export default function PageToday() {
       <header className="mb-6">
         <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
         <div className="flex items-center justify-between mt-1">
-          <p className="text-themed-faint">{t.today.subtitle}</p>
           <div className="flex items-center gap-2">
+            <p className="text-themed-faint">{t.today.subtitle}</p>
             <button
               onClick={handleNewSession}
-              className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
-              style={{
-                backgroundColor: 'var(--bg-input)',
-                color: 'var(--text-faint)',
-              }}
+              className="p-1 transition-colors"
+              style={{ color: 'var(--text-faint)' }}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShowNewActivity(true)}
               className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
