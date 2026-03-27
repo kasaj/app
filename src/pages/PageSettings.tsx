@@ -346,7 +346,6 @@ export default function PageSettings() {
 
   const handleReset = useCallback(() => {
     if (!window.confirm(t.settings.resetConfirm)) return;
-    if (!window.confirm(t.settings.resetConfirm2)) return;
     // Clear all localStorage
     localStorage.clear();
     // Unregister service workers
