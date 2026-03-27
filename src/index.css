@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&family=Lora:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,8 +39,8 @@
   --chart-tick: #475569;
   --chart-tooltip-bg: #ffffff;
   --chart-tooltip-border: #e2e8f0;
-  --font-heading: 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-heading: 'DM Sans', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
   --radius-card: 0.75rem;
   --radius-button: 0.5rem;
   --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -79,8 +81,8 @@
   --chart-tick: #6f4b3e;
   --chart-tooltip-bg: #fdf9f3;
   --chart-tooltip-border: #e4d5c7;
-  --font-heading: Georgia, Cambria, 'Times New Roman', serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Lora', Georgia, Cambria, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
   --radius-card: 1rem;
   --radius-button: 0.75rem;
   --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -121,8 +123,8 @@
   --chart-tick: #94a3b8;
   --chart-tooltip-bg: #1e293b;
   --chart-tooltip-border: #334155;
-  --font-heading: 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-heading: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-body: 'DM Sans', system-ui, sans-serif;
   --radius-card: 0.75rem;
   --radius-button: 0.5rem;
   --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.3);
