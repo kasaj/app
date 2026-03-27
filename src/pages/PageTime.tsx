@@ -216,7 +216,7 @@ export default function PageTime() {
     const start = new Date(today);
     start.setDate(start.getDate() - (days - 1));
 
-    const result: Array<{ day: string; avgRating: number | null; count: number }> = [];
+    const result: Array<{ day: string; avgRating: number; count: number }> = [];
 
     for (let i = 0; i < days; i++) {
       const date = new Date(start);
@@ -224,7 +224,7 @@ export default function PageTime() {
       const dateStr = date.toISOString().split('T')[0];
       const dayEntry = data.find((d) => d.date === dateStr);
 
-      let avgRating: number | null = null;
+      let avgRating: number = 0;
       let count = 0;
       if (dayEntry) {
         count = dayEntry.activities.length;
@@ -328,8 +328,8 @@ export default function PageTime() {
 
   const colors = getChartColors();
 
-  const getRatingColor = (rating: number | null): string => {
-    if (rating === null) return colors.barEmpty;
+  const getRatingColor = (rating: number): string => {
+    if (rating === 0) return colors.barEmpty;
     if (rating <= 2) return colors.barLow;
     if (rating <= 3) return colors.barMid;
     return colors.barHigh;
@@ -425,7 +425,7 @@ export default function PageTime() {
                   fontSize: '12px',
                 }}
                 formatter={(value: number, name: string) => {
-                  if (name === 'avgRating') return value !== null ? [value, t.time.rating] : ['-', t.time.rating];
+                  if (name === 'avgRating') return [value || '-', t.time.rating];
                   return [value, language === 'cs' ? 'Aktivit' : 'Activities'];
                 }}
               />
