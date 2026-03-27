@@ -125,7 +125,7 @@ export default function PageTime() {
   const { t, language } = useLanguage();
   const [data, setData] = useState(() => loadAllData());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [trendRange, setTrendRange] = useState<'day' | 'week' | 'month'>('week');
+  const [trendRange, setTrendRange] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [editingRecord, setEditingRecord] = useState<Activity | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
@@ -231,6 +231,37 @@ export default function PageTime() {
             else if (a.rating) rating = a.rating;
             result.push({ day: time, avgRating: rating, count: 1 });
           });
+      }
+    } else if (trendRange === 'year') {
+      // Last 52 weeks aggregated
+      const today = new Date();
+      for (let w = 51; w >= 0; w--) {
+        const weekEnd = new Date(today);
+        weekEnd.setDate(today.getDate() - w * 7);
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekEnd.getDate() - 6);
+
+        let count = 0;
+        const ratings: number[] = [];
+        for (let d = 0; d < 7; d++) {
+          const date = new Date(weekStart);
+          date.setDate(weekStart.getDate() + d);
+          const dateStr = date.toISOString().split('T')[0];
+          const dayEntry = data.find((de) => de.date === dateStr);
+          if (dayEntry) {
+            count += dayEntry.activities.length;
+            dayEntry.activities.forEach((a) => {
+              if (a.ratingAfter) ratings.push(a.ratingAfter);
+              else if (a.rating) ratings.push(a.rating);
+            });
+          }
+        }
+
+        const avgRating = ratings.length > 0
+          ? Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10
+          : 0;
+        const label = `${weekStart.getDate()}.${weekStart.getMonth() + 1}`;
+        result.push({ day: label, avgRating, count });
       }
     } else {
       const today = new Date();
@@ -398,10 +429,10 @@ export default function PageTime() {
       <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-serif text-base text-themed-secondary">
-            {trendRange === 'day' ? t.time.dailyTrend : trendRange === 'week' ? t.time.weeklyTrend : t.time.monthlyTrend}
+            {trendRange === 'day' ? t.time.dailyTrend : trendRange === 'week' ? t.time.weeklyTrend : trendRange === 'month' ? t.time.monthlyTrend : t.time.yearlyTrend}
           </h2>
           <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
-            {(['day', 'week', 'month'] as const).map((r) => (
+            {(['day', 'week', 'month', 'year'] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setTrendRange(r)}
@@ -411,20 +442,20 @@ export default function PageTime() {
                     : 'text-themed-faint hover:text-themed-secondary'
                 }`}
               >
-                {r === 'day' ? t.time.trendDay : r === 'week' ? t.time.trendWeek : t.time.trendMonth}
+                {r === 'day' ? t.time.trendDay : r === 'week' ? t.time.trendWeek : r === 'month' ? t.time.trendMonth : t.time.trendYear}
               </button>
             ))}
           </div>
         </div>
         <div className="card">
-          <ResponsiveContainer width="100%" height={trendRange === 'month' ? 180 : 150}>
+          <ResponsiveContainer width="100%" height={trendRange === 'year' ? 200 : trendRange === 'month' ? 180 : 150}>
             <BarChart data={trendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: trendRange === 'month' ? 9 : trendRange === 'day' ? 9 : 11, fill: colors.tick }}
+                tick={{ fontSize: trendRange === 'year' ? 8 : trendRange === 'month' ? 9 : trendRange === 'day' ? 9 : 11, fill: colors.tick }}
                 axisLine={false}
                 tickLine={false}
-                interval={trendRange === 'month' ? 4 : trendRange === 'day' ? 2 : 0}
+                interval={trendRange === 'year' ? 7 : trendRange === 'month' ? 4 : trendRange === 'day' ? 2 : 0}
               />
               <YAxis
                 yAxisId="rating"
