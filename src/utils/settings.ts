@@ -14,7 +14,6 @@ export const loadSettings = (): UserSettings => {
   return {
     language: 'cs',
     name: '',
-    email: '',
   };
 };
 

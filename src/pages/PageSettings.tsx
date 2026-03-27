@@ -215,13 +215,14 @@ interface ConfigActivity {
 interface AppConfig {
   version: 1;
   exportedAt: string;
+  name?: string;
   language?: 'cs' | 'en';
   theme?: 'classic' | 'modern' | 'dark';
   activities: ConfigActivity[];
   info: { cs: Record<string, string>; en: Record<string, string> };
 }
 
-function generateConfig(lang: string, currentTheme: string): AppConfig {
+function generateConfig(lang: string, currentTheme: string, profileName: string): AppConfig {
   const activities = loadActivities();
   const cs = translations.cs;
   const en = translations.en;
@@ -252,6 +253,7 @@ function generateConfig(lang: string, currentTheme: string): AppConfig {
   return {
     version: 1,
     exportedAt: new Date().toISOString(),
+    name: profileName,
     language: lang as 'cs' | 'en',
     theme: currentTheme as 'classic' | 'modern' | 'dark',
     activities: configActivities,
@@ -303,7 +305,6 @@ function downloadFile(content: string, filename: string, mimeType = 'text/markdo
 export default function PageSettings() {
   const { language, setLanguage, t } = useLanguage();
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [saved, setSaved] = useState(false);
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
   const [theme, setThemeState] = useState<Theme>(loadTheme);
@@ -316,12 +317,17 @@ export default function PageSettings() {
 
   useEffect(() => {
     const settings = loadSettings();
-    setName(settings.name || '');
-    setEmail(settings.email || '');
+    if (settings.name) {
+      setName(settings.name);
+    } else {
+      // Default from config
+      const cfg = getCachedConfig();
+      setName(cfg?.name || 'default');
+    }
   }, []);
 
   const handleSave = () => {
-    saveSettings({ language, name, email });
+    saveSettings({ language, name });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -333,7 +339,7 @@ export default function PageSettings() {
   }, [language]);
 
   const handleExportConfig = useCallback(() => {
-    const config = generateConfig(language, theme);
+    const config = generateConfig(language, theme, name);
     const json = JSON.stringify(config, null, 2);
     downloadFile(json, `pra-config-${new Date().toISOString().split('T')[0]}.json`, 'application/json;charset=utf-8');
   }, [language, theme]);
@@ -368,6 +374,11 @@ export default function PageSettings() {
         const config = JSON.parse(event.target?.result as string) as AppConfig;
         if (!config.version || !Array.isArray(config.activities)) {
           throw new Error('Invalid config format');
+        }
+        // Import name
+        if (config.name) {
+          const settings = loadSettings();
+          saveSettings({ ...settings, name: config.name });
         }
         // Import activities
         importConfig(config, config.language || language);
@@ -419,6 +430,12 @@ export default function PageSettings() {
                          text-themed-primary placeholder:text-themed-faint"
               />
             </div>
+            <button
+              onClick={handleSave}
+              className="btn-primary w-full mt-4"
+            >
+              {saved ? `${t.settings.saved} ✓` : t.settings.save}
+            </button>
           </div>
         </section>
 
@@ -550,32 +567,6 @@ export default function PageSettings() {
                 {th === 'classic' ? t.settings.themeClassic : th === 'modern' ? t.settings.themeModern : t.settings.themeDark}
               </button>
             ))}
-          </div>
-        </section>
-
-        {/* Subscription */}
-        <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-4">
-            {t.settings.subscription}
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.settings.subscriptionPlaceholder}
-                className="w-full p-3 rounded-xl bg-themed-input border border-themed
-                         focus:outline-none focus:border-themed-accent
-                         text-themed-primary placeholder:text-themed-faint"
-              />
-            </div>
-            <button
-              onClick={handleSave}
-              className="btn-primary w-full"
-            >
-              {saved ? `${t.settings.saved} ✓` : t.settings.save}
-            </button>
           </div>
         </section>
 

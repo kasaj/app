@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "name": "default",
   "language": "cs",
   "theme": "modern",
   "activities": [

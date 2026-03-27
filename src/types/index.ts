@@ -40,7 +40,6 @@ export interface DayEntry {
 export interface UserSettings {
   language: 'cs' | 'en';
   name?: string;
-  email?: string;
 }
 
 export type Rating = 1 | 2 | 3 | 4 | 5;
