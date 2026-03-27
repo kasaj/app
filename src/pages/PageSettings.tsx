@@ -347,11 +347,14 @@ export default function PageSettings() {
 
   const [synced, setSynced] = useState(false);
 
-  const handleSync = useCallback(() => {
-    // Clear activities from localStorage so they reload from config
-    localStorage.removeItem('pra_activities');
-    // Clear config hash to force re-read
-    localStorage.removeItem('pra_config_hash');
+  const handleSync = useCallback(async () => {
+    // Re-fetch config fresh
+    const { loadConfig } = await import('../utils/config');
+    await loadConfig();
+    // Merge: keep user activities, add new ones from config
+    const { mergeWithConfig, loadActivities: reload } = await import('../utils/activities');
+    const current = reload();
+    mergeWithConfig(current);
     setSynced(true);
     setTimeout(() => {
       setSynced(false);

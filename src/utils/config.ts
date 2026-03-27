@@ -65,13 +65,8 @@ export async function loadConfig(): Promise<AppConfig> {
     const text = await res.text();
     cachedConfig = JSON.parse(text);
 
-    // Detect config changes - if hash differs, clear cached activities
+    // Track config hash for sync detection
     const newHash = simpleHash(text);
-    const oldHash = localStorage.getItem(CONFIG_HASH_KEY);
-    if (oldHash !== null && oldHash !== newHash) {
-      // Config changed since last load - clear localStorage activities
-      localStorage.removeItem('pra_activities');
-    }
     localStorage.setItem(CONFIG_HASH_KEY, newHash);
 
     return cachedConfig!;

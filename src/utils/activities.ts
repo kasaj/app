@@ -158,16 +158,33 @@ const getDefaultFromConfig = (lang?: string): ActivityDefinition[] => {
   });
 };
 
+// Merge config activities into existing user activities
+// - Keep all existing user activities untouched
+// - Add new activities from config that don't exist in user's list
+export const mergeWithConfig = (existing: ActivityDefinition[]): ActivityDefinition[] => {
+  const configActivities = getDefaultFromConfig();
+  const existingTypes = new Set(existing.map(a => a.type));
+  const newFromConfig = configActivities.filter(a => !existingTypes.has(a.type));
+  if (newFromConfig.length === 0) return existing;
+  const merged = [...existing, ...newFromConfig];
+  saveActivities(merged);
+  return merged;
+};
+
 export const loadActivities = (): ActivityDefinition[] => {
   try {
     const stored = localStorage.getItem(ACTIVITIES_STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const activities = JSON.parse(stored) as ActivityDefinition[];
+      // Auto-merge new activities from config
+      return mergeWithConfig(activities);
     }
   } catch {
     // Při chybě vrátíme výchozí
   }
-  return getDefaultFromConfig();
+  const defaults = getDefaultFromConfig();
+  saveActivities(defaults);
+  return defaults;
 };
 
 export const saveActivities = (activities: ActivityDefinition[]): void => {
