@@ -39,24 +39,46 @@ export default function PageInfo() {
         )}
 
         {info.intro2 && (
-          <section className="card">
-            <p>{info.intro2}</p>
+          <section>
+            <h2 className="font-serif text-xl text-themed-primary mb-3">{language === 'cs' ? 'Proč' : 'Why'}</h2>
+            <div className="card">
+              <p>{info.intro2}</p>
+            </div>
           </section>
         )}
 
         {info.sequence && (
-          <section className="card">
-            <p>{info.sequence}</p>
+          <section>
+            <h2 className="font-serif text-xl text-themed-primary mb-3">{language === 'cs' ? 'Jak' : 'How'}</h2>
+            <div className="card">
+              <p>{info.sequence}</p>
+            </div>
           </section>
         )}
 
-        {info.intro3 && (
-          <section className="card">
-            {info.intro3.split('\n\n').map((paragraph, i) => (
-              <p key={i} className={i > 0 ? 'mt-4' : ''}>{paragraph}</p>
-            ))}
-          </section>
-        )}
+        {info.intro3 && (() => {
+          const parts = info.intro3.split('\n\n');
+          const whatText = parts[0];
+          const iText = parts.length > 1 ? parts.slice(1).join('\n\n') : null;
+          return (
+            <>
+              <section>
+                <h2 className="font-serif text-xl text-themed-primary mb-3">{language === 'cs' ? 'Co' : 'What'}</h2>
+                <div className="card">
+                  <p>{whatText}</p>
+                </div>
+              </section>
+              {iText && (
+                <section>
+                  <h2 className="font-serif text-xl text-themed-primary mb-3">{language === 'cs' ? 'Já' : 'I'}</h2>
+                  <div className="card">
+                    <p>{iText}</p>
+                  </div>
+                </section>
+              )}
+            </>
+          );
+        })()}
 
         {info.bioTitle && info.bioText && (
           <section>
