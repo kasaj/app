@@ -6,6 +6,7 @@ import {
   saveActivities,
   deleteActivity,
   getTranslatedActivity,
+  markActivityModified,
 } from '../utils/activities';
 import { getDayEntry, getTodayDate } from '../utils/storage';
 import ActivityCard from '../components/ActivityCard';
@@ -63,6 +64,7 @@ export default function PageToday() {
     }
 
     saveActivities(current);
+    markActivityModified(activity.type);
     setActivities(current);
     setEditingActivity(null);
     setShowNewActivity(false);

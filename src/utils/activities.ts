@@ -4,6 +4,26 @@ import { translations } from '../i18n/translations';
 import { getCachedConfig } from './config';
 
 const ACTIVITIES_STORAGE_KEY = 'pra_activities';
+const USER_MODIFIED_KEY = 'pra_user_modified_activities';
+
+// Track which activity types the user has explicitly edited
+function getUserModified(): Set<string> {
+  try {
+    const stored = localStorage.getItem(USER_MODIFIED_KEY);
+    if (stored) return new Set(JSON.parse(stored));
+  } catch { /* default */ }
+  return new Set();
+}
+
+export function markActivityModified(type: string): void {
+  markUserModified(type);
+}
+
+function markUserModified(type: string): void {
+  const modified = getUserModified();
+  modified.add(type);
+  localStorage.setItem(USER_MODIFIED_KEY, JSON.stringify([...modified]));
+}
 
 // Default activity types that have translations
 const TRANSLATABLE_TYPES = ['sobe', 'pohyb', 'rozjimani', 'komentar', 'objeti', 'vyzva'] as const;
@@ -159,15 +179,40 @@ const getDefaultFromConfig = (lang?: string): ActivityDefinition[] => {
 };
 
 // Merge config activities into existing user activities
-// - Keep all existing user activities untouched
-// - Add new activities from config that don't exist in user's list
+// - User-modified activities: keep user version
+// - Non-modified activities: update from config
+// - New activities in config: add them
 export const mergeWithConfig = (existing: ActivityDefinition[]): ActivityDefinition[] => {
   const configActivities = getDefaultFromConfig();
+  const userModified = getUserModified();
+  const configByType = new Map(configActivities.map(a => [a.type, a]));
   const existingTypes = new Set(existing.map(a => a.type));
+
+  let changed = false;
+
+  // Update existing non-modified activities from config
+  const merged = existing.map(a => {
+    if (userModified.has(a.type)) return a; // user edited - keep
+    const fromConfig = configByType.get(a.type);
+    if (!fromConfig) return a; // not in config (custom) - keep
+    // Check if different
+    if (a.name !== fromConfig.name || a.description !== fromConfig.description ||
+        a.emoji !== fromConfig.emoji || a.durationMinutes !== fromConfig.durationMinutes ||
+        JSON.stringify(a.variants) !== JSON.stringify(fromConfig.variants)) {
+      changed = true;
+      return fromConfig;
+    }
+    return a;
+  });
+
+  // Add new activities from config
   const newFromConfig = configActivities.filter(a => !existingTypes.has(a.type));
-  if (newFromConfig.length === 0) return existing;
-  const merged = [...existing, ...newFromConfig];
-  saveActivities(merged);
+  if (newFromConfig.length > 0) {
+    merged.push(...newFromConfig);
+    changed = true;
+  }
+
+  if (changed) saveActivities(merged);
   return merged;
 };
 
@@ -195,6 +240,7 @@ export const addCustomActivity = (activity: ActivityDefinition): ActivityDefinit
   const activities = loadActivities();
   activities.push(activity);
   saveActivities(activities);
+  markUserModified(activity.type);
   return activities;
 };
 
@@ -207,6 +253,7 @@ export const updateActivity = (
   if (index >= 0) {
     activities[index] = { ...activities[index], ...updates };
     saveActivities(activities);
+    markUserModified(type);
   }
   return activities;
 };
@@ -215,6 +262,7 @@ export const deleteActivity = (type: ActivityType): ActivityDefinition[] => {
   const activities = loadActivities();
   const filtered = activities.filter((a) => a.type !== type);
   saveActivities(filtered);
+  markUserModified(type);
   return filtered;
 };
 
