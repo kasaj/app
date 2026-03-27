@@ -90,12 +90,6 @@ export default function PageInfo() {
       </header>
 
       <div className="space-y-6 text-themed-secondary leading-relaxed">
-        {info.intro && (
-          <section className="card">
-            <Paragraphs text={info.intro} />
-          </section>
-        )}
-
         {cfgInfo.quotes && cfgInfo.quotes.length > 0 && (
           <section className="space-y-3">
             {cfgInfo.quotes.map((q: ConfigQuote, i: number) => (
@@ -134,6 +128,12 @@ export default function PageInfo() {
               <Paragraphs text={info.what} />
               <NoteField value={notes.what} onChange={(v) => updateNote('what', v)} placeholder={cfgInfo.noteWhat || t.info.notePlaceholder} />
             </div>
+          </section>
+        )}
+
+        {info.intro && (
+          <section className="card">
+            <Paragraphs text={info.intro} />
           </section>
         )}
 
