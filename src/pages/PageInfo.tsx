@@ -2,24 +2,31 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../i18n';
 import { getCachedConfig, ConfigInfo, ConfigQuote } from '../utils/config';
 
-const NOTES_KEY = 'pra_info_notes';
-
 interface InfoNotes {
   why: string;
   how: string;
   what: string;
 }
 
-function loadNotes(): InfoNotes {
-  try {
-    const stored = localStorage.getItem(NOTES_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch { /* default */ }
-  return { why: '', how: '', what: '' };
+function notesKey(lang: string): string {
+  return `pra_info_notes_${lang}`;
 }
 
-function saveNotes(notes: InfoNotes): void {
-  localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+function loadNotes(lang: string, cfgInfo: ConfigInfo): InfoNotes {
+  try {
+    const stored = localStorage.getItem(notesKey(lang));
+    if (stored) return JSON.parse(stored);
+  } catch { /* default */ }
+  // First run for this language - use config defaults
+  return {
+    why: cfgInfo.noteWhy || '',
+    how: cfgInfo.noteHow || '',
+    what: cfgInfo.noteWhat || '',
+  };
+}
+
+function saveNotesForLang(lang: string, notes: InfoNotes): void {
+  localStorage.setItem(notesKey(lang), JSON.stringify(notes));
 }
 
 function NoteField({ value, onChange, placeholder }: {
@@ -44,10 +51,11 @@ function Paragraphs({ text }: { text: string }) {
 
 export default function PageInfo() {
   const { language, t } = useLanguage();
-  const [notes, setNotes] = useState<InfoNotes>(loadNotes);
 
   const config = getCachedConfig();
   const cfgInfo: ConfigInfo = config?.info?.[language] || {};
+
+  const [notes, setNotes] = useState<InfoNotes>(() => loadNotes(language, cfgInfo));
 
   // New fields with fallback to legacy fields then translations
   const info = {
@@ -67,29 +75,18 @@ export default function PageInfo() {
 
   const placeholder = t.info.notePlaceholder;
 
+  // Reload notes when language changes
+  useEffect(() => {
+    setNotes(loadNotes(language, cfgInfo));
+  }, [language, cfgInfo]);
+
   const updateNote = useCallback((key: keyof InfoNotes, value: string) => {
     setNotes((prev) => {
       const next = { ...prev, [key]: value };
-      saveNotes(next);
+      saveNotesForLang(language, next);
       return next;
     });
-  }, []);
-
-  // Load notes from config on first run
-  useEffect(() => {
-    const stored = localStorage.getItem(NOTES_KEY);
-    if (!stored && cfgInfo) {
-      const initial: InfoNotes = {
-        why: cfgInfo.noteWhy || '',
-        how: cfgInfo.noteHow || '',
-        what: cfgInfo.noteWhat || '',
-      };
-      if (initial.why || initial.how || initial.what) {
-        setNotes(initial);
-        saveNotes(initial);
-      }
-    }
-  }, [cfgInfo]);
+  }, [language]);
 
   return (
     <div className="page-container">

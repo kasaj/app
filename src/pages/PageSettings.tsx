@@ -283,17 +283,21 @@ function generateConfig(lang: string, currentTheme: string, profileName: string)
     theme: currentTheme as 'classic' | 'modern' | 'dark',
     activities: configActivities,
     info: (() => {
-      // Merge config info with user notes from localStorage
-      let userNotes = { why: '', how: '', what: '' };
-      try {
-        const stored = localStorage.getItem('pra_info_notes');
-        if (stored) userNotes = JSON.parse(stored);
-      } catch { /* default */ }
+      // Merge config info with user notes from localStorage (per language)
+      const loadLangNotes = (l: string) => {
+        try {
+          const stored = localStorage.getItem(`pra_info_notes_${l}`);
+          if (stored) return JSON.parse(stored);
+        } catch { /* default */ }
+        return { why: '', how: '', what: '' };
+      };
+      const csNotes = loadLangNotes('cs');
+      const enNotes = loadLangNotes('en');
       const csInfo = { ...(getCachedConfig()?.info?.cs || {}) };
       const enInfo = { ...(getCachedConfig()?.info?.en || {}) };
       return {
-        cs: { ...csInfo, noteWhy: userNotes.why, noteHow: userNotes.how, noteWhat: userNotes.what },
-        en: { ...enInfo, noteWhy: userNotes.why, noteHow: userNotes.how, noteWhat: userNotes.what },
+        cs: { ...csInfo, noteWhy: csNotes.why, noteHow: csNotes.how, noteWhat: csNotes.what },
+        en: { ...enInfo, noteWhy: enNotes.why, noteHow: enNotes.how, noteWhat: enNotes.what },
       };
     })(),
   };
@@ -415,16 +419,20 @@ export default function PageSettings() {
         if (config.theme && (config.theme === 'classic' || config.theme === 'modern' || config.theme === 'dark')) {
           saveTheme(config.theme);
         }
-        // Import user notes from info
-        const importedInfo = config.info?.cs || config.info?.en;
-        if (importedInfo) {
-          const notes = {
-            why: (importedInfo as Record<string, unknown>).noteWhy as string || '',
-            how: (importedInfo as Record<string, unknown>).noteHow as string || '',
-            what: (importedInfo as Record<string, unknown>).noteWhat as string || '',
-          };
-          if (notes.why || notes.how || notes.what) {
-            localStorage.setItem('pra_info_notes', JSON.stringify(notes));
+        // Import user notes from info (per language)
+        if (config.info) {
+          for (const l of ['cs', 'en'] as const) {
+            const infoLang = config.info[l];
+            if (infoLang) {
+              const notes = {
+                why: (infoLang as Record<string, unknown>).noteWhy as string || '',
+                how: (infoLang as Record<string, unknown>).noteHow as string || '',
+                what: (infoLang as Record<string, unknown>).noteWhat as string || '',
+              };
+              if (notes.why || notes.how || notes.what) {
+                localStorage.setItem(`pra_info_notes_${l}`, JSON.stringify(notes));
+              }
+            }
           }
         }
         setImportStatus('success');
