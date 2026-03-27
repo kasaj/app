@@ -520,7 +520,6 @@ export default function PageSettings() {
             <p>{t.settings.installStep1}</p>
             <p>{t.settings.installStep2iOS}</p>
             <p>{t.settings.installStep2Android}</p>
-            <p className="text-themed-faint italic mt-2">{t.settings.installNote}</p>
           </div>
         </section>
 

@@ -6,6 +6,7 @@ export interface ConfigQuote {
 export interface ConfigInfo {
   title?: string;
   subtitle?: string;
+  statement?: string;
   intro?: string;
   quotes?: ConfigQuote[];
   why?: string;
