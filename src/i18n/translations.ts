@@ -120,9 +120,9 @@ export const translations = {
       sobe: { name: 'Zastavení', desc: 'Na pár minut se zastavit, vnímat, pobýt sám se sebou', variants: ['Dýchání', 'Sken těla', 'Tiché zastavení'] },
       pohyb: { name: 'Pohyb', desc: 'Protažení, procvičení, posilování, sport nebo chůze s vnímáním těla', variants: ['Chůze', 'Protažení', 'Posilování', 'Jóga', 'Tanec'] },
       rozjimani: { name: 'Rozjímání', desc: 'Tiché sezení, otevřená otázka, vnitřní prostor, pozorování přírody, pocitů, myšlenek', variants: ['Tiché sezení', 'Kontemplace', 'Journaling', 'Vděčnost'] },
-      komentar: { name: 'Komentář', desc: 'Reflexe, záměr, slovo nebo věta která provede dnem' },
-      objeti: { name: 'Objetí nebo kontakt', desc: 'Vědomý kontakt s druhým člověkem' },
-      vyzva: { name: 'Výzva', desc: 'Vědomé čelení tomu, čemu se vyhýbám. Jediná konkrétní akce uprostřed nepřehlednosti.' },
+      komentar: { name: 'Komentář', desc: 'Reflexe, záměr, slovo nebo věta která provede dnem', variants: ['Ranní záměr', 'Večerní reflexe', 'Vděčnost', 'Afirmace'] },
+      objeti: { name: 'Objetí nebo kontakt', desc: 'Vědomý kontakt s druhým člověkem', variants: ['Objetí', 'Podání ruky', 'Oční kontakt', 'Rozhovor'] },
+      vyzva: { name: 'Výzva', desc: 'Vědomé čelení tomu, čemu se vyhýbám. Jediná konkrétní akce uprostřed nepřehlednosti.', variants: ['Konfrontace strachu', 'Těžký rozhovor', 'Nový návyk', 'Malý krok'] },
     },
     // Settings page
     settings: {
@@ -279,9 +279,9 @@ export const translations = {
       sobe: { name: 'Pause', desc: 'Stop for a few minutes, observe, be present with yourself', variants: ['Breathing', 'Body scan', 'Silent pause'] },
       pohyb: { name: 'Movement', desc: 'Stretching, strengthening or walking with body awareness', variants: ['Walking', 'Stretching', 'Strengthening', 'Yoga', 'Dance'] },
       rozjimani: { name: 'Contemplation', desc: 'Silent sitting, open question, inner space', variants: ['Silent sitting', 'Contemplation', 'Journaling', 'Gratitude'] },
-      komentar: { name: 'Comment', desc: 'Reflection, intention, word or sentence to guide the day' },
-      objeti: { name: 'Embrace', desc: 'Conscious contact with another person' },
-      vyzva: { name: 'Challenge', desc: 'Consciously facing what I avoid. Single concrete action amid confusion' },
+      komentar: { name: 'Comment', desc: 'Reflection, intention, word or sentence to guide the day', variants: ['Morning intention', 'Evening reflection', 'Gratitude', 'Affirmation'] },
+      objeti: { name: 'Embrace', desc: 'Conscious contact with another person', variants: ['Hug', 'Handshake', 'Eye contact', 'Conversation'] },
+      vyzva: { name: 'Challenge', desc: 'Consciously facing what I avoid. Single concrete action amid confusion', variants: ['Facing fear', 'Difficult conversation', 'New habit', 'Small step'] },
     },
     // Settings page
     settings: {

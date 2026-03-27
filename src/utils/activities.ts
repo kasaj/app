@@ -121,6 +121,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '📜',
     description: 'Reflexe, záměr, slovo nebo věta která provede dnem',
     durationMinutes: null,
+    variants: ['Ranní záměr', 'Večerní reflexe', 'Vděčnost', 'Afirmace'],
   },
   {
     type: 'objeti',
@@ -128,6 +129,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '🤗',
     description: 'Vědomý kontakt s druhým člověkem',
     durationMinutes: null,
+    variants: ['Objetí', 'Podání ruky', 'Oční kontakt', 'Rozhovor'],
   },
   {
     type: 'vyzva',
@@ -135,6 +137,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '🔥',
     description: 'Vědomé čelení tomu, čemu se vyhýbám. Jediná konkrétní akce uprostřed nepřehlednosti.',
     durationMinutes: null,
+    variants: ['Konfrontace strachu', 'Těžký rozhovor', 'Nový návyk', 'Malý krok'],
   },
 ];
 

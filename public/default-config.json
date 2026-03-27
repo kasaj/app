@@ -54,11 +54,13 @@
       "durationMinutes": null,
       "cs": {
         "name": "Komentář",
-        "description": "Reflexe, záměr, slovo nebo věta která provede dnem"
+        "description": "Reflexe, záměr, slovo nebo věta která provede dnem",
+        "variants": ["Ranní záměr", "Večerní reflexe", "Vděčnost", "Afirmace"]
       },
       "en": {
         "name": "Comment",
-        "description": "Reflection, intention, word or sentence to guide the day"
+        "description": "Reflection, intention, word or sentence to guide the day",
+        "variants": ["Morning intention", "Evening reflection", "Gratitude", "Affirmation"]
       }
     },
     {
@@ -67,11 +69,13 @@
       "durationMinutes": null,
       "cs": {
         "name": "Objetí",
-        "description": "Vědomý kontakt s druhým člověkem"
+        "description": "Vědomý kontakt s druhým člověkem",
+        "variants": ["Objetí", "Podání ruky", "Oční kontakt", "Rozhovor"]
       },
       "en": {
         "name": "Embrace",
-        "description": "Conscious contact with another person"
+        "description": "Conscious contact with another person",
+        "variants": ["Hug", "Handshake", "Eye contact", "Conversation"]
       }
     },
     {
@@ -80,11 +84,13 @@
       "durationMinutes": null,
       "cs": {
         "name": "Výzva",
-        "description": "Vědomé čelení tomu, čemu se vyhýbám. Jediná konkrétní akce uprostřed nepřehlednosti."
+        "description": "Vědomé čelení tomu, čemu se vyhýbám. Jediná konkrétní akce uprostřed nepřehlednosti.",
+        "variants": ["Konfrontace strachu", "Těžký rozhovor", "Nový návyk", "Malý krok"]
       },
       "en": {
         "name": "Challenge",
-        "description": "Consciously facing what I avoid. Single concrete action amid confusion"
+        "description": "Consciously facing what I avoid. Single concrete action amid confusion",
+        "variants": ["Facing fear", "Difficult conversation", "New habit", "Small step"]
       }
     }
   ],

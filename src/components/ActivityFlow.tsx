@@ -29,6 +29,26 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
   const [startedAt] = useState(new Date().toISOString());
   const actualDurationRef = useRef<number>(0);
 
+  const handleVariantClick = (variant: string) => {
+    if (selectedVariant === variant) {
+      setSelectedVariant(null);
+      // Remove variant from note
+      if (isTimed) {
+        setNoteBefore((prev) => prev.replace(variant, '').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s*,\s*,\s*/g, ', '));
+      } else {
+        setNote((prev) => prev.replace(variant, '').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s*,\s*,\s*/g, ', '));
+      }
+    } else {
+      setSelectedVariant(variant);
+      // Append variant to note
+      if (isTimed) {
+        setNoteBefore((prev) => prev ? `${prev}, ${variant}` : variant);
+      } else {
+        setNote((prev) => prev ? `${prev}, ${variant}` : variant);
+      }
+    }
+  };
+
   const handleTimedBeforeSubmit = () => {
     setTimedStep('timer');
   };
@@ -107,7 +127,7 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
                     {activity.variants.map((variant) => (
                       <button
                         key={variant}
-                        onClick={() => setSelectedVariant(selectedVariant === variant ? null : variant)}
+                        onClick={() => handleVariantClick(variant)}
                         className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                           selectedVariant === variant
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
@@ -163,7 +183,7 @@ export default function ActivityFlow({ activity, onClose }: ActivityFlowProps) {
                     {activity.variants.map((variant) => (
                       <button
                         key={variant}
-                        onClick={() => setSelectedVariant(selectedVariant === variant ? null : variant)}
+                        onClick={() => handleVariantClick(variant)}
                         className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                           selectedVariant === variant
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
