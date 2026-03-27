@@ -60,19 +60,34 @@ let cachedConfig: AppConfig | null = null;
 
 export async function loadConfig(): Promise<AppConfig> {
   if (cachedConfig) return cachedConfig;
+  return fetchConfig();
+}
+
+async function fetchConfig(): Promise<AppConfig> {
   try {
     const res = await fetch(getConfigUrl(), { cache: 'no-cache' });
     const text = await res.text();
     cachedConfig = JSON.parse(text);
 
-    // Track config hash for sync detection
+    // Track config hash - detect changes
     const newHash = simpleHash(text);
+    const oldHash = localStorage.getItem(CONFIG_HASH_KEY);
+    const changed = oldHash !== null && oldHash !== newHash;
     localStorage.setItem(CONFIG_HASH_KEY, newHash);
 
     return cachedConfig!;
   } catch {
-    return { version: 1, activities: [], info: { cs: {}, en: {} } };
+    return cachedConfig || { version: 1, activities: [], info: { cs: {}, en: {} } };
   }
+}
+
+// Check for config updates (call on visibility change / interval)
+export async function checkConfigUpdate(): Promise<boolean> {
+  const oldHash = localStorage.getItem(CONFIG_HASH_KEY);
+  cachedConfig = null; // force re-fetch
+  await fetchConfig();
+  const newHash = localStorage.getItem(CONFIG_HASH_KEY);
+  return oldHash !== newHash;
 }
 
 function simpleHash(str: string): string {
