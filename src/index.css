@@ -159,7 +159,7 @@
 
 @layer components {
   .page-container {
-    @apply max-w-md mx-auto px-4 pb-24 pt-6;
+    @apply max-w-md mx-auto px-4 pb-24 pt-12;
   }
 
   .card {
