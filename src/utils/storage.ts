@@ -55,6 +55,18 @@ export const getRecentDays = (count: number): DayEntry[] => {
   return data.slice(0, count);
 };
 
+export const updateActivityById = (id: string, updates: Partial<Activity>): void => {
+  const data = loadAllData();
+  for (const entry of data) {
+    const idx = entry.activities.findIndex((a) => a.id === id);
+    if (idx >= 0) {
+      entry.activities[idx] = { ...entry.activities[idx], ...updates };
+      saveAllData(data);
+      return;
+    }
+  }
+};
+
 export const deleteActivitiesByIds = (ids: string[]): void => {
   const data = loadAllData();
   const idSet = new Set(ids);
