@@ -148,6 +148,12 @@ export default function PageTime() {
     let weekActivities = 0;
     let weekSeconds = 0;
 
+    const monthAgoDate = new Date();
+    monthAgoDate.setDate(monthAgoDate.getDate() - 29);
+    const monthAgoStr = monthAgoDate.toISOString().split('T')[0];
+    let monthActivities = 0;
+    let monthSeconds = 0;
+
     data.forEach((day) => {
       day.activities.forEach((activity) => {
         totalActivities++;
@@ -162,6 +168,10 @@ export default function PageTime() {
           weekActivities++;
           weekSeconds += secs;
         }
+        if (day.date >= monthAgoStr) {
+          monthActivities++;
+          monthSeconds += secs;
+        }
       });
     });
 
@@ -174,6 +184,7 @@ export default function PageTime() {
       totalActivities, totalSeconds, ...toHM(totalSeconds),
       todayActivities, today: toHM(todaySeconds),
       weekActivities, week: toHM(weekSeconds),
+      monthActivities, month: toHM(monthSeconds),
       firstDate,
     };
   }, [data]);
@@ -332,17 +343,6 @@ export default function PageTime() {
         <h2 className="font-serif text-base text-clay-700 mb-3">{t.time.summaryTitle}</h2>
         <div className="grid grid-cols-2 gap-3">
           <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-forest-600">{summaryStats.weekActivities}</div>
-            <div className="text-xs text-clay-500 mt-1">{t.time.weekActivities}</div>
-          </div>
-          <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-forest-600">
-              {summaryStats.week.hours > 0 && `${summaryStats.week.hours}${t.time.hours} `}
-              {summaryStats.week.minutes} {t.time.minutes}
-            </div>
-            <div className="text-xs text-clay-500 mt-1">{t.time.weekTime}</div>
-          </div>
-          <div className="card text-center py-3">
             <div className="text-2xl font-serif text-forest-600">{summaryStats.totalActivities}</div>
             <div className="text-xs text-clay-500 mt-1">{t.time.totalActivities}</div>
           </div>
@@ -423,6 +423,27 @@ export default function PageTime() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div className="card text-center py-3">
+            <div className="text-2xl font-serif text-forest-600">
+              {trendRange === 'week' ? summaryStats.weekActivities : summaryStats.monthActivities}
+            </div>
+            <div className="text-xs text-clay-500 mt-1">
+              {trendRange === 'week' ? t.time.weekActivities : t.time.monthActivities}
+            </div>
+          </div>
+          <div className="card text-center py-3">
+            <div className="text-2xl font-serif text-forest-600">
+              {trendRange === 'week'
+                ? <>{summaryStats.week.hours > 0 && `${summaryStats.week.hours}${t.time.hours} `}{summaryStats.week.minutes} {t.time.minutes}</>
+                : <>{summaryStats.month.hours > 0 && `${summaryStats.month.hours}${t.time.hours} `}{summaryStats.month.minutes} {t.time.minutes}</>
+              }
+            </div>
+            <div className="text-xs text-clay-500 mt-1">
+              {trendRange === 'week' ? t.time.weekTime : t.time.monthTime}
+            </div>
+          </div>
         </div>
       </section>
 
