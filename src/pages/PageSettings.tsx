@@ -203,13 +203,13 @@ export default function PageSettings() {
   const handleExportBackup = useCallback(() => {
     const backup = generateBackup(language, theme, name);
     const content = generatePraFileContent(backup);
-    downloadFile(content, `pra-backup-${new Date().toISOString().split('T')[0]}.pra`, 'application/json;charset=utf-8');
+    downloadFile(content, `prabackup-${new Date().toISOString().split('T')[0]}.json`, 'application/json;charset=utf-8');
   }, [language, theme, name]);
 
   const handleExportConfig = useCallback(() => {
     const config = generateConfigExport(language, theme, name);
     const content = generatePraFileContent(config);
-    downloadFile(content, `pra-config-${language}-${new Date().toISOString().split('T')[0]}.pra`, 'application/json;charset=utf-8');
+    downloadFile(content, `praconfig-${language}-${new Date().toISOString().split('T')[0]}.json`, 'application/json;charset=utf-8');
   }, [language, theme, name]);
 
   const backupInputRef = useRef<HTMLInputElement>(null);
@@ -344,10 +344,11 @@ export default function PageSettings() {
                   style={{ borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }}
                 >
                   {t.settings.backupImport}
-                  <input ref={backupInputRef} type="file" accept=".pra,.json" onChange={handleImportBackup} className="hidden" />
+                  <input ref={backupInputRef} type="file" accept=".json" onChange={handleImportBackup} className="hidden" />
                 </label>
               </div>
             </div>
+            <p className="text-xs text-themed-faint italic">{t.settings.backupHint}</p>
 
             {/* Config only - standard */}
             <div className="rounded-xl p-3 bg-themed-input border border-themed">
@@ -365,7 +366,7 @@ export default function PageSettings() {
                            text-themed-secondary hover:border-themed-medium transition-colors"
                 >
                   {t.settings.importConfig}
-                  <input ref={fileInputRef} type="file" accept=".pra,.json" onChange={handleImportConfig} className="hidden" />
+                  <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportConfig} className="hidden" />
                 </label>
               </div>
             </div>
