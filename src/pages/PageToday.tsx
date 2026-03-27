@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ActivityDefinition } from '../types';
 import { useLanguage } from '../i18n';
 import {
@@ -12,6 +12,12 @@ import { getDayEntry, getTodayDate } from '../utils/storage';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
+
+function getYesterdayDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+}
 
 export default function PageToday() {
   const { t, language } = useLanguage();
@@ -31,8 +37,25 @@ export default function PageToday() {
   const timedActivities = translatedActivities.filter((a) => a.durationMinutes !== null);
   const untimedActivities = translatedActivities.filter((a) => a.durationMinutes === null);
 
+  const [currentDate, setCurrentDate] = useState(getTodayDate);
+
+  // Auto-detect midnight - refresh when day changes
+  useEffect(() => {
+    const check = () => {
+      const now = getTodayDate();
+      if (now !== currentDate) {
+        setCurrentDate(now);
+        setRefreshKey((k) => k + 1);
+      }
+    };
+    const interval = setInterval(check, 30000); // check every 30s
+    const onVisible = () => { if (document.visibilityState === 'visible') check(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
+  }, [currentDate]);
+
   const completedTodayCounts = useMemo(() => {
-    const todayEntry = getDayEntry(getTodayDate());
+    const todayEntry = getDayEntry(currentDate);
     const counts = new Map<string, number>();
     if (!todayEntry) return counts;
     todayEntry.activities.forEach((a) => {
@@ -40,7 +63,18 @@ export default function PageToday() {
     });
     return counts;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]);
+  }, [refreshKey, currentDate]);
+
+  const completedYesterdayCounts = useMemo(() => {
+    const yesterdayEntry = getDayEntry(getYesterdayDate());
+    const counts = new Map<string, number>();
+    if (!yesterdayEntry) return counts;
+    yesterdayEntry.activities.forEach((a) => {
+      counts.set(a.type, (counts.get(a.type) || 0) + 1);
+    });
+    return counts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey, currentDate]);
 
   const handleActivityClick = (activity: ActivityDefinition) => {
     // Find the original activity for editing
@@ -152,6 +186,8 @@ export default function PageToday() {
           onClick={() => handleActivityClick(activity)}
           completedToday={completedTodayCounts.has(activity.type)}
           completedCount={completedTodayCounts.get(activity.type) || 0}
+          completedYesterday={completedYesterdayCounts.has(activity.type)}
+          yesterdayCount={completedYesterdayCounts.get(activity.type) || 0}
         />
         {editMode && (
           <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
@@ -173,6 +209,19 @@ export default function PageToday() {
         <div className="flex items-center justify-between mt-1">
           <p className="text-themed-faint">{t.today.subtitle}</p>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setRefreshKey((k) => k + 1)}
+              className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
+              style={{
+                backgroundColor: 'var(--bg-input)',
+                color: 'var(--text-faint)',
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
             <button
               onClick={() => setShowNewActivity(true)}
               className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
