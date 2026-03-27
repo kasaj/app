@@ -164,6 +164,31 @@ function generateHistoryMarkdown(data: DayEntry[], lang: string): string {
   });
   md += '\n';
 
+  // Monthly overview (last 30 days)
+  const monthlyTitle = lang === 'cs' ? 'Měsíční přehled' : 'Monthly overview';
+  md += `## ${monthlyTitle}\n\n`;
+  md += `| ${lang === 'cs' ? 'Den' : 'Day'} | ${lang === 'cs' ? 'Počet' : 'Count'} | ${t.avgRating} |\n`;
+  md += `|-----|-------|----------|\n`;
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const dayEntry = data.find((d) => d.date === dateStr);
+    const dayName = date.toLocaleDateString(lang === 'cs' ? 'cs-CZ' : 'en-US', { day: 'numeric', month: 'numeric' });
+    const cnt = dayEntry ? dayEntry.activities.length : 0;
+    let dayAvgM = '-';
+    if (dayEntry) {
+      const dr: number[] = [];
+      dayEntry.activities.forEach((a) => {
+        if (a.ratingAfter) dr.push(a.ratingAfter);
+        else if (a.rating) dr.push(a.rating);
+      });
+      if (dr.length > 0) dayAvgM = (dr.reduce((s, r) => s + r, 0) / dr.length).toFixed(1);
+    }
+    if (cnt > 0) md += `| ${dayName} | ${cnt} | ${dayAvgM} |\n`;
+  }
+  md += '\n';
+
   // Records table
   md += `## ${t.records}\n\n`;
   md += `| ${t.date} | ${t.activity} | ${t.duration} | ${t.rating} | ${t.note} |\n`;

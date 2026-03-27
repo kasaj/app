@@ -216,7 +216,7 @@ export default function PageTime() {
     const start = new Date(today);
     start.setDate(start.getDate() - (days - 1));
 
-    const result: Array<{ day: string; avgRating: number | null }> = [];
+    const result: Array<{ day: string; avgRating: number | null; count: number }> = [];
 
     for (let i = 0; i < days; i++) {
       const date = new Date(start);
@@ -225,7 +225,9 @@ export default function PageTime() {
       const dayEntry = data.find((d) => d.date === dateStr);
 
       let avgRating: number | null = null;
+      let count = 0;
       if (dayEntry) {
+        count = dayEntry.activities.length;
         const ratings: number[] = [];
         dayEntry.activities.forEach((a) => {
           if (a.ratingAfter) ratings.push(a.ratingAfter);
@@ -239,7 +241,7 @@ export default function PageTime() {
       const dayName = trendRange === 'week'
         ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
         : `${date.getDate()}.${date.getMonth() + 1}`;
-      result.push({ day: dayName, avgRating });
+      result.push({ day: dayName, avgRating, count });
     }
 
     return result;
@@ -396,7 +398,7 @@ export default function PageTime() {
           </div>
         </div>
         <div className="card">
-          <ResponsiveContainer width="100%" height={trendRange === 'month' ? 150 : 120}>
+          <ResponsiveContainer width="100%" height={trendRange === 'month' ? 180 : 150}>
             <BarChart data={trendData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
               <XAxis
                 dataKey="day"
@@ -406,7 +408,13 @@ export default function PageTime() {
                 interval={trendRange === 'month' ? 4 : 0}
               />
               <YAxis
+                yAxisId="rating"
                 domain={[0, 5]}
+                hide
+              />
+              <YAxis
+                yAxisId="count"
+                orientation="right"
                 hide
               />
               <Tooltip
@@ -416,15 +424,29 @@ export default function PageTime() {
                   borderRadius: '8px',
                   fontSize: '12px',
                 }}
-                formatter={(value) => value !== null ? [value, t.time.rating] : ['-', t.time.rating]}
+                formatter={(value: number, name: string) => {
+                  if (name === 'avgRating') return value !== null ? [value, t.time.rating] : ['-', t.time.rating];
+                  return [value, language === 'cs' ? 'Aktivit' : 'Activities'];
+                }}
               />
-              <Bar dataKey="avgRating" radius={[4, 4, 0, 0]}>
+              <Bar yAxisId="count" dataKey="count" fill={colors.barEmpty} radius={[4, 4, 0, 0]} opacity={0.4} />
+              <Bar yAxisId="rating" dataKey="avgRating" radius={[4, 4, 0, 0]}>
                 {trendData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={getRatingColor(entry.avgRating)} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          <div className="flex justify-center gap-6 mt-2 text-xs text-themed-faint">
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 rounded-sm opacity-40" style={{ backgroundColor: colors.barEmpty }} />
+              {language === 'cs' ? 'Aktivit' : 'Activities'}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: colors.barHigh }} />
+              {t.time.rating}
+            </span>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3 mt-3">
           <div className="card text-center py-3">
