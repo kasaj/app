@@ -11,7 +11,7 @@ export const translations = {
     // Today page
     today: {
       title: 'Dnes',
-      subtitle: 'Prostor pro zastavení',
+      subtitle: 'Vědomý prostor',
       timedSection: 'Praxe s časem',
       momentsSection: 'Okamžiky',
       edit: 'Upravit',
@@ -173,7 +173,7 @@ export const translations = {
     // Today page
     today: {
       title: 'Today',
-      subtitle: 'Space for pause',
+      subtitle: 'Conscious space',
       timedSection: 'Timed practice',
       momentsSection: 'Moments',
       edit: 'Edit',
