@@ -132,8 +132,11 @@ export default function PageInfo() {
         )}
 
         {info.intro && (
-          <section className="card">
-            <Paragraphs text={info.intro} />
+          <section>
+            <h2 className="font-serif text-xl text-themed-primary mb-3">{language === 'cs' ? 'Já' : 'I'}</h2>
+            <div className="card">
+              <Paragraphs text={info.intro} />
+            </div>
           </section>
         )}
 
