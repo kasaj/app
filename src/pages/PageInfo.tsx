@@ -168,8 +168,7 @@ export default function PageInfo() {
         )}
 
         <footer className="text-center text-sm text-themed-faint pt-4 space-y-1">
-          <div><a href="https://kasaj.cz" target="_blank" rel="noopener noreferrer" className="text-themed-accent-solid hover:underline">kasaj.cz</a></div>
-          <div><a href="https://kasaj.github.io/app/" target="_blank" rel="noopener noreferrer" className="text-themed-accent-solid hover:underline">kasaj.github.io/app</a></div>
+          <div><a href="https://github.com/kasaj/app" target="_blank" rel="noopener noreferrer" className="text-themed-accent-solid hover:underline">github.com/kasaj/app</a></div>
           <div><a href="https://community.paulus.yoga" target="_blank" rel="noopener noreferrer" className="text-themed-accent-solid hover:underline">community.paulus.yoga</a></div>
         </footer>
       </div>
