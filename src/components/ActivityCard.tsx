@@ -25,8 +25,8 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
         <span className="text-2xl">{activity.emoji}</span>
         <span className="font-serif text-themed-primary flex-1">{activity.name}</span>
 
-        {/* Yesterday - gray */}
-        {completedYesterday && !completedToday && (
+        {/* Previous session - gray */}
+        {completedYesterday && (
           <span className="flex items-center gap-1 opacity-40">
             <span className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--text-faint)' }}>
               <svg className="w-2.5 h-2.5" style={{ color: 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -39,7 +39,7 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
           </span>
         )}
 
-        {/* Today - accent */}
+        {/* Current session - accent */}
         {completedToday && (
           <span className="flex items-center gap-1">
             <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--accent-solid)' }}>

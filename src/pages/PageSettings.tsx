@@ -28,6 +28,7 @@ interface PraFile {
   history?: DayEntry[];
   notes?: { cs: Record<string, string>; en: Record<string, string> };
   userModified?: string[];
+  sessionStart?: string;
 }
 
 function generateBackup(lang: string, currentTheme: string, profileName: string): PraFile {
@@ -61,7 +62,8 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
     history,
     notes: { cs: loadNotes('cs'), en: loadNotes('en') },
     userModified,
-  };
+    sessionStart: localStorage.getItem('pra_session_start') || undefined,
+  } as PraFile;
 }
 
 function generateConfigExport(lang: string, currentTheme: string, profileName: string): PraFile {
@@ -134,6 +136,10 @@ function importPraFile(file: PraFile, currentLang: string): void {
     if (notes.why || notes.how || notes.what) {
       localStorage.setItem(`pra_info_notes_${lang}`, JSON.stringify(notes));
     }
+  }
+  // Session start
+  if (file.type === 'backup' && file.sessionStart) {
+    localStorage.setItem('pra_session_start', file.sessionStart);
   }
 }
 

@@ -37,44 +37,64 @@ export default function PageToday() {
   const timedActivities = translatedActivities.filter((a) => a.durationMinutes !== null);
   const untimedActivities = translatedActivities.filter((a) => a.durationMinutes === null);
 
-  const [currentDate, setCurrentDate] = useState(getTodayDate);
+  // Session timestamp - activities before this are "previous" (gray), after are "current" (blue)
+  const [sessionStart, setSessionStart] = useState(() => {
+    const stored = localStorage.getItem('pra_session_start');
+    return stored || new Date().toISOString();
+  });
 
-  // Auto-detect midnight - refresh when day changes
+  // Auto-detect midnight - start new session
   useEffect(() => {
     const check = () => {
-      const now = getTodayDate();
-      if (now !== currentDate) {
-        setCurrentDate(now);
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      if (new Date(sessionStart) < todayMidnight) {
+        const newSession = todayMidnight.toISOString();
+        setSessionStart(newSession);
+        localStorage.setItem('pra_session_start', newSession);
         setRefreshKey((k) => k + 1);
       }
     };
-    const interval = setInterval(check, 30000); // check every 30s
+    const interval = setInterval(check, 30000);
     const onVisible = () => { if (document.visibilityState === 'visible') check(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
-  }, [currentDate]);
+  }, [sessionStart]);
 
+  const handleNewSession = useCallback(() => {
+    const now = new Date().toISOString();
+    setSessionStart(now);
+    localStorage.setItem('pra_session_start', now);
+    setRefreshKey((k) => k + 1);
+  }, []);
+
+  // Current session (blue) - activities after sessionStart today
   const completedTodayCounts = useMemo(() => {
-    const todayEntry = getDayEntry(currentDate);
+    const todayEntry = getDayEntry(getTodayDate());
     const counts = new Map<string, number>();
     if (!todayEntry) return counts;
     todayEntry.activities.forEach((a) => {
-      counts.set(a.type, (counts.get(a.type) || 0) + 1);
+      if (new Date(a.completedAt || a.startedAt) >= new Date(sessionStart)) {
+        counts.set(a.type, (counts.get(a.type) || 0) + 1);
+      }
     });
     return counts;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey, currentDate]);
+  }, [refreshKey, sessionStart]);
 
-  const completedYesterdayCounts = useMemo(() => {
-    const yesterdayEntry = getDayEntry(getYesterdayDate());
+  // Previous (gray) - activities before sessionStart today
+  const completedPreviousCounts = useMemo(() => {
+    const todayEntry = getDayEntry(getTodayDate());
     const counts = new Map<string, number>();
-    if (!yesterdayEntry) return counts;
-    yesterdayEntry.activities.forEach((a) => {
-      counts.set(a.type, (counts.get(a.type) || 0) + 1);
+    if (!todayEntry) return counts;
+    todayEntry.activities.forEach((a) => {
+      if (new Date(a.completedAt || a.startedAt) < new Date(sessionStart)) {
+        counts.set(a.type, (counts.get(a.type) || 0) + 1);
+      }
     });
     return counts;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey, currentDate]);
+  }, [refreshKey, sessionStart]);
 
   const handleActivityClick = (activity: ActivityDefinition) => {
     // Find the original activity for editing
@@ -186,8 +206,8 @@ export default function PageToday() {
           onClick={() => handleActivityClick(activity)}
           completedToday={completedTodayCounts.has(activity.type)}
           completedCount={completedTodayCounts.get(activity.type) || 0}
-          completedYesterday={completedYesterdayCounts.has(activity.type)}
-          yesterdayCount={completedYesterdayCounts.get(activity.type) || 0}
+          completedYesterday={completedPreviousCounts.has(activity.type)}
+          yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
         />
         {editMode && (
           <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
@@ -210,7 +230,7 @@ export default function PageToday() {
           <p className="text-themed-faint">{t.today.subtitle}</p>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setRefreshKey((k) => k + 1)}
+              onClick={handleNewSession}
               className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
               style={{
                 backgroundColor: 'var(--bg-input)',
