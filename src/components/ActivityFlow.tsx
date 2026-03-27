@@ -23,9 +23,9 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const [timedStep, setTimedStep] = useState<TimedFlowStep>(isEditing ? 'rating-after' : 'rating-before');
   const [selectedVariant, setSelectedVariant] = useState<string | null>(existingActivity?.selectedVariant || null);
   const [ratingBefore, setRatingBefore] = useState<Rating | null>(existingActivity?.ratingBefore || null);
-  const [ratingAfter, setRatingAfter] = useState<Rating | null>(existingActivity?.ratingAfter || null);
+  const [ratingAfter, setRatingAfter] = useState<Rating | null>(existingActivity?.ratingAfter || existingActivity?.ratingBefore || null);
   const [noteBefore, setNoteBefore] = useState(existingActivity?.noteBefore || '');
-  const [noteAfter, setNoteAfter] = useState(existingActivity?.noteAfter || '');
+  const [noteAfter, setNoteAfter] = useState(existingActivity?.noteAfter || existingActivity?.noteBefore || '');
 
   const [rating, setRating] = useState<Rating | null>(existingActivity?.rating || null);
   const [note, setNote] = useState(existingActivity?.note || '');
@@ -34,19 +34,20 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const actualDurationRef = useRef<number>(existingActivity?.actualDurationSeconds || 0);
 
   const handleVariantClick = (variant: string) => {
+    // For timed activities in edit mode, write to noteAfter (visible field)
+    const timedNoteSetter = (isEditing && isTimed) ? setNoteAfter : setNoteBefore;
+
     if (selectedVariant === variant) {
       setSelectedVariant(null);
-      // Remove variant from note
       if (isTimed) {
-        setNoteBefore((prev) => prev.replace(variant, '').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s*,\s*,\s*/g, ', '));
+        timedNoteSetter((prev) => prev.replace(variant, '').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s*,\s*,\s*/g, ', '));
       } else {
         setNote((prev) => prev.replace(variant, '').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s*,\s*,\s*/g, ', '));
       }
     } else {
       setSelectedVariant(variant);
-      // Append variant to note
       if (isTimed) {
-        setNoteBefore((prev) => prev ? `${prev}, ${variant}` : variant);
+        timedNoteSetter((prev) => prev ? `${prev}, ${variant}` : variant);
       } else {
         setNote((prev) => prev ? `${prev}, ${variant}` : variant);
       }
