@@ -331,53 +331,58 @@ function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClic
           ))}
         </div>
 
-        {/* Right: emoji column */}
-        <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-          <span className="text-sm">{def?.emoji}</span>
-          {chainAvg !== null && <span className="text-sm">{moodEmoji(chainAvg)}</span>}
-          {lastTwo.filter(c => c.rating).length > 0 && (
-            <div className="flex flex-col items-center">
-              {lastTwo.map((c) => (
-                c.rating ? <span key={c.id} className="text-xs leading-tight">{moodEmoji(c.rating)}</span> : null
+        {/* Right: emoji column + nav */}
+        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+          {/* Activity emoji + chain avg */}
+          <div className="flex items-center gap-1">
+            <span className="text-sm">{def?.emoji}</span>
+            {chainAvg !== null && <span className="text-sm">{moodEmoji(chainAvg)}</span>}
+          </div>
+
+          {/* Per-comment mood as mini scale */}
+          {lastTwo.filter(c => c.rating).map((c) => (
+            <div key={c.id} className="flex gap-px" style={{ fontSize: '0.55rem' }}>
+              {[
+                { v: 1, e: '😰' }, { v: 2, e: '😞' }, { v: 3, e: '😐' },
+                { v: 4, e: '🙂' }, { v: 5, e: '😄' }, { v: 6, e: '🤩' },
+              ].map(({ v, e }) => (
+                <span key={v} className={v === c.rating ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
               ))}
             </div>
-          )}
-        </div>
-      </div>
+          ))}
 
-      {/* Navigation links and + button */}
-      <div className="flex items-center gap-1 flex-shrink-0">
-        {activity.linkedFromId && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onNavigate(activity.linkedFromId!); }}
-            className="w-5 h-5 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
-            title={t.time.linkedFrom}
-          >
-            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        )}
-        {activity.linkedActivityIds && activity.linkedActivityIds.length > 0 && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onNavigate(activity.linkedActivityIds![activity.linkedActivityIds!.length - 1]); }}
-            className="w-5 h-5 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
-            title={t.time.linkedTo}
-          >
-            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        )}
-        <button
-          onClick={(e) => { e.stopPropagation(); onCreateLinked(); }}
-          className="w-5 h-5 rounded-full bg-themed-input flex items-center justify-center text-themed-faint hover:text-themed-accent-solid transition-colors"
-          title={t.time.createLinked}
-        >
-          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
+          {/* Navigation ‹ › + */}
+          <div className="flex items-center gap-0.5 mt-0.5">
+            {activity.linkedFromId && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onNavigate(activity.linkedFromId!); }}
+                className="w-4 h-4 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
+              >
+                <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
+            {activity.linkedActivityIds && activity.linkedActivityIds.length > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onNavigate(activity.linkedActivityIds![activity.linkedActivityIds!.length - 1]); }}
+                className="w-4 h-4 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
+              >
+                <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+            <button
+              onClick={(e) => { e.stopPropagation(); onCreateLinked(); }}
+              className="w-4 h-4 rounded-full bg-themed-input flex items-center justify-center text-themed-faint hover:text-themed-accent-solid transition-colors"
+            >
+              <svg className="w-2 h-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
