@@ -66,7 +66,7 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
       const links = (a.linkedActivityIds?.length || 0) + (a.linkedFromId ? 1 : 0);
       if (links > 0) activityStats[a.type].totalLinks = (activityStats[a.type].totalLinks || 0) + links;
       // Legacy rating
-      const r = a.ratingAfter || a.rating;
+      const r = a.ratingAfter ?? a.rating;
       if (r) {
         if (!ratingAccum[a.type]) ratingAccum[a.type] = { sum: 0, count: 0 };
         ratingAccum[a.type].sum += r;
@@ -75,7 +75,7 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
       // Comment-based mood
       if (a.comments) {
         a.comments.forEach((c) => {
-          if (c.rating) {
+          if (c.rating != null) {
             if (!moodAccum[a.type]) moodAccum[a.type] = { sum: 0, count: 0 };
             moodAccum[a.type].sum += c.rating;
             moodAccum[a.type].count++;

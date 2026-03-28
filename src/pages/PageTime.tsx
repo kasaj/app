@@ -34,11 +34,11 @@ function getChainAvgRating(activity: Activity, allData: DayEntry[]): number | nu
       for (const a of day.activities) {
         if (a.id === id) {
           const comments = getActivityComments(a);
-          comments.forEach((c) => { if (c.rating) ratings.push(c.rating); });
+          comments.forEach((c) => { if (c.rating != null) ratings.push(c.rating); });
           // Fallback to legacy
-          if (!comments.some(c => c.rating)) {
-            const r = a.ratingAfter || a.rating;
-            if (r) ratings.push(r);
+          if (!comments.some(c => c.rating != null)) {
+            const r = a.ratingAfter ?? a.rating;
+            if (r != null) ratings.push(r);
           }
           // Follow links
           if (a.linkedFromId) collect(a.linkedFromId);
@@ -52,6 +52,11 @@ function getChainAvgRating(activity: Activity, allData: DayEntry[]): number | nu
   collect(activity.id);
   if (ratings.length === 0) return null;
   return Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10;
+}
+
+function getActivityScore(a: Activity): number {
+  const comments = getActivityComments(a);
+  return (a.linkedActivityIds?.length || 0) + (a.linkedFromId ? 1 : 0) + comments.length;
 }
 
 function ActivityCalendar({ data, language, onDayClick }: {
@@ -168,8 +173,8 @@ function ActivityCalendar({ data, language, onDayClick }: {
             comments.forEach((c) => { if (c.rating) allRatings.push(c.rating); });
             // Fallback to legacy ratings
             if (comments.length === 0 || !comments.some(c => c.rating)) {
-              const r = a.ratingAfter || a.rating;
-              if (r) allRatings.push(r);
+              const r = a.ratingAfter ?? a.rating;
+              if (r != null) allRatings.push(r);
             }
           });
           const avgRating = allRatings.length > 0
@@ -200,8 +205,8 @@ function ActivityCalendar({ data, language, onDayClick }: {
                   const actComments = getActivityComments(act);
                   const actRatings: number[] = actComments.filter(c => c.rating != null).map(c => c.rating as number);
                   if (actRatings.length === 0) {
-                    const r = act.ratingAfter || act.rating;
-                    if (r) actRatings.push(r);
+                    const r = act.ratingAfter ?? act.rating;
+                    if (r != null) actRatings.push(r);
                   }
                   const actAvg = actRatings.length > 0
                     ? Math.round((actRatings.reduce((s, r) => s + r, 0) / actRatings.length) * 10) / 10
@@ -300,7 +305,7 @@ function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClic
   const comments = getActivityComments(activity);
   const lastTwo = comments.slice(-2);
   const chainAvg = getChainAvgRating(activity, allData);
-  const linkCount = (activity.linkedActivityIds?.length || 0) + (activity.linkedFromId ? 1 : 0);
+  const linkCount = (activity.linkedActivityIds?.length || 0) + (activity.linkedFromId ? 1 : 0) + comments.length;
 
   return (
     <div className="py-2 flex items-start gap-2">
@@ -327,7 +332,11 @@ function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClic
             {actualTime && <span className="text-themed-faint text-xs">{actualTime}</span>}
           </div>
           <div className="flex items-center gap-2">
-            {linkCount > 0 && <span className="text-xs text-themed-faint">{linkCount}</span>}
+            {linkCount > 0 && (
+              <span className="text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--accent-bg)', color: 'var(--accent-text)' }}>
+                {linkCount}
+              </span>
+            )}
             {activity.linkedFromId && (
               <button
                 onClick={(e) => { e.stopPropagation(); onNavigate(activity.linkedFromId!); }}
@@ -387,6 +396,7 @@ export default function PageTime() {
   const [data, setData] = useState(() => loadAllData());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [trendRange, setTrendRange] = useState<'day' | 'week' | 'month'>('day');
+  const [recordSort, setRecordSort] = useState<'date' | 'score'>('date');
   const [editingRecord, setEditingRecord] = useState<Activity | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
@@ -423,12 +433,12 @@ export default function PageTime() {
     data.forEach((day) => {
       day.activities.forEach((a) => {
         const comments = getActivityComments(a);
-        const commentRatings = comments.filter(c => c.rating).map(c => c.rating!);
+        const commentRatings = comments.filter(c => c.rating != null).map(c => c.rating!);
         if (commentRatings.length > 0) {
           allMoodRatings.push(...commentRatings);
         } else {
-          const r = a.ratingAfter || a.rating;
-          if (r) allMoodRatings.push(r);
+          const r = a.ratingAfter ?? a.rating;
+          if (r != null) allMoodRatings.push(r);
         }
       });
     });
@@ -477,13 +487,13 @@ export default function PageTime() {
         totalSecs += a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60);
         // Comment-based ratings first
         const comments = getActivityComments(a);
-        const commentRatings = comments.filter(c => c.rating).map(c => c.rating!);
+        const commentRatings = comments.filter(c => c.rating != null).map(c => c.rating!);
         if (commentRatings.length > 0) {
           ratings.push(...commentRatings);
         } else {
           // Fallback to legacy
-          const r = a.ratingAfter || a.rating;
-          if (r) ratings.push(r);
+          const r = a.ratingAfter ?? a.rating;
+          if (r != null) ratings.push(r);
         }
       });
       const avgRating = ratings.length > 0
@@ -543,7 +553,7 @@ export default function PageTime() {
           timedActivities.reduce((sum, a) => sum + (a.ratingBefore || 0), 0) /
           timedActivities.length;
         const avgAfter =
-          timedActivities.reduce((sum, a) => sum + (a.ratingAfter || 0), 0) /
+          timedActivities.reduce((sum, a) => sum + (a.ratingAfter ?? 0), 0) /
           timedActivities.length;
 
         return {
@@ -801,6 +811,21 @@ export default function PageTime() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-serif text-base text-themed-secondary">{t.time.recordsTitle}</h2>
           <div className="flex items-center gap-2">
+            <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
+              {(['date', 'score'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setRecordSort(s)}
+                  className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                    recordSort === s
+                      ? 'bg-themed-card text-themed-accent shadow-sm'
+                      : 'text-themed-faint hover:text-themed-secondary'
+                  }`}
+                >
+                  {s === 'date' ? t.time.sortDate : t.time.sortScore}
+                </button>
+              ))}
+            </div>
             <button
               onClick={handleSelectAll}
               className="px-3 py-1.5 text-sm rounded-xl bg-themed-input text-themed-muted
@@ -825,33 +850,54 @@ export default function PageTime() {
         </div>
 
         <div className="card">
-          {data.map((day, dayIndex) => (
-            <div key={day.date}>
-              <div className={`py-2 px-1 text-sm font-medium text-themed-muted capitalize ${
-                dayIndex > 0 ? 'border-t-2 border-themed mt-2' : ''
-              }`}>
-                {formatDateFull(day.date, language)}
+          {recordSort === 'date' ? (
+            // Sort by date (grouped by day)
+            data.map((day, dayIndex) => (
+              <div key={day.date}>
+                <div className={`py-2 px-1 text-sm font-medium text-themed-muted capitalize ${
+                  dayIndex > 0 ? 'border-t-2 border-themed mt-2' : ''
+                }`}>
+                  {formatDateFull(day.date, language)}
+                </div>
+                {day.activities
+                  .slice()
+                  .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+                  .map((activity) => (
+                    <ActivityRow
+                      key={activity.id}
+                      activity={activity}
+                      allData={data}
+                      lang={language}
+                      selected={selectedIds.has(activity.id)}
+                      onToggleSelect={() => toggleSelect(activity.id)}
+                      onClickEdit={() => setEditingRecord(activity)}
+                      onCreateLinked={() => handleCreateLinked(activity)}
+                      onNavigate={handleNavigate}
+                      t={t}
+                    />
+                  ))}
               </div>
-
-              {day.activities
-                .slice()
-                .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
-                .map((activity) => (
-                  <ActivityRow
-                    key={activity.id}
-                    activity={activity}
-                    allData={data}
-                    lang={language}
-                    selected={selectedIds.has(activity.id)}
-                    onToggleSelect={() => toggleSelect(activity.id)}
-                    onClickEdit={() => setEditingRecord(activity)}
-                    onCreateLinked={() => handleCreateLinked(activity)}
-                    onNavigate={handleNavigate}
-                    t={t}
-                  />
-                ))}
-            </div>
-          ))}
+            ))
+          ) : (
+            // Sort by score (flat list, highest first)
+            allActivitiesFlat
+              .slice()
+              .sort((a, b) => getActivityScore(b) - getActivityScore(a))
+              .map((activity) => (
+                <ActivityRow
+                  key={activity.id}
+                  activity={activity}
+                  allData={data}
+                  lang={language}
+                  selected={selectedIds.has(activity.id)}
+                  onToggleSelect={() => toggleSelect(activity.id)}
+                  onClickEdit={() => setEditingRecord(activity)}
+                  onCreateLinked={() => handleCreateLinked(activity)}
+                  onNavigate={handleNavigate}
+                  t={t}
+                />
+              ))
+          )}
         </div>
       </section>
 
