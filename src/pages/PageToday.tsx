@@ -88,17 +88,19 @@ export default function PageToday() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, sessionStart]);
 
-  // Total time per activity type (all history)
-  const totalTimePerActivity = useMemo(() => {
+  // Total time and count per activity type (all history)
+  const { totalTimePerActivity, totalCountPerActivity } = useMemo(() => {
     const allData = loadAllData();
     const times = new Map<string, number>();
+    const counts = new Map<string, number>();
     allData.forEach((day) => {
       day.activities.forEach((a) => {
         const secs = a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60);
         times.set(a.type, (times.get(a.type) || 0) + secs);
+        counts.set(a.type, (counts.get(a.type) || 0) + 1);
       });
     });
-    return times;
+    return { totalTimePerActivity: times, totalCountPerActivity: counts };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, sessionStart]);
 
@@ -214,6 +216,7 @@ export default function PageToday() {
           completedCount={completedTodayCounts.get(activity.type) || 0}
           completedYesterday={completedPreviousCounts.has(activity.type)}
           yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
+          totalCount={totalCountPerActivity.get(activity.type) || 0}
           totalSeconds={totalTimePerActivity.get(activity.type) || 0}
         />
         {editMode && (

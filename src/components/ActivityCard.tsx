@@ -8,6 +8,7 @@ interface ActivityCardProps {
   completedCount?: number;
   completedYesterday?: boolean;
   yesterdayCount?: number;
+  totalCount?: number;
   totalSeconds?: number;
 }
 
@@ -19,7 +20,7 @@ function formatTotalTime(seconds: number): string {
   return `${m}m`;
 }
 
-export default function ActivityCard({ activity, onClick, completedToday, completedCount, completedYesterday: _completedYesterday, yesterdayCount: _yesterdayCount, totalSeconds }: ActivityCardProps) {
+export default function ActivityCard({ activity, onClick, completedToday, completedCount, completedYesterday: _completedYesterday, yesterdayCount: _yesterdayCount, totalCount, totalSeconds }: ActivityCardProps) {
   const { t } = useLanguage();
 
   return (
@@ -35,9 +36,9 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
         <span className="font-serif text-themed-primary flex-1">{activity.name}</span>
 
         {/* Total stats - gray: count/time */}
-        {(totalSeconds || 0) > 0 && (
+        {(totalCount || 0) > 0 && (
           <span className="text-xs text-themed-faint opacity-50">
-            {formatTotalTime(totalSeconds || 0)}
+            {totalCount}{(totalSeconds || 0) > 0 ? `/${formatTotalTime(totalSeconds || 0)}` : ''}
           </span>
         )}
 

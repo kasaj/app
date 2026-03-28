@@ -117,17 +117,26 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
 }
 
 function importPraFile(file: PraFile, currentLang: string): void {
-  // Activities
+  // Activities - merge: keep existing user activities, add new ones from import
   if (file.activities) {
-    const activities: ActivityDefinition[] = file.activities.map((item) => ({
+    const existing = loadActivities();
+    const existingTypes = new Set(existing.map(a => a.type));
+    const imported: ActivityDefinition[] = file.activities.map((item) => ({
       type: item.type, emoji: item.emoji, durationMinutes: item.durationMinutes,
       name: item.name, description: item.description, variants: item.variants,
     }));
-    saveActivities(activities);
+    // Add only activities that don't already exist
+    const newActivities = imported.filter(a => !existingTypes.has(a.type));
+    if (newActivities.length > 0) {
+      saveActivities([...existing, ...newActivities]);
+    }
   }
-  // User modified tracking
+  // User modified tracking - merge
   if (file.userModified) {
-    localStorage.setItem('pra_user_modified_activities', JSON.stringify(file.userModified));
+    let current: string[] = [];
+    try { const s = localStorage.getItem('pra_user_modified_activities'); if (s) current = JSON.parse(s); } catch { /* */ }
+    const merged = [...new Set([...current, ...file.userModified])];
+    localStorage.setItem('pra_user_modified_activities', JSON.stringify(merged));
   }
   // Language
   if (file.language && (file.language === 'cs' || file.language === 'en')) {
