@@ -77,7 +77,7 @@ export default function Timer({ durationMinutes, onComplete, onCancel, note }: T
     return () => clearInterval(interval);
   }, [isRunning, isPausedByVisibility, isCompleted, totalSeconds]);
 
-  // Play gong and complete when timer finishes (delay to let sound play)
+  // Play gong and auto-complete when timer finishes
   useEffect(() => {
     if (isCompleted) {
       playGong();
@@ -145,27 +145,39 @@ export default function Timer({ durationMinutes, onComplete, onCancel, note }: T
       </div>
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
-        <button
-          onClick={handleFinishEarly}
-          className="w-full px-4 py-3 rounded-xl transition-colors font-medium"
-          style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
-        >
-          {t.flow.finish}
-        </button>
-        <div className="flex gap-3">
+        {isCompleted ? (
           <button
-            onClick={togglePause}
-            className="flex-1 px-4 py-2 rounded-xl bg-themed-input text-themed-secondary hover:bg-themed-input transition-colors"
+            onClick={() => onComplete(totalSeconds)}
+            className="w-full px-4 py-3 rounded-xl transition-colors font-medium"
+            style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
           >
-            {isRunning ? t.timer.pause : t.timer.resume}
+            {t.flow.finish}
           </button>
-          <button
-            onClick={onCancel}
-            className="flex-1 px-4 py-2 rounded-xl text-themed-faint hover:text-themed-secondary transition-colors"
-          >
-            {t.timer.cancel}
-          </button>
-        </div>
+        ) : (
+          <>
+            <div className="flex gap-3">
+              <button
+                onClick={togglePause}
+                className="flex-1 px-4 py-2 rounded-xl bg-themed-input text-themed-secondary hover:bg-themed-input transition-colors"
+              >
+                {isRunning ? t.timer.pause : t.timer.resume}
+              </button>
+              <button
+                onClick={onCancel}
+                className="flex-1 px-4 py-2 rounded-xl text-themed-faint hover:text-themed-secondary transition-colors"
+              >
+                {t.timer.cancel}
+              </button>
+            </div>
+            <button
+              onClick={handleFinishEarly}
+              className="w-full px-4 py-2 rounded-xl border transition-colors"
+              style={{ borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }}
+            >
+              {t.timer.finishEarly}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
