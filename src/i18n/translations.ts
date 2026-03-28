@@ -64,6 +64,12 @@ export const translations = {
       monthTime: 'Měsíc čas',
       hours: 'h',
       minutes: 'min',
+      addComment: 'Přidat komentář',
+      commentPlaceholder: 'Nový komentář...',
+      createLinked: 'Vytvořit navazující',
+      linkedFrom: 'Navazuje na',
+      linkedTo: 'Pokračuje v',
+      runningTitle: 'Statistiky běhu',
     },
     // Info page
     info: {
@@ -239,6 +245,12 @@ export const translations = {
       monthTime: 'Month time',
       hours: 'h',
       minutes: 'min',
+      addComment: 'Add comment',
+      commentPlaceholder: 'New comment...',
+      createLinked: 'Create follow-up',
+      linkedFrom: 'Follows from',
+      linkedTo: 'Continues in',
+      runningTitle: 'Running stats',
     },
     // Info page
     info: {

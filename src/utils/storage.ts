@@ -67,6 +67,40 @@ export const updateActivityById = (id: string, updates: Partial<Activity>): void
   }
 };
 
+export const findActivityById = (id: string): { activity: Activity; date: string } | null => {
+  const data = loadAllData();
+  for (const entry of data) {
+    const activity = entry.activities.find((a) => a.id === id);
+    if (activity) return { activity, date: entry.date };
+  }
+  return null;
+};
+
+export const createLinkedActivity = (originalId: string, type: string): Activity => {
+  const newId = generateId();
+  const now = new Date().toISOString();
+
+  // Add link reference to original
+  updateActivityById(originalId, {
+    linkedActivityIds: [
+      ...((findActivityById(originalId)?.activity.linkedActivityIds) || []),
+      newId,
+    ],
+  });
+
+  const newActivity: Activity = {
+    id: newId,
+    type,
+    startedAt: now,
+    completedAt: now,
+    durationMinutes: null,
+    linkedFromId: originalId,
+  };
+
+  addActivity(newActivity);
+  return newActivity;
+};
+
 export const deleteActivitiesByIds = (ids: string[]): void => {
   const data = loadAllData();
   const idSet = new Set(ids);

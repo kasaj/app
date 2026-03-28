@@ -16,20 +16,30 @@ export interface ActivityDefinition {
   variants?: string[]; // Možnosti/varianty aktivity
 }
 
+export interface ActivityComment {
+  id: string;
+  text: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Activity {
   id: string;
   type: ActivityType;
   startedAt: string;
   completedAt: string;
   durationMinutes: number | null;
-  actualDurationSeconds?: number; // Skutečně strávený čas
-  selectedVariant?: string; // Vybraná varianta
+  actualDurationSeconds?: number;
+  selectedVariant?: string;
   ratingBefore?: Rating | null;
   ratingAfter?: Rating | null;
   noteBefore?: string;
   noteAfter?: string;
   rating?: Rating | null;
   note?: string;
+  comments?: ActivityComment[];
+  linkedFromId?: string;
+  linkedActivityIds?: string[];
 }
 
 export interface DayEntry {

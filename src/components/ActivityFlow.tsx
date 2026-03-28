@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Activity, ActivityDefinition, Rating } from '../types';
+import { Activity, ActivityDefinition, ActivityComment, Rating } from '../types';
 import { useLanguage } from '../i18n';
 import { generateId, addActivity } from '../utils/storage';
 import StarRating from './StarRating';
@@ -7,16 +7,23 @@ import Timer from './Timer';
 
 type TimedFlowStep = 'rating-before' | 'timer' | 'rating-after';
 
+function formatCommentTime(isoStr: string, lang: string): string {
+  return new Date(isoStr).toLocaleTimeString(lang === 'cs' ? 'cs-CZ' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
 interface ActivityFlowProps {
   activity: ActivityDefinition;
   onClose: () => void;
   onEdit?: () => void;
   existingActivity?: Activity;
   onUpdateExisting?: (id: string, updates: Partial<Activity>) => void;
+  onAddComment?: (text: string) => void;
+  onUpdateComment?: (commentId: string, text: string) => void;
+  onNavigateLinked?: (targetId: string) => void;
 }
 
-export default function ActivityFlow({ activity, onClose, onEdit, existingActivity, onUpdateExisting }: ActivityFlowProps) {
-  const { t } = useLanguage();
+export default function ActivityFlow({ activity, onClose, onEdit, existingActivity, onUpdateExisting, onAddComment, onUpdateComment, onNavigateLinked }: ActivityFlowProps) {
+  const { t, language } = useLanguage();
   const isTimed = activity.durationMinutes !== null;
   const isEditing = !!existingActivity;
 
@@ -33,8 +40,9 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const [startedAt] = useState(existingActivity?.startedAt || new Date().toISOString());
   const actualDurationRef = useRef<number>(existingActivity?.actualDurationSeconds || 0);
 
+  const [newComment, setNewComment] = useState('');
+
   const handleVariantClick = (variant: string) => {
-    // For timed activities in edit mode, write to noteAfter (visible field)
     const timedNoteSetter = (isEditing && isTimed) ? setNoteAfter : setNoteBefore;
 
     if (selectedVariant === variant) {
@@ -59,7 +67,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   };
 
   const handleDone = () => {
-    // Record activity immediately with full planned duration, skip timer
     const newActivity: Activity = {
       id: generateId(),
       type: activity.type,
@@ -136,13 +143,39 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     onClose();
   };
 
+  const handleAddNewComment = () => {
+    if (!newComment.trim() || !onAddComment) return;
+    onAddComment(newComment.trim());
+    setNewComment('');
+  };
+
+  // Get existing comments for display in edit mode
+  const existingComments: ActivityComment[] = existingActivity?.comments || [];
+
   return (
     <div className="fixed inset-0 bg-themed-base z-50 flex flex-col">
       <div className="p-4 border-b border-themed">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* Linked navigation */}
+            {isEditing && existingActivity?.linkedFromId && onNavigateLinked && (
+              <button
+                onClick={() => onNavigateLinked(existingActivity.linkedFromId!)}
+                className="text-themed-accent-solid p-1"
+              >
+                ‹
+              </button>
+            )}
             <span className="text-3xl">{activity.emoji}</span>
             <h2 className="font-serif text-xl text-themed-primary">{activity.name}</h2>
+            {isEditing && existingActivity?.linkedActivityIds && existingActivity.linkedActivityIds.length > 0 && onNavigateLinked && (
+              <button
+                onClick={() => onNavigateLinked(existingActivity.linkedActivityIds![existingActivity.linkedActivityIds!.length - 1])}
+                className="text-themed-accent-solid p-1"
+              >
+                ›
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-1">
             {onEdit && (
@@ -164,7 +197,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
       <div className="flex-1 overflow-auto">
         <div className="max-w-md mx-auto p-4">
-          {/* Nečasové aktivity - vše na jedné obrazovce */}
+          {/* Nečasové aktivity */}
           {!isTimed && (
             <div className="space-y-6 py-6">
               <p className="text-center text-themed-muted leading-relaxed">
@@ -210,7 +243,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
             </div>
           )}
 
-          {/* Časové aktivity - před (s popisem a variantami) */}
+          {/* Časové aktivity - před */}
           {isTimed && timedStep === 'rating-before' && (
             <div className="space-y-6 py-6">
               <p className="text-center text-themed-muted leading-relaxed">
@@ -321,6 +354,52 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
               <button onClick={handleTimedAfterSubmit} className="btn-primary w-full">
                 {isEditing ? t.flow.record : t.flow.finish}
               </button>
+            </div>
+          )}
+
+          {/* Comments section - shown in edit mode */}
+          {isEditing && onAddComment && (
+            <div className="border-t border-themed mt-6 pt-6 space-y-4">
+              {/* Add new comment */}
+              <div className="flex gap-2">
+                <input
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={t.time.commentPlaceholder}
+                  className="flex-1 p-3 rounded-xl bg-themed-input border border-themed
+                           focus:outline-none focus:border-themed-accent
+                           text-themed-primary placeholder:text-themed-faint text-sm"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleAddNewComment(); }}
+                />
+                <button
+                  onClick={handleAddNewComment}
+                  className="px-4 py-2 rounded-xl text-sm transition-colors"
+                  style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Existing comments */}
+              {existingComments.map((comment) => (
+                <div key={comment.id} className="space-y-1">
+                  <div className="text-xs text-themed-faint">
+                    {formatCommentTime(comment.createdAt, language)}
+                    {comment.updatedAt && ` (${formatCommentTime(comment.updatedAt, language)})`}
+                  </div>
+                  <textarea
+                    defaultValue={comment.text}
+                    onBlur={(e) => {
+                      if (e.target.value !== comment.text && onUpdateComment) {
+                        onUpdateComment(comment.id, e.target.value);
+                      }
+                    }}
+                    className="w-full p-3 rounded-xl bg-themed-input border border-themed
+                             focus:outline-none focus:border-themed-accent resize-none h-16
+                             text-themed-primary text-sm"
+                  />
+                </div>
+              ))}
             </div>
           )}
         </div>

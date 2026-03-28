@@ -1,9 +1,9 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { loadAllData, deleteActivitiesByIds, updateActivityById } from '../utils/storage';
+import { loadAllData, deleteActivitiesByIds, updateActivityById, findActivityById, createLinkedActivity } from '../utils/storage';
 import { getChartColors } from '../utils/theme';
 import { getActivityByType, getTranslatedActivity } from '../utils/activities';
 import { useLanguage } from '../i18n';
-import { Activity } from '../types';
+import { Activity, ActivityComment } from '../types';
 import ActivityFlow from '../components/ActivityFlow';
 import {
   LineChart,
@@ -37,16 +37,41 @@ function formatDuration(seconds: number): string {
   return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
 }
 
+/** Get all comments from an activity (including legacy note fields) */
+function getActivityComments(activity: Activity): ActivityComment[] {
+  if (activity.comments && activity.comments.length > 0) return activity.comments;
+  // Migrate legacy notes
+  const comments: ActivityComment[] = [];
+  const isTimed = activity.durationMinutes !== null;
+  if (isTimed) {
+    if (activity.noteBefore) {
+      comments.push({ id: 'legacy-before', text: activity.noteBefore, createdAt: activity.startedAt });
+    }
+    if (activity.noteAfter && activity.noteAfter !== activity.noteBefore) {
+      comments.push({ id: 'legacy-after', text: activity.noteAfter, createdAt: activity.completedAt });
+    }
+  } else if (activity.note) {
+    comments.push({ id: 'legacy-note', text: activity.note, createdAt: activity.completedAt });
+  }
+  return comments;
+}
+
+function generateCommentId(): string {
+  return `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+}
+
 interface ActivityRowProps {
   activity: Activity;
   lang: string;
   selected: boolean;
   onToggleSelect: () => void;
   onClickEdit: () => void;
+  onCreateLinked: () => void;
+  onNavigate: (id: string) => void;
   t: ReturnType<typeof useLanguage>['t'];
 }
 
-function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, t }: ActivityRowProps) {
+function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, onCreateLinked, onNavigate, t }: ActivityRowProps) {
   const rawDef = getActivityByType(activity.type);
   const def = rawDef ? getTranslatedActivity(rawDef, t) : rawDef;
   const isTimed = activity.durationMinutes !== null;
@@ -57,9 +82,8 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, t 
       ? `${activity.durationMinutes}m`
       : null;
 
-  const noteDisplay = isTimed
-    ? activity.noteAfter || activity.noteBefore || ''
-    : activity.note || '';
+  const comments = getActivityComments(activity);
+  const lastTwo = comments.slice(-2);
 
   return (
     <div className="py-3 flex items-start gap-3">
@@ -78,8 +102,8 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, t 
         )}
       </button>
 
-      <div className="flex-1 min-w-0 cursor-pointer" onClick={onClickEdit}>
-        <div className="flex items-center gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={onClickEdit}>
           <div className="text-themed-faint text-xs w-12 flex-shrink-0">
             {formatTime(activity.startedAt, lang)}
           </div>
@@ -110,11 +134,48 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, t 
           </div>
         </div>
 
-        {noteDisplay && (
-          <div className="mt-1 ml-12 text-sm text-themed-faint italic">
-            "{noteDisplay}"
+        {/* Last two comments */}
+        {lastTwo.length > 0 && (
+          <div className="mt-1 ml-12 space-y-0.5">
+            {lastTwo.map((c) => (
+              <div key={c.id} className="flex items-baseline gap-2 text-sm">
+                <span className="text-themed-faint text-xs flex-shrink-0">
+                  {formatTime(c.updatedAt || c.createdAt, lang)}
+                </span>
+                <span className="text-themed-muted italic truncate">"{c.text}"</span>
+              </div>
+            ))}
           </div>
         )}
+
+        {/* Navigation links and + button */}
+        <div className="mt-1 ml-12 flex items-center gap-2">
+          {activity.linkedFromId && (
+            <button
+              onClick={() => onNavigate(activity.linkedFromId!)}
+              className="text-xs text-themed-accent-solid hover:underline flex items-center gap-0.5"
+            >
+              ‹ {t.time.linkedFrom}
+            </button>
+          )}
+          {activity.linkedActivityIds && activity.linkedActivityIds.length > 0 && (
+            <button
+              onClick={() => onNavigate(activity.linkedActivityIds![activity.linkedActivityIds!.length - 1])}
+              className="text-xs text-themed-accent-solid hover:underline flex items-center gap-0.5"
+            >
+              {t.time.linkedTo} ›
+            </button>
+          )}
+          <button
+            onClick={onCreateLinked}
+            className="text-xs text-themed-faint hover:text-themed-accent-solid transition-colors flex items-center"
+            title={t.time.createLinked}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -124,7 +185,7 @@ export default function PageTime() {
   const { t, language } = useLanguage();
   const [data, setData] = useState(() => loadAllData());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [trendRange, setTrendRange] = useState<'day' | 'week' | 'month'>('week');
+  const [trendRange, setTrendRange] = useState<'week' | 'month'>('week');
   const [editingRecord, setEditingRecord] = useState<Activity | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
@@ -140,54 +201,28 @@ export default function PageTime() {
   const summaryStats = useMemo(() => {
     let totalActivities = 0;
     let totalSeconds = 0;
-
-    const todayStr = new Date().toISOString().split('T')[0];
     let todayActivities = 0;
     let todaySeconds = 0;
-
-    const weekAgoDate = new Date();
-    weekAgoDate.setDate(weekAgoDate.getDate() - 6);
-    const weekAgoStr = weekAgoDate.toISOString().split('T')[0];
-    let weekActivities = 0;
-    let weekSeconds = 0;
-
-    const monthAgoDate = new Date();
-    monthAgoDate.setDate(monthAgoDate.getDate() - 29);
-    const monthAgoStr = monthAgoDate.toISOString().split('T')[0];
-    let monthActivities = 0;
-    let monthSeconds = 0;
+    const todayStr = new Date().toISOString().split('T')[0];
 
     data.forEach((day) => {
       day.activities.forEach((activity) => {
         totalActivities++;
         const secs = activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60);
         totalSeconds += secs;
-
         if (day.date === todayStr) {
           todayActivities++;
           todaySeconds += secs;
-        }
-        if (day.date >= weekAgoStr) {
-          weekActivities++;
-          weekSeconds += secs;
-        }
-        if (day.date >= monthAgoStr) {
-          monthActivities++;
-          monthSeconds += secs;
         }
       });
     });
 
     const toHM = (s: number) => ({ hours: Math.floor(s / 3600), minutes: Math.floor((s % 3600) / 60) });
-
-    // First activity date for elapsed clock
     const firstDate = data.length > 0 ? data[data.length - 1].date : null;
 
     return {
       totalActivities, totalSeconds, ...toHM(totalSeconds),
       todayActivities, today: toHM(todaySeconds),
-      weekActivities, week: toHM(weekSeconds),
-      monthActivities, month: toHM(monthSeconds),
       firstDate,
     };
   }, [data]);
@@ -203,7 +238,6 @@ export default function PageTime() {
     const secs = diffSec % 60;
     const pad = (n: number) => n.toString().padStart(2, '0');
     const display = `${days}:${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
-    // Practice % of waking hours (16h/day)
     const wakingSec = (days + 1) * 16 * 3600;
     const percent = wakingSec > 0
       ? (summaryStats.totalSeconds / wakingSec * 100).toFixed(1)
@@ -211,13 +245,12 @@ export default function PageTime() {
     return { display, percent };
   }, [summaryStats.firstDate, summaryStats.totalSeconds, now]);
 
-  // Trend data (day/week/month)
+  // Trend data (week/month) - non-cumulative per period
   const trendData = useMemo(() => {
     const result: Array<{ day: string; avgRating: number; count: number; minutes: number }> = [];
 
-    // Helper: compute stats for a set of activities
     const computeStats = (activities: Activity[]) => {
-      let count = activities.length;
+      const count = activities.length;
       let totalSecs = 0;
       const ratings: number[] = [];
       activities.forEach((a) => {
@@ -231,48 +264,26 @@ export default function PageTime() {
       return { count, avgRating, minutes: Math.round(totalSecs / 60) };
     };
 
-    if (trendRange === 'day') {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const dayEntry = data.find((d) => d.date === todayStr) || (data.length > 0 ? data[0] : null);
-      if (dayEntry) {
-        dayEntry.activities
-          .slice()
-          .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
-          .forEach((a) => {
-            const time = new Date(a.startedAt).toLocaleTimeString(language === 'cs' ? 'cs-CZ' : 'en-US', { hour: '2-digit', minute: '2-digit' });
-            const stats = computeStats([a]);
-            result.push({ day: time, ...stats });
-          });
-      }
-    } else {
-      const today = new Date();
-      const days = trendRange === 'week' ? 7 : 30;
-      const start = new Date(today);
-      start.setDate(start.getDate() - (days - 1));
+    const today = new Date();
+    const days = trendRange === 'week' ? 7 : 30;
+    const start = new Date(today);
+    start.setDate(start.getDate() - (days - 1));
 
-      for (let i = 0; i < days; i++) {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
-        const dayEntry = data.find((d) => d.date === dateStr);
+    for (let i = 0; i < days; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayEntry = data.find((d) => d.date === dateStr);
 
-        const stats = dayEntry ? computeStats(dayEntry.activities) : { count: 0, avgRating: 0, minutes: 0 };
+      const stats = dayEntry ? computeStats(dayEntry.activities) : { count: 0, avgRating: 0, minutes: 0 };
 
-        const dayName = trendRange === 'week'
-          ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
-          : `${date.getDate()}.${date.getMonth() + 1}`;
-        result.push({ day: dayName, ...stats });
-      }
+      const dayName = trendRange === 'week'
+        ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
+        : `${date.getDate()}.${date.getMonth() + 1}`;
+      result.push({ day: dayName, ...stats });
     }
 
-    // Make count and minutes cumulative for wave effect
-    let cumCount = 0;
-    let cumMinutes = 0;
-    return result.map((r) => {
-      cumCount += r.count;
-      cumMinutes += r.minutes;
-      return { ...r, count: cumCount, minutes: cumMinutes };
-    });
+    return result;
   }, [data, language, trendRange]);
 
   const chartData = useMemo(() => {
@@ -305,11 +316,8 @@ export default function PageTime() {
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }, []);
@@ -321,7 +329,6 @@ export default function PageTime() {
 
   const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
-
     deleteActivitiesByIds(Array.from(selectedIds));
     setData(loadAllData());
     setSelectedIds(new Set());
@@ -329,19 +336,49 @@ export default function PageTime() {
 
   const allActivityIds = useMemo(() => {
     const ids: string[] = [];
-    data.forEach((day) => {
-      day.activities.forEach((a) => ids.push(a.id));
-    });
+    data.forEach((day) => day.activities.forEach((a) => ids.push(a.id)));
     return ids;
   }, [data]);
 
   const handleSelectAll = useCallback(() => {
-    if (selectedIds.size === allActivityIds.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(allActivityIds));
-    }
+    if (selectedIds.size === allActivityIds.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(allActivityIds));
   }, [selectedIds.size, allActivityIds]);
+
+  const handleCreateLinked = useCallback((originalActivity: Activity) => {
+    const newActivity = createLinkedActivity(originalActivity.id, originalActivity.type);
+    setData(loadAllData());
+    setEditingRecord(newActivity);
+  }, []);
+
+  const handleNavigate = useCallback((targetId: string) => {
+    const found = findActivityById(targetId);
+    if (found) setEditingRecord(found.activity);
+  }, []);
+
+  const handleAddComment = useCallback((activityId: string, text: string) => {
+    const found = findActivityById(activityId);
+    if (!found) return;
+    const existing = found.activity.comments || getActivityComments(found.activity);
+    const newComment: ActivityComment = {
+      id: generateCommentId(),
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    updateActivityById(activityId, { comments: [newComment, ...existing] });
+    setData(loadAllData());
+  }, []);
+
+  const handleUpdateComment = useCallback((activityId: string, commentId: string, text: string) => {
+    const found = findActivityById(activityId);
+    if (!found) return;
+    const existing = found.activity.comments || getActivityComments(found.activity);
+    const updated = existing.map((c) =>
+      c.id === commentId ? { ...c, text, updatedAt: new Date().toISOString() } : c
+    );
+    updateActivityById(activityId, { comments: updated });
+    setData(loadAllData());
+  }, []);
 
   if (data.length === 0) {
     return (
@@ -373,35 +410,30 @@ export default function PageTime() {
         <h2 className="font-serif text-base text-themed-secondary mb-3">{t.time.summaryTitle}</h2>
         <div className="grid grid-cols-2 gap-3">
           <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-themed-accent-solid">{summaryStats.totalActivities}</div>
-            <div className="text-xs text-themed-faint mt-1">{t.time.totalActivities}</div>
+            <div className="text-2xl font-serif text-themed-accent-solid">
+              {summaryStats.todayActivities} / {summaryStats.totalActivities}
+            </div>
+            <div className="text-xs text-themed-faint mt-1">{t.time.todayActivities} / {t.time.totalActivities}</div>
           </div>
           <div className="card text-center py-3">
             <div className="text-2xl font-serif text-themed-accent-solid">
-              {summaryStats.hours > 0 && `${summaryStats.hours}${t.time.hours} `}
-              {summaryStats.minutes} {t.time.minutes}
+              {summaryStats.today.hours > 0 ? `${summaryStats.today.hours}${t.time.hours} ` : ''}{summaryStats.today.minutes}{t.time.minutes}
+              {' / '}
+              {summaryStats.hours > 0 ? `${summaryStats.hours}${t.time.hours} ` : ''}{summaryStats.minutes}{t.time.minutes}
             </div>
-            <div className="text-xs text-themed-faint mt-1">{t.time.totalTime}</div>
-          </div>
-          <div className="card text-center py-3">
-            <div className="text-xl font-mono text-themed-accent-solid tracking-wider">{elapsed.display}</div>
-            <div className="text-xs text-themed-faint mt-1">{t.time.activeDays}</div>
-          </div>
-          <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-themed-accent-solid">{elapsed.percent}%</div>
-            <div className="text-xs text-themed-faint mt-1">{t.time.practiceRatio}</div>
+            <div className="text-xs text-themed-faint mt-1">{t.time.todayTime} / {t.time.totalTime}</div>
           </div>
         </div>
       </section>
 
-      {/* Trend Section */}
+      {/* Trend Section - week/month only, non-cumulative */}
       <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-serif text-base text-themed-secondary">
-            {trendRange === 'day' ? t.time.dailyTrend : trendRange === 'week' ? t.time.weeklyTrend : t.time.monthlyTrend}
+            {trendRange === 'week' ? t.time.weeklyTrend : t.time.monthlyTrend}
           </h2>
           <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
-            {(['day', 'week', 'month'] as const).map((r) => (
+            {(['week', 'month'] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setTrendRange(r)}
@@ -411,7 +443,7 @@ export default function PageTime() {
                     : 'text-themed-faint hover:text-themed-secondary'
                 }`}
               >
-                {r === 'day' ? t.time.trendDay : r === 'week' ? t.time.trendWeek : t.time.trendMonth}
+                {r === 'week' ? t.time.trendWeek : t.time.trendMonth}
               </button>
             ))}
           </div>
@@ -435,10 +467,10 @@ export default function PageTime() {
               </defs>
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: trendRange === 'month' ? 9 : trendRange === 'day' ? 9 : 11, fill: colors.tick }}
+                tick={{ fontSize: trendRange === 'month' ? 9 : 11, fill: colors.tick }}
                 axisLine={false}
                 tickLine={false}
-                interval={trendRange === 'month' ? 4 : trendRange === 'day' ? 2 : 0}
+                interval={trendRange === 'month' ? 4 : 0}
               />
               <YAxis yAxisId="rating" domain={[0, 5]} hide />
               <YAxis yAxisId="count" hide />
@@ -475,7 +507,7 @@ export default function PageTime() {
                 dataKey="count"
                 stroke={colors.barEmpty}
                 fill="url(#gradCount)"
-                strokeWidth={1.5}
+                strokeWidth={2}
                 dot={false}
               />
               <Area
@@ -504,27 +536,6 @@ export default function PageTime() {
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-themed-accent-solid">
-              {trendRange === 'week' ? summaryStats.weekActivities : summaryStats.monthActivities}
-            </div>
-            <div className="text-xs text-themed-faint mt-1">
-              {trendRange === 'week' ? t.time.weekActivities : t.time.monthActivities}
-            </div>
-          </div>
-          <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-themed-accent-solid">
-              {trendRange === 'week'
-                ? <>{summaryStats.week.hours > 0 && `${summaryStats.week.hours}${t.time.hours} `}{summaryStats.week.minutes} {t.time.minutes}</>
-                : <>{summaryStats.month.hours > 0 && `${summaryStats.month.hours}${t.time.hours} `}{summaryStats.month.minutes} {t.time.minutes}</>
-              }
-            </div>
-            <div className="text-xs text-themed-faint mt-1">
-              {trendRange === 'week' ? t.time.weekTime : t.time.monthTime}
-            </div>
-          </div>
-        </div>
       </section>
 
       {chartData.length > 1 && (
@@ -548,8 +559,8 @@ export default function PageTime() {
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#fdf9f3',
-                    border: '1px solid #e4d5c7',
+                    backgroundColor: colors.tooltipBg,
+                    border: `1px solid ${colors.tooltipBorder}`,
                     borderRadius: '8px',
                     fontSize: '12px',
                   }}
@@ -576,7 +587,8 @@ export default function PageTime() {
         </section>
       )}
 
-      <section>
+      {/* Records */}
+      <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-serif text-base text-themed-secondary">{t.time.recordsTitle}</h2>
           <div className="flex items-center gap-2">
@@ -606,14 +618,12 @@ export default function PageTime() {
         <div className="card">
           {data.map((day, dayIndex) => (
             <div key={day.date}>
-              {/* Datum jako oddělovač */}
               <div className={`py-2 px-1 text-sm font-medium text-themed-muted capitalize ${
                 dayIndex > 0 ? 'border-t-2 border-themed mt-2' : ''
               }`}>
                 {formatDateFull(day.date, language)}
               </div>
 
-              {/* Aktivity daného dne */}
               {day.activities
                 .slice()
                 .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
@@ -625,11 +635,28 @@ export default function PageTime() {
                     selected={selectedIds.has(activity.id)}
                     onToggleSelect={() => toggleSelect(activity.id)}
                     onClickEdit={() => setEditingRecord(activity)}
+                    onCreateLinked={() => handleCreateLinked(activity)}
+                    onNavigate={handleNavigate}
                     t={t}
                   />
                 ))}
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Running stats - at the bottom */}
+      <section className="mb-6">
+        <h2 className="font-serif text-base text-themed-secondary mb-3">{t.time.runningTitle}</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="card text-center py-3">
+            <div className="text-xl font-mono text-themed-accent-solid tracking-wider">{elapsed.display}</div>
+            <div className="text-xs text-themed-faint mt-1">{t.time.activeDays}</div>
+          </div>
+          <div className="card text-center py-3">
+            <div className="text-2xl font-serif text-themed-accent-solid">{elapsed.percent}%</div>
+            <div className="text-xs text-themed-faint mt-1">{t.time.practiceRatio}</div>
+          </div>
         </div>
       </section>
 
@@ -647,6 +674,12 @@ export default function PageTime() {
             onClose={() => {
               setEditingRecord(null);
               setData(loadAllData());
+            }}
+            onAddComment={(text) => handleAddComment(editingRecord.id, text)}
+            onUpdateComment={(commentId, text) => handleUpdateComment(editingRecord.id, commentId, text)}
+            onNavigateLinked={(targetId) => {
+              const found = findActivityById(targetId);
+              if (found) setEditingRecord(found.activity);
             }}
           />
         );
