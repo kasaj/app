@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Activity, ActivityDefinition, ActivityComment, Rating } from '../types';
 import { useLanguage } from '../i18n';
 import { generateId, addActivity, updateActivityById } from '../utils/storage';
+import { loadMoodScale } from '../utils/moodScale';
 import StarRating from './StarRating';
 import Timer from './Timer';
 
@@ -375,10 +376,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
               const rounded = Math.round(Math.min(6, Math.max(0, avg)));
               return (
                 <div className="flex gap-0.5 text-sm">
-                  {[
-                    { v: 0, e: '😡' }, { v: 1, e: '😰' }, { v: 2, e: '😞' }, { v: 3, e: '😐' },
-                    { v: 4, e: '🙂' }, { v: 5, e: '😄' }, { v: 6, e: '🤩' },
-                  ].map(({ v, e }) => (
+                  {loadMoodScale().map(({ value: v, emoji: e }) => (
                     <span key={v} className={v === rounded ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
                   ))}
                 </div>

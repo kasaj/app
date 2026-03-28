@@ -4,6 +4,7 @@ import { loadSettings, saveSettings } from '../utils/settings';
 import { loadAllData, saveAllData } from '../utils/storage';
 import { loadActivities, saveActivities } from '../utils/activities';
 import { DayEntry, ActivityDefinition } from '../types';
+import { loadMoodScale, saveMoodScale, getDefaultMoodScale, MoodScaleItem } from '../utils/moodScale';
 import { Theme, loadTheme, saveTheme } from '../utils/theme';
 import { getCachedConfig } from '../utils/config';
 
@@ -30,6 +31,7 @@ interface PraFile {
   userModified?: string[];
   sessionStart?: string;
   activityStats?: Record<string, { count: number; totalSeconds: number; avgRating?: number; avgMood?: number; totalLinks?: number }>;
+  moodScale?: MoodScaleItem[];
 }
 
 function generateBackup(lang: string, currentTheme: string, profileName: string): PraFile {
@@ -106,6 +108,7 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
     notes: { cs: loadNotes('cs'), en: loadNotes('en') },
     userModified,
     sessionStart: localStorage.getItem('pra_session_start') || undefined,
+    moodScale: loadMoodScale(),
     activityStats,
   } as PraFile;
 }
@@ -241,6 +244,10 @@ function importPraFile(file: PraFile, currentLang: string): void {
   if (file.type === 'backup' && file.sessionStart) {
     localStorage.setItem('pra_session_start', file.sessionStart);
   }
+  // Mood scale
+  if (file.moodScale && Array.isArray(file.moodScale) && file.moodScale.length > 0) {
+    saveMoodScale(file.moodScale);
+  }
 }
 
 function generatePraFileContent(data: PraFile): string {
@@ -285,6 +292,8 @@ export default function PageSettings() {
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
   const [exportTab, setExportTab] = useState<'backup' | 'config'>('backup');
   const [theme, setThemeState] = useState<Theme>(loadTheme);
+  const [moodScale, setMoodScale] = useState<MoodScaleItem[]>(() => loadMoodScale());
+  const [editingMoodIdx, setEditingMoodIdx] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleThemeChange = (newTheme: Theme) => {
@@ -428,6 +437,7 @@ export default function PageSettings() {
               />
             </div>
           </div>
+
         </section>
 
         {/* Export / Import */}
@@ -583,6 +593,49 @@ export default function PageSettings() {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Mood scale */}
+        <section className="card">
+          <h2 className="font-serif text-lg text-themed-primary mb-4">
+            {t.settings.moodScale}
+          </h2>
+          <div className="flex items-center justify-between gap-1">
+            {moodScale.map((item, idx) => (
+              <div key={item.value} className="flex flex-col items-center gap-0.5">
+                {editingMoodIdx === idx ? (
+                  <input
+                    autoFocus
+                    value={item.emoji}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const emoji = [...val].pop() || item.emoji;
+                      const updated = [...moodScale];
+                      updated[idx] = { ...item, emoji };
+                      setMoodScale(updated);
+                      saveMoodScale(updated);
+                    }}
+                    onBlur={() => setEditingMoodIdx(null)}
+                    className="w-8 h-8 text-center text-xl bg-themed-input border border-themed-accent rounded-lg focus:outline-none"
+                  />
+                ) : (
+                  <button
+                    onClick={() => setEditingMoodIdx(idx)}
+                    className="text-xl hover:scale-110 transition-transform"
+                  >
+                    {item.emoji}
+                  </button>
+                )}
+                <span className="text-xs text-themed-faint">{item.value}</span>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => { setMoodScale(getDefaultMoodScale()); saveMoodScale(getDefaultMoodScale()); }}
+            className="text-xs text-themed-faint hover:text-themed-muted mt-3"
+          >
+            Reset
+          </button>
         </section>
 
         {/* New Session */}

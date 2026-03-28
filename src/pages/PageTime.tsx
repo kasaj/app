@@ -4,6 +4,7 @@ import { getChartColors } from '../utils/theme';
 import { getActivityByType, getTranslatedActivity } from '../utils/activities';
 import { useLanguage } from '../i18n';
 import { Activity, ActivityComment, DayEntry } from '../types';
+import { loadMoodScale, getMoodEmoji } from '../utils/moodScale';
 import ActivityFlow from '../components/ActivityFlow';
 import {
   LineChart,
@@ -16,9 +17,8 @@ import {
   Tooltip,
 } from 'recharts';
 
-const MOOD_EMOJIS: Record<number, string> = { 0: '😡', 1: '😰', 2: '😞', 3: '😐', 4: '🙂', 5: '😄', 6: '🤩' };
 function moodEmoji(rating: number): string {
-  return MOOD_EMOJIS[Math.round(Math.min(6, Math.max(0, rating)))] || '😐';
+  return getMoodEmoji(rating);
 }
 
 /** Compute avg rating from comments of activity + all linked activities */
@@ -368,12 +368,9 @@ function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClic
               <span className="text-themed-faint text-xs flex-shrink-0">{formatTime(c.updatedAt || c.createdAt, lang)}</span>
               {c.text && <span className="text-themed-muted italic truncate">"{c.text}"</span>}
             </div>
-            {c.rating && (
+            {c.rating != null && (
               <div className="flex gap-px flex-shrink-0 ml-1" style={{ fontSize: '0.55rem' }}>
-                {[
-                  { v: 0, e: '😡' }, { v: 1, e: '😰' }, { v: 2, e: '😞' }, { v: 3, e: '😐' },
-                  { v: 4, e: '🙂' }, { v: 5, e: '😄' }, { v: 6, e: '🤩' },
-                ].map(({ v, e }) => (
+                {loadMoodScale().map(({ value: v, emoji: e }) => (
                   <span key={v} className={v === c.rating ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
                 ))}
               </div>
@@ -872,10 +869,7 @@ export default function PageTime() {
         <h2 className="font-serif text-base text-themed-secondary mb-3">{t.time.runningTitle}</h2>
         <div className="card flex justify-center py-4 mb-3">
           <div className="flex gap-1.5 text-2xl">
-            {[
-              { v: 1, e: '😰' }, { v: 2, e: '😞' }, { v: 3, e: '😐' },
-              { v: 4, e: '🙂' }, { v: 5, e: '😄' }, { v: 6, e: '🤩' },
-            ].map(({ v, e }) => (
+            {loadMoodScale().map(({ value: v, emoji: e }) => (
               <span key={v} className={v === Math.round(summaryStats.overallMood) ? 'opacity-100' : 'grayscale opacity-30'}>
                 {e}
               </span>

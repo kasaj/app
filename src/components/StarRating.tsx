@@ -1,22 +1,16 @@
 import { Rating } from '../types';
-
-const MOOD_SCALE: { value: Rating; emoji: string }[] = [
-  { value: 0, emoji: '😡' },
-  { value: 1, emoji: '😰' },
-  { value: 2, emoji: '😞' },
-  { value: 3, emoji: '😐' },
-  { value: 4, emoji: '🙂' },
-  { value: 5, emoji: '😄' },
-  { value: 6, emoji: '🤩' },
-];
+import { loadMoodScale, MoodScaleItem } from '../utils/moodScale';
 
 interface StarRatingProps {
   value: Rating | null;
   onChange: (rating: Rating) => void;
   size?: 'xs' | 'sm' | 'md' | 'lg';
+  scale?: MoodScaleItem[];
 }
 
-export default function StarRating({ value, onChange, size = 'md' }: StarRatingProps) {
+export default function StarRating({ value, onChange, size = 'md', scale }: StarRatingProps) {
+  const items = scale || loadMoodScale();
+
   const sizeClasses = {
     xs: 'text-xs gap-0.5',
     sm: 'text-lg gap-1',
@@ -26,11 +20,11 @@ export default function StarRating({ value, onChange, size = 'md' }: StarRatingP
 
   return (
     <div className={`flex ${sizeClasses[size]}`}>
-      {MOOD_SCALE.map(({ value: v, emoji }) => (
+      {items.map(({ value: v, emoji }) => (
         <button
           key={v}
           type="button"
-          onClick={() => onChange(v)}
+          onClick={() => onChange(v as Rating)}
           className={`transition-transform hover:scale-110 ${
             value === v ? 'opacity-100' : 'grayscale opacity-40'
           }`}
