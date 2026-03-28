@@ -59,14 +59,14 @@ function getActivityScore(a: Activity): number {
   return (a.linkedActivityIds?.length || 0) + (a.linkedFromId ? 1 : 0) + comments.length;
 }
 
-function ActivityCalendar({ data, language, onDayClick }: {
+function ActivityCalendar({ data, language, selectedDate, onDayClick }: {
   data: DayEntry[];
   language: string;
-  onDayClick: (date: string, activities: Activity[]) => void;
+  selectedDate: string | null;
+  onDayClick: (date: string | null) => void;
 }) {
   const { t } = useLanguage();
   const [viewDate, setViewDate] = useState(() => new Date());
-  const [selectedDay, setSelectedDay] = useState<{ date: string; activities: Activity[] } | null>(null);
 
   const activityMap = useMemo(() => {
     const map = new Map<string, DayEntry>();
@@ -97,12 +97,8 @@ function ActivityCalendar({ data, language, onDayClick }: {
 
   const handleDayClick = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const entry = activityMap.get(dateStr);
-    if (entry && entry.activities.length > 0) {
-      setSelectedDay({ date: dateStr, activities: entry.activities });
-    } else {
-      setSelectedDay(null);
-    }
+    // Toggle: click same date again = show all
+    onDayClick(selectedDate === dateStr ? null : dateStr);
   };
 
   return (
@@ -133,7 +129,7 @@ function ActivityCalendar({ data, language, onDayClick }: {
             const entry = activityMap.get(dateStr);
             const count = entry?.activities.length || 0;
             const isToday = dateStr === todayStr;
-            const isSelected = selectedDay?.date === dateStr;
+            const isSelected = selectedDate === dateStr;
 
             // Color intensity based on activity count
             let bgStyle: React.CSSProperties = {};
@@ -165,73 +161,6 @@ function ActivityCalendar({ data, language, onDayClick }: {
           })}
         </div>
 
-        {/* Day detail */}
-        {selectedDay && (() => {
-          const allRatings: number[] = [];
-          selectedDay.activities.forEach((a) => {
-            const comments = getActivityComments(a);
-            comments.forEach((c) => { if (c.rating) allRatings.push(c.rating); });
-            // Fallback to legacy ratings
-            if (comments.length === 0 || !comments.some(c => c.rating)) {
-              const r = a.ratingAfter ?? a.rating;
-              if (r != null) allRatings.push(r);
-            }
-          });
-          const avgRating = allRatings.length > 0
-            ? Math.round((allRatings.reduce((s, r) => s + r, 0) / allRatings.length) * 10) / 10
-            : null;
-          return (
-          <div className="mt-4 pt-3 border-t border-themed">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm font-medium text-themed-muted capitalize">
-                {new Date(selectedDay.date).toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
-              </div>
-              {avgRating !== null && (
-                <div className="flex items-center gap-1 text-sm">
-                  <span>{moodEmoji(avgRating)}</span>
-                  <span className="text-xs text-themed-faint">{avgRating}</span>
-                </div>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              {selectedDay.activities
-                .slice()
-                .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
-                .map((act) => {
-                  const rawDef = getActivityByType(act.type);
-                  const def = rawDef ? getTranslatedActivity(rawDef, t) : null;
-                  const time = new Date(act.startedAt).toLocaleTimeString(language === 'cs' ? 'cs-CZ' : 'en-US', { hour: '2-digit', minute: '2-digit' });
-                  // Activity avg rating from comments
-                  const actComments = getActivityComments(act);
-                  const actRatings: number[] = actComments.filter(c => c.rating != null).map(c => c.rating as number);
-                  if (actRatings.length === 0) {
-                    const r = act.ratingAfter ?? act.rating;
-                    if (r != null) actRatings.push(r);
-                  }
-                  const actAvg = actRatings.length > 0
-                    ? Math.round((actRatings.reduce((s, r) => s + r, 0) / actRatings.length) * 10) / 10
-                    : null;
-                  const actLinkCount = (act.linkedActivityIds?.length || 0) + (act.linkedFromId ? 1 : 0);
-                  return (
-                    <button
-                      key={act.id}
-                      onClick={() => onDayClick(selectedDay.date, [act])}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-themed-input transition-colors text-left"
-                    >
-                      <span className="text-xs text-themed-faint w-10">{time}</span>
-                      <span className="text-base">{def?.emoji}</span>
-                      <span className="text-sm text-themed-primary truncate flex-1">{def?.name}</span>
-                      {actLinkCount > 0 && <span className="text-xs text-themed-faint">{actLinkCount}</span>}
-                      {actAvg !== null ? (
-                        <span className="text-xs">{moodEmoji(actAvg)}</span>
-                      ) : null}
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-          );
-        })()}
       </div>
     </section>
   );
@@ -397,6 +326,7 @@ export default function PageTime() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [trendRange, setTrendRange] = useState<'day' | 'week' | 'month'>('day');
   const [recordSort, setRecordSort] = useState<'date' | 'score'>('date');
+  const [calendarDate, setCalendarDate] = useState<string | null>(null); // null = all, string = YYYY-MM-DD filter
   const [editingRecord, setEditingRecord] = useState<Activity | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
@@ -806,6 +736,14 @@ export default function PageTime() {
         </section>
       )}
 
+      {/* Calendar as date navigator */}
+      <ActivityCalendar
+        data={data}
+        language={language}
+        selectedDate={calendarDate}
+        onDayClick={setCalendarDate}
+      />
+
       {/* Records */}
       <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
@@ -851,8 +789,8 @@ export default function PageTime() {
 
         <div className="card">
           {recordSort === 'date' ? (
-            // Sort by date (grouped by day)
-            data.map((day, dayIndex) => (
+            // Sort by date (grouped by day), filtered by calendar
+            (calendarDate ? data.filter(d => d.date === calendarDate) : data).map((day, dayIndex) => (
               <div key={day.date}>
                 <div className={`py-2 px-1 text-sm font-medium text-themed-muted capitalize ${
                   dayIndex > 0 ? 'border-t-2 border-themed mt-2' : ''
@@ -879,8 +817,11 @@ export default function PageTime() {
               </div>
             ))
           ) : (
-            // Sort by score (flat list, highest first)
-            allActivitiesFlat
+            // Sort by score (flat list, highest first), filtered by calendar
+            (calendarDate
+              ? allActivitiesFlat.filter(a => a.startedAt.startsWith(calendarDate))
+              : allActivitiesFlat
+            )
               .slice()
               .sort((a, b) => getActivityScore(b) - getActivityScore(a))
               .map((activity) => (
@@ -900,15 +841,6 @@ export default function PageTime() {
           )}
         </div>
       </section>
-
-      {/* Calendar */}
-      <ActivityCalendar
-        data={data}
-        language={language}
-        onDayClick={(_date, activities) => {
-          if (activities.length > 0) setEditingRecord(activities[0]);
-        }}
-      />
 
       {/* Running stats */}
       <section className="mb-6">
