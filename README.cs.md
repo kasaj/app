@@ -45,17 +45,23 @@ Všechny aktivity jsou plně přizpůsobitelné — název, emoji, popis, doba t
 
 ## Funkce
 
-- **Časová praxe** — odpočítávání s gongem po dokončení, pauza/pokračování, předčasné dokončení nebo zpětný záznam tlačítkem „Hotovo"
+- **Časová praxe** — odpočítávání s gongem, pauza/pokračování, předčasné dokončení, „Hotovo" pro zpětný záznam. Čas zahájení zobrazený při odpočtu
 - **Okamžiky** — rychlé záznamy bez časovače
+- **Jednotný systém komentářů** — veškerá interakce s aktivitami (poznámky, reflexe, postřehy) jsou komentáře s časovým razítkem. Žádné tlačítko „Zaznamenat" — přidání komentáře je akce
 - **Varianty** — klikatelné štítky, které se automaticky vyplní do poznámky
 - **Sledování stavu** — hodnocení stavu před a po aktivitě (1-5 hvězd)
-- **Statistiky** — týdenní/měsíční trend (počet aktivit + průměrný stav), doba běhu od prvního použití, procento praxe z bdělého stavu
-- **Stránka Info** — filozofický kontext (Proč/Jak/Co/Já) s osobními poznámkami, inspirativní citáty, vědecké základy
+- **Propojování aktivit** — vytvořte navazující aktivitu z libovolného záznamu (+), navigace mezi propojenými aktivitami šipkami ‹ ›
+- **Navigace v záznamech** — procházení všech záznamů šipkami ‹ › v editačním okně
+- **Statistiky** — denní/týdenní/měsíční trend (sloupcový graf pro počet aktivit + křivka pro průměrné hodnocení), doba běhu od prvního použití, procento praxe z bdělého stavu
+- **Měsíční kalendář** — barevně zvýrazněné dny podle počtu aktivit, kliknutím náhled záznamů dne
+- **Shrnutí Dnes/Celkem** — počet aktivit a čas zobrazený jako dnes / celkem
+- **Stránka Info** — filozofický kontext (Proč/Jak/Co/Já) s osobními poznámkami, inspirativní citáty, vědecké základy. Logo aplikace ve spodní části
 - **Chytrá synchronizace** — aplikace detekuje změny konfigurace na serveru, automaticky přidá nové aktivity a zachová uživatelské úpravy
+- **Nová relace** — spuštění nové relace praxe z Nastavení (resetuje označení dnešních dokončených aktivit)
 - **Konfigurace** — JSON soubor řídí aktivity, obsah info, citáty, jazyk a téma
-- **Export/Import** — export konfigurace v jednom jazyce jako JSON; export historie jako Markdown
+- **Záloha/Import** — kompletní záloha s historií, hodnocením, komentáři a statistikami aktivit (počet, čas, průměrné hodnocení). Import vždy merguje — uživatelská data se nikdy nepřepisují
 - **Témata** — Auto (sleduje systém light/dark), Klasické (teplé zemité tóny), Tmavé
-- **Automatické ukládání** — všechna nastavení a úpravy aktivit se ukládají okamžitě
+- **Automatické ukládání** — všechna nastavení, hodnocení a komentáře se ukládají okamžitě
 - **Dvojjazyčné** — čeština a angličtina s oddělenými poznámkami
 - **Offline** — funguje bez internetu jako PWA
 - **CI/CD** — push na main automaticky nasadí přes GitHub Actions

@@ -45,17 +45,23 @@ All activities are fully customizable — name, emoji, description, duration, an
 
 ## Features
 
-- **Timed practice** — countdown timer with gong on completion, pause/resume, finish early, or record retroactively with "Done"
+- **Timed practice** — countdown timer with gong, pause/resume, finish early, "Done" for retroactive recording. Start time displayed during countdown
 - **Moments** — quick records without timer
+- **Unified comment system** — all activity interactions (notes, reflections, observations) are timestamped comments. No separate "Record" button — adding a comment is the action
 - **Variants** — clickable chips that auto-fill into notes
 - **State tracking** — rate your state before and after timed activities (1-5 stars)
-- **Statistics** — weekly/monthly trend charts (activity count + average state), elapsed time since first use, practice percentage of waking hours
-- **Info page** — philosophical context (Why/How/What/I) with personal note fields, inspirational quotes, scientific foundations
+- **Activity linking** — create follow-up activities from any record (+), navigate between linked activities with ‹ › arrows
+- **Record navigation** — browse through all records with ‹ › in the edit view
+- **Statistics** — day/week/month trend chart (bar chart for activity count + line for average state), elapsed time since first use, practice percentage of waking hours
+- **Monthly calendar** — color-coded days by activity count, click to preview day's records
+- **Today/Total summary** — activity count and time shown as today / all-time
+- **Info page** — philosophical context (Why/How/What/I) with personal note fields, inspirational quotes, scientific foundations. App logo at the bottom
 - **Smart sync** — app detects config changes on server, auto-merges new activities while preserving user edits
+- **Session reset** — start a new practice session from Settings (resets today's completion markers)
 - **Configuration** — JSON config file drives activities, info content, quotes, language and theme
-- **Export/Import** — single-language config export/import as JSON; history export as Markdown
+- **Backup/Import** — full backup with history, ratings, comments and per-activity stats (count, time, avg rating). Import always merges — user data is never overwritten
 - **Themes** — Auto (follows system light/dark), Classic (warm earth tones), Dark
-- **Auto-save** — all settings and activity edits save instantly
+- **Auto-save** — all settings, ratings, and comments save instantly
 - **Bilingual** — Czech and English with per-language notes
 - **Offline** — works without internet as a PWA
 - **CI/CD** — push to main auto-deploys via GitHub Actions
