@@ -3,7 +3,7 @@ import { loadAllData, deleteActivitiesByIds, updateActivityById, findActivityByI
 import { getChartColors } from '../utils/theme';
 import { getActivityByType, getTranslatedActivity } from '../utils/activities';
 import { useLanguage } from '../i18n';
-import { Activity, ActivityComment } from '../types';
+import { Activity, ActivityComment, DayEntry } from '../types';
 import ActivityFlow from '../components/ActivityFlow';
 import {
   LineChart,
@@ -15,6 +15,151 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
+
+function ActivityCalendar({ data, language, onDayClick }: {
+  data: DayEntry[];
+  language: string;
+  onDayClick: (date: string, activities: Activity[]) => void;
+}) {
+  const { t } = useLanguage();
+  const [viewDate, setViewDate] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState<{ date: string; activities: Activity[] } | null>(null);
+
+  const activityMap = useMemo(() => {
+    const map = new Map<string, DayEntry>();
+    data.forEach((d) => map.set(d.date, d));
+    return map;
+  }, [data]);
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startPad = (firstDay.getDay() + 6) % 7; // Monday = 0
+
+  const days: (number | null)[] = [];
+  for (let i = 0; i < startPad; i++) days.push(null);
+  for (let d = 1; d <= lastDay.getDate(); d++) days.push(d);
+
+  const monthName = viewDate.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { month: 'long', year: 'numeric' });
+  const weekDays = language === 'cs'
+    ? ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne']
+    : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const handlePrev = () => setViewDate(new Date(year, month - 1, 1));
+  const handleNext = () => setViewDate(new Date(year, month + 1, 1));
+
+  const handleDayClick = (day: number) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const entry = activityMap.get(dateStr);
+    if (entry && entry.activities.length > 0) {
+      setSelectedDay({ date: dateStr, activities: entry.activities });
+    } else {
+      setSelectedDay(null);
+    }
+  };
+
+  return (
+    <section className="mb-6">
+      <h2 className="font-serif text-base text-themed-secondary mb-3">{t.time.calendarTitle}</h2>
+      <div className="card">
+        <div className="flex items-center justify-between mb-3">
+          <button onClick={handlePrev} className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <span className="font-serif text-themed-primary capitalize">{monthName}</span>
+          <button onClick={handleNext} className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {weekDays.map((d) => (
+            <div key={d} className="text-xs text-themed-faint py-1">{d}</div>
+          ))}
+          {days.map((day, i) => {
+            if (day === null) return <div key={`e-${i}`} />;
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const entry = activityMap.get(dateStr);
+            const count = entry?.activities.length || 0;
+            const isToday = dateStr === todayStr;
+            const isSelected = selectedDay?.date === dateStr;
+
+            // Color intensity based on activity count
+            let bgStyle: React.CSSProperties = {};
+            if (count > 0) {
+              const opacity = Math.min(0.2 + count * 0.15, 0.9);
+              bgStyle = { backgroundColor: `color-mix(in srgb, var(--accent-solid) ${Math.round(opacity * 100)}%, transparent)` };
+            }
+
+            return (
+              <button
+                key={day}
+                onClick={() => handleDayClick(day)}
+                className={`aspect-square rounded-lg text-sm flex items-center justify-center transition-colors relative ${
+                  isSelected ? 'ring-2 ring-offset-1' : ''
+                } ${isToday ? 'font-bold' : ''} ${
+                  count > 0 ? 'text-themed-primary' : 'text-themed-faint'
+                }`}
+                style={{
+                  ...bgStyle,
+                  ...(isSelected ? { ringColor: 'var(--accent-solid)' } : {}),
+                }}
+              >
+                {day}
+                {isToday && (
+                  <span className="absolute bottom-0.5 w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--accent-solid)' }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Day detail */}
+        {selectedDay && (
+          <div className="mt-4 pt-3 border-t border-themed">
+            <div className="text-sm font-medium text-themed-muted mb-2 capitalize">
+              {new Date(selectedDay.date).toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </div>
+            <div className="space-y-1.5">
+              {selectedDay.activities
+                .slice()
+                .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
+                .map((act) => {
+                  const rawDef = getActivityByType(act.type);
+                  const def = rawDef ? getTranslatedActivity(rawDef, t) : null;
+                  const time = new Date(act.startedAt).toLocaleTimeString(language === 'cs' ? 'cs-CZ' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+                  return (
+                    <button
+                      key={act.id}
+                      onClick={() => onDayClick(selectedDay.date, [act])}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-themed-input transition-colors text-left"
+                    >
+                      <span className="text-xs text-themed-faint w-10">{time}</span>
+                      <span className="text-base">{def?.emoji}</span>
+                      <span className="text-sm text-themed-primary truncate flex-1">{def?.name}</span>
+                      {act.ratingAfter ? (
+                        <span className="text-xs text-themed-muted">{act.ratingBefore || '-'}→{act.ratingAfter}</span>
+                      ) : act.rating ? (
+                        <span className="text-xs text-themed-ochre">{'★'.repeat(act.rating)}</span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
 function formatDateFull(dateStr: string, lang: string): string {
   const date = new Date(dateStr);
@@ -667,7 +812,16 @@ export default function PageTime() {
         </div>
       </section>
 
-      {/* Running stats - at the bottom */}
+      {/* Calendar */}
+      <ActivityCalendar
+        data={data}
+        language={language}
+        onDayClick={(_date, activities) => {
+          if (activities.length > 0) setEditingRecord(activities[0]);
+        }}
+      />
+
+      {/* Running stats - at the very bottom */}
       <section className="mb-6">
         <h2 className="font-serif text-base text-themed-secondary mb-3">{t.time.runningTitle}</h2>
         <div className="grid grid-cols-2 gap-3">

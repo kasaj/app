@@ -70,6 +70,7 @@ export const translations = {
       linkedFrom: 'Navazuje na',
       linkedTo: 'Pokračuje v',
       runningTitle: 'Statistiky běhu',
+      calendarTitle: 'Kalendář',
     },
     // Info page
     info: {
@@ -251,6 +252,7 @@ export const translations = {
       linkedFrom: 'Follows from',
       linkedTo: 'Continues in',
       runningTitle: 'Running stats',
+      calendarTitle: 'Calendar',
     },
     // Info page
     info: {
