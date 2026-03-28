@@ -123,10 +123,25 @@ function ActivityCalendar({ data, language, onDayClick }: {
         </div>
 
         {/* Day detail */}
-        {selectedDay && (
+        {selectedDay && (() => {
+          const ratings = selectedDay.activities
+            .map((a) => a.ratingAfter || a.rating)
+            .filter((r): r is number => r != null);
+          const avgRating = ratings.length > 0
+            ? Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10
+            : null;
+          return (
           <div className="mt-4 pt-3 border-t border-themed">
-            <div className="text-sm font-medium text-themed-muted mb-2 capitalize">
-              {new Date(selectedDay.date).toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-medium text-themed-muted capitalize">
+                {new Date(selectedDay.date).toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </div>
+              {avgRating !== null && (
+                <div className="flex items-center gap-1 text-themed-ochre text-sm">
+                  {'★'.repeat(Math.round(avgRating))}
+                  <span className="text-xs text-themed-faint ml-1">{avgRating}</span>
+                </div>
+              )}
             </div>
             <div className="space-y-1.5">
               {selectedDay.activities

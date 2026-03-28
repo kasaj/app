@@ -40,18 +40,18 @@ function CommentsBlock({ comments, newComment, setNewComment, onAdd, onUpdate, l
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
-        <input
+        <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder={t.time.commentPlaceholder}
           className="flex-1 p-3 rounded-xl bg-themed-input border border-themed
-                   focus:outline-none focus:border-themed-accent
+                   focus:outline-none focus:border-themed-accent resize-none h-14
                    text-themed-primary placeholder:text-themed-faint text-sm"
-          onKeyDown={(e) => { if (e.key === 'Enter') onAdd(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onAdd(); } }}
         />
         <button
           onClick={onAdd}
-          className="px-4 py-2 rounded-xl text-sm transition-colors"
+          className="px-4 rounded-xl text-sm transition-colors self-stretch"
           style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
         >
           +
@@ -212,7 +212,13 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   }, [isEditing, existingActivity, onUpdateExisting, isTimed, selectedVariant, ratingBefore, ratingAfter, rating, activity, onClose]);
 
   const handleVariantClick = (variant: string) => {
-    setSelectedVariant((prev) => prev === variant ? null : variant);
+    if (selectedVariant === variant) {
+      setSelectedVariant(null);
+      setNewComment((prev) => prev.replace(variant, '').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s*,\s*,\s*/g, ', '));
+    } else {
+      setSelectedVariant(variant);
+      setNewComment((prev) => prev ? `${prev}, ${variant}` : variant);
+    }
   };
 
   const handleTimedBeforeSubmit = () => {

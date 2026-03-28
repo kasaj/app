@@ -160,10 +160,38 @@ function importPraFile(file: PraFile, currentLang: string): void {
     file.history.forEach((importDay) => {
       const existingDay = existingMap.get(importDay.date);
       if (existingDay) {
-        // Add activities that don't already exist (by id)
-        const existingIds = new Set(existingDay.activities.map(a => a.id));
-        const newActivities = importDay.activities.filter(a => !existingIds.has(a.id));
-        existingDay.activities.push(...newActivities);
+        const existingById = new Map(existingDay.activities.map(a => [a.id, a]));
+
+        importDay.activities.forEach((importAct) => {
+          const existingAct = existingById.get(importAct.id);
+          if (existingAct) {
+            // Merge comments: add imported comments that don't already exist
+            if (importAct.comments && importAct.comments.length > 0) {
+              const existingCommentIds = new Set((existingAct.comments || []).map(c => c.id));
+              const newComments = importAct.comments.filter(c => !existingCommentIds.has(c.id));
+              if (newComments.length > 0) {
+                existingAct.comments = [...(existingAct.comments || []), ...newComments];
+              }
+            }
+            // Merge linked activity IDs
+            if (importAct.linkedActivityIds) {
+              const existingLinks = new Set(existingAct.linkedActivityIds || []);
+              importAct.linkedActivityIds.forEach(id => existingLinks.add(id));
+              existingAct.linkedActivityIds = [...existingLinks];
+            }
+            if (importAct.linkedFromId && !existingAct.linkedFromId) {
+              existingAct.linkedFromId = importAct.linkedFromId;
+            }
+            // Fill in missing ratings
+            if (importAct.ratingBefore && !existingAct.ratingBefore) existingAct.ratingBefore = importAct.ratingBefore;
+            if (importAct.ratingAfter && !existingAct.ratingAfter) existingAct.ratingAfter = importAct.ratingAfter;
+            if (importAct.rating && !existingAct.rating) existingAct.rating = importAct.rating;
+          } else {
+            // New activity - add it
+            existingDay.activities.push(importAct);
+          }
+        });
+
         existingMap.set(importDay.date, existingDay);
       } else {
         existingMap.set(importDay.date, importDay);
