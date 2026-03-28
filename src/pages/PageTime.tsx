@@ -604,27 +604,6 @@ export default function PageTime() {
         <p className="text-themed-faint mt-1">{t.time.subtitle}</p>
       </header>
 
-      {/* Summary Section */}
-      <section className="mb-6">
-        <h2 className="font-serif text-base text-themed-secondary mb-3">{t.time.summaryTitle}</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-themed-accent-solid">
-              {summaryStats.todayActivities} / {summaryStats.totalActivities}
-            </div>
-            <div className="text-xs text-themed-faint mt-1">{t.time.todayActivities} / {t.time.totalActivities}</div>
-          </div>
-          <div className="card text-center py-3">
-            <div className="text-2xl font-serif text-themed-accent-solid">
-              {summaryStats.today.hours > 0 ? `${summaryStats.today.hours}${t.time.hours} ` : ''}{summaryStats.today.minutes}{t.time.minutes}
-              {' / '}
-              {summaryStats.hours > 0 ? `${summaryStats.hours}${t.time.hours} ` : ''}{summaryStats.minutes}{t.time.minutes}
-            </div>
-            <div className="text-xs text-themed-faint mt-1">{t.time.todayTime} / {t.time.totalTime}</div>
-          </div>
-        </div>
-      </section>
-
       {/* Trend Section */}
       <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
@@ -818,10 +797,24 @@ export default function PageTime() {
         }}
       />
 
-      {/* Running stats - at the very bottom */}
+      {/* Running stats */}
       <section className="mb-6">
         <h2 className="font-serif text-base text-themed-secondary mb-3">{t.time.runningTitle}</h2>
         <div className="grid grid-cols-2 gap-3">
+          <div className="card text-center py-3">
+            <div className="text-2xl font-serif text-themed-accent-solid">
+              {summaryStats.todayActivities} / {summaryStats.totalActivities}
+            </div>
+            <div className="text-xs text-themed-faint mt-1">{t.time.todayActivities} / {t.time.totalActivities}</div>
+          </div>
+          <div className="card text-center py-3">
+            <div className="text-2xl font-serif text-themed-accent-solid">
+              {summaryStats.today.hours > 0 ? `${summaryStats.today.hours}${t.time.hours} ` : ''}{summaryStats.today.minutes}{t.time.minutes}
+              {' / '}
+              {summaryStats.hours > 0 ? `${summaryStats.hours}${t.time.hours} ` : ''}{summaryStats.minutes}{t.time.minutes}
+            </div>
+            <div className="text-xs text-themed-faint mt-1">{t.time.todayTime} / {t.time.totalTime}</div>
+          </div>
           <div className="card text-center py-3">
             <div className="text-xl font-mono text-themed-accent-solid tracking-wider">{elapsed.display}</div>
             <div className="text-xs text-themed-faint mt-1">{t.time.activeDays}</div>
