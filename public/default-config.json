@@ -111,6 +111,22 @@
       }
     },
     {
+      "type": "nalada",
+      "emoji": "📊",
+      "durationMinutes": null,
+      "core": true,
+      "cs": {
+        "name": "Nálada",
+        "description": "Zaznamenej svůj aktuální stav",
+        "properties": []
+      },
+      "en": {
+        "name": "Mood",
+        "description": "Record your current state",
+        "properties": []
+      }
+    },
+    {
       "type": "komentar",
       "emoji": "📜",
       "durationMinutes": null,
@@ -218,22 +234,6 @@
           "Failure is a win",
           "Small step in chaos"
         ]
-      }
-    }
-    ,{
-      "type": "nalada",
-      "emoji": "📊",
-      "durationMinutes": null,
-      "core": true,
-      "cs": {
-        "name": "Nálada",
-        "description": "Zaznamenej svůj aktuální stav",
-        "properties": []
-      },
-      "en": {
-        "name": "Mood",
-        "description": "Record your current state",
-        "properties": []
       }
     }
   ],

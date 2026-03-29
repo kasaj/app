@@ -269,24 +269,20 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
         </div>
       </header>
 
-      {editMode && (
-        <div className="mb-4 p-3 rounded-xl border" style={{ backgroundColor: 'var(--accent-bg)', borderColor: 'var(--accent-border)' }}>
-          <p className="text-sm text-themed-accent">{t.today.editHint}</p>
-        </div>
-      )}
+
 
       <section>
         <div className="space-y-2">
           {allTranslated.map((activity, index) => (
             <div
               key={activity.type}
-              draggable={editMode}
+              draggable
               onDragStart={() => handleDragStart(index)}
               onDragOver={(e) => { e.preventDefault(); handleDragOver(index); }}
               onDragEnd={handleDragEnd}
-              onTouchStart={() => { if (editMode) handleDragStart(index); }}
+              onTouchStart={() => handleDragStart(index)}
               onTouchMove={(e) => {
-                if (!editMode || dragIndex === null) return;
+                if (dragIndex === null) return;
                 const touch = e.touches[0];
                 const el = document.elementFromPoint(touch.clientX, touch.clientY);
                 const row = el?.closest('[data-activity-index]');
@@ -348,15 +344,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     totalCount={totalCountPerActivity.get(activity.type) || 0}
                     totalSeconds={totalTimePerActivity.get(activity.type) || 0}
                   />
-                  {editMode && (
-                    <div className="absolute top-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: 'var(--accent-solid)' }}>
-                      <svg className="w-2.5 h-2.5" style={{ color: 'var(--accent-text-on-solid)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
