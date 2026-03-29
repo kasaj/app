@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { ActivityDefinition } from '../types';
+import { ActivityDefinition, Rating } from '../types';
 import { useLanguage } from '../i18n';
 import {
   loadActivities,
@@ -8,10 +8,11 @@ import {
   getTranslatedActivity,
   markActivityModified,
 } from '../utils/activities';
-import { getDayEntry, getTodayDate, loadAllData } from '../utils/storage';
+import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity } from '../utils/storage';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
+import StarRating from '../components/StarRating';
 
 
 export default function PageToday() {
@@ -22,6 +23,31 @@ export default function PageToday() {
   const [editingActivity, setEditingActivity] = useState<ActivityDefinition | null>(null);
   const [showNewActivity, setShowNewActivity] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [moodRating, setMoodRating] = useState<Rating | null>(null);
+  const [moodComment, setMoodComment] = useState('');
+
+  const handleSaveMood = useCallback(() => {
+    if (!moodRating && !moodComment.trim()) return;
+    const now = new Date().toISOString();
+    const id = generateId();
+    const comments = (moodComment.trim() || moodRating) ? [{
+      id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      text: moodComment.trim(),
+      createdAt: now,
+      rating: moodRating || undefined,
+    }] : [];
+    addActivity({
+      id,
+      type: 'nalada',
+      startedAt: now,
+      completedAt: now,
+      durationMinutes: null,
+      comments,
+    });
+    setMoodRating(null);
+    setMoodComment('');
+    setRefreshKey((k) => k + 1);
+  }, [moodRating, moodComment]);
 
   // Translate activities for display - depends on language to ensure re-render on language change
   const translatedActivities = useMemo(() =>
@@ -289,6 +315,32 @@ export default function PageToday() {
           <p className="text-sm text-themed-accent">{t.today.editHint}</p>
         </div>
       )}
+
+      {/* Quick mood */}
+      <div className="card mb-4 p-3">
+        <div className="flex justify-center mb-2">
+          <StarRating value={moodRating} onChange={setMoodRating} size="md" />
+        </div>
+        <div className="flex gap-2">
+          <textarea
+            value={moodComment}
+            onChange={(e) => setMoodComment(e.target.value)}
+            placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
+            className="flex-1 p-2 rounded-xl bg-themed-input border border-themed
+                     focus:outline-none focus:border-themed-accent resize-none h-10
+                     text-themed-primary placeholder:text-themed-faint text-sm"
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveMood(); } }}
+          />
+          <button
+            onClick={handleSaveMood}
+            disabled={!moodRating && !moodComment.trim()}
+            className="px-4 rounded-xl text-sm transition-colors disabled:opacity-30"
+            style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
+          >
+            +
+          </button>
+        </div>
+      </div>
 
       <section>
         <div className="space-y-2">

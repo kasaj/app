@@ -224,6 +224,21 @@
         ]
       }
     }
+    ,{
+      "type": "nalada",
+      "emoji": "😐",
+      "durationMinutes": null,
+      "cs": {
+        "name": "Nálada",
+        "description": "Zaznamenej svůj aktuální stav",
+        "variants": []
+      },
+      "en": {
+        "name": "Mood",
+        "description": "Record your current state",
+        "variants": []
+      }
+    }
   ],
   "moodScale": [
     { "value": 1, "emoji": "😡", "labelCs": "Vztek", "labelEn": "Anger" },
