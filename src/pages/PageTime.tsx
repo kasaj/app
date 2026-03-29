@@ -351,7 +351,7 @@ export default function PageTime() {
     // Top 3 activity types
     const typeCounts = new Map<string, number>();
     data.forEach(d => d.activities.forEach(a => typeCounts.set(a.type, (typeCounts.get(a.type) || 0) + 1)));
-    const top3 = [...typeCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const top3 = [...typeCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
 
     // Streak: consecutive days with activities
     let streak = 0;
