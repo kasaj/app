@@ -1,4 +1,4 @@
-import { loadActivities, saveActivities } from './activities';
+import { loadActivities } from './activities';
 import { getCachedConfig } from './config';
 
 const STORAGE_KEY = 'pra_variant_registry';
@@ -41,18 +41,6 @@ export function addToRegistry(variant: string): void {
 export function removeFromRegistry(variant: string): void {
   const registry = loadVariantRegistry().filter(v => v !== variant);
   saveVariantRegistry(registry);
-
-  // Also remove from all activities
-  const activities = loadActivities();
-  let changed = false;
-  activities.forEach(a => {
-    if (a.properties?.includes(variant)) {
-      a.properties = a.properties.filter(v => v !== variant);
-      if (a.properties.length === 0) a.properties = undefined;
-      changed = true;
-    }
-  });
-  if (changed) saveActivities(activities);
 }
 
 export function rebuildRegistry(): string[] {

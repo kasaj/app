@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage } from '../i18n';
 import { loadSettings, saveSettings } from '../utils/settings';
 import { loadAllData, saveAllData } from '../utils/storage';
-import { loadActivities, saveActivities, markActivityModified } from '../utils/activities';
+import { loadActivities, saveActivities } from '../utils/activities';
 import { DayEntry, ActivityDefinition } from '../types';
 import { loadMoodScale, saveMoodScale, getDefaultMoodScale, MoodScaleItem } from '../utils/moodScale';
 import { Theme, loadTheme, saveTheme } from '../utils/theme';
@@ -706,7 +706,7 @@ export default function PageSettings() {
                        text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
             />
           </div>
-          <div className="flex gap-3 mt-3">
+          <div className="flex justify-between mt-3">
             <button
               onClick={() => { const rebuilt = rebuildRegistry(); setVariantRegistry(rebuilt); }}
               className="text-xs text-themed-faint hover:text-themed-muted"
@@ -717,16 +717,6 @@ export default function PageSettings() {
               <button
                 onClick={() => {
                   saveVariantRegistry([]);
-                  const activities = loadActivities();
-                  let changed = false;
-                  activities.forEach(a => {
-                    if (a.properties && a.properties.length > 0) {
-                      a.properties = undefined;
-                      markActivityModified(a.type);
-                      changed = true;
-                    }
-                  });
-                  if (changed) saveActivities(activities);
                   setVariantRegistry([]);
                 }}
                 className="text-xs text-themed-faint hover:text-themed-warn"
