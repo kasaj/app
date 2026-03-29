@@ -17,42 +17,8 @@ import {
   Tooltip,
 } from 'recharts';
 
-function moodEmoji(rating: number): string {
-  return getMoodEmoji(rating);
-}
 
 /** Compute avg rating from comments of activity + all linked activities */
-function getChainAvgRating(activity: Activity, allData: DayEntry[]): number | null {
-  const visited = new Set<string>();
-  const ratings: number[] = [];
-
-  function collect(id: string) {
-    if (visited.has(id)) return;
-    visited.add(id);
-    // Find activity in all data
-    for (const day of allData) {
-      for (const a of day.activities) {
-        if (a.id === id) {
-          const comments = getActivityComments(a);
-          comments.forEach((c) => { if (c.rating != null) ratings.push(c.rating); });
-          // Fallback to legacy
-          if (!comments.some(c => c.rating != null)) {
-            const r = a.ratingAfter ?? a.rating;
-            if (r != null) ratings.push(r);
-          }
-          // Follow links
-          if (a.linkedFromId) collect(a.linkedFromId);
-          if (a.linkedActivityIds) a.linkedActivityIds.forEach(collect);
-          return;
-        }
-      }
-    }
-  }
-
-  collect(activity.id);
-  if (ratings.length === 0) return null;
-  return Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10;
-}
 
 function getActivityScore(a: Activity): number {
   const comments = getActivityComments(a);
@@ -229,7 +195,6 @@ function generateCommentId(): string {
 
 interface ActivityRowProps {
   activity: Activity;
-  allData: DayEntry[];
   lang: string;
   selected: boolean;
   onToggleSelect: () => void;
@@ -239,7 +204,7 @@ interface ActivityRowProps {
   t: ReturnType<typeof useLanguage>['t'];
 }
 
-function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClickEdit, onCreateLinked, onNavigate, t }: ActivityRowProps) {
+function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, onCreateLinked, onNavigate, t }: ActivityRowProps) {
   const rawDef = getActivityByType(activity.type);
   const def = rawDef ? getTranslatedActivity(rawDef, t) : rawDef;
   const actualTime = activity.actualDurationSeconds
@@ -250,7 +215,6 @@ function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClic
 
   const comments = getActivityComments(activity);
   const lastTwo = comments.slice(-2);
-  const chainAvg = getChainAvgRating(activity, allData);
   const linkCount = (activity.linkedActivityIds?.length || 0) + (activity.linkedFromId ? 1 : 0) + comments.length;
 
   return (
@@ -312,7 +276,6 @@ function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClic
               </svg>
             </button>
             <span className="text-sm">{def?.emoji}</span>
-            {chainAvg !== null && <span className="text-sm">{moodEmoji(chainAvg)}</span>}
           </div>
         </div>
 
@@ -323,13 +286,6 @@ function ActivityRow({ activity, allData, lang, selected, onToggleSelect, onClic
               <span className="text-themed-faint text-xs flex-shrink-0">{formatTime(c.updatedAt || c.createdAt, lang)}</span>
               {c.text && <span className="text-themed-muted italic truncate">"{c.text}"</span>}
             </div>
-            {c.rating != null && (
-              <div className="flex gap-px flex-shrink-0 ml-1" style={{ fontSize: '0.55rem' }}>
-                {loadMoodScale().map(({ value: v, emoji: e }) => (
-                  <span key={v} className={v === c.rating ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
-                ))}
-              </div>
-            )}
           </div>
         ))}
       </div>
@@ -814,7 +770,7 @@ export default function PageTime() {
                     <ActivityRow
                       key={activity.id}
                       activity={activity}
-                      allData={data}
+
                       lang={language}
                       selected={selectedIds.has(activity.id)}
                       onToggleSelect={() => toggleSelect(activity.id)}
@@ -838,7 +794,6 @@ export default function PageTime() {
                 <ActivityRow
                   key={activity.id}
                   activity={activity}
-                  allData={data}
                   lang={language}
                   selected={selectedIds.has(activity.id)}
                   onToggleSelect={() => toggleSelect(activity.id)}
