@@ -60,25 +60,25 @@ function ActivityCalendar({ data, language, selectedDate, onDayClick }: {
   };
 
   return (
-    <section className="mb-6">
-      <div className="card p-2">
-        <div className="flex items-center justify-between mb-1">
-          <button onClick={handlePrev} className="w-6 h-6 rounded-full flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <section className="mb-4">
+      <div className="card px-2 py-1.5">
+        <div className="flex items-center justify-between mb-0.5">
+          <button onClick={handlePrev} className="w-5 h-5 flex items-center justify-center text-themed-muted hover:text-themed-accent-solid">
+            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-xs font-medium text-themed-primary capitalize">{monthName}</span>
-          <button onClick={handleNext} className="w-6 h-6 rounded-full flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <span className="text-[0.65rem] font-medium text-themed-primary capitalize">{monthName}</span>
+          <button onClick={handleNext} className="w-5 h-5 flex items-center justify-center text-themed-muted hover:text-themed-accent-solid">
+            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
 
-        <div className="grid grid-cols-7 gap-0.5 text-center">
+        <div className="grid grid-cols-7 gap-0 text-center">
           {weekDays.map((d) => (
-            <div key={d} className="text-[0.6rem] text-themed-faint">{d}</div>
+            <div key={d} className="text-[0.5rem] text-themed-faint leading-tight">{d}</div>
           ))}
           {days.map((day, i) => {
             if (day === null) return <div key={`e-${i}`} />;
@@ -98,8 +98,8 @@ function ActivityCalendar({ data, language, selectedDate, onDayClick }: {
               <button
                 key={day}
                 onClick={() => handleDayClick(day)}
-                className={`aspect-square rounded text-xs flex items-center justify-center transition-colors relative ${
-                  isSelected ? 'ring-1 ring-offset-0.5' : ''
+                className={`h-6 rounded-sm text-[0.6rem] flex items-center justify-center transition-colors relative ${
+                  isSelected ? 'ring-1 ring-offset-0' : ''
                 } ${isToday ? 'font-bold' : ''} ${
                   count > 0 ? 'text-themed-primary' : 'text-themed-faint'
                 }`}
@@ -775,7 +775,7 @@ export default function PageTime() {
                 }`}>
                   <span>{formatDateFull(day.date, language)}</span>
                   <span className="flex items-center gap-2">
-                    <span className="text-xs text-themed-faint">{t.time.activitiesTotal}: {day.activities.length}, {Math.round(day.activities.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0) / 60)} min</span>
+                    <span className="text-xs text-themed-faint">{day.activities.length} - {(() => { const m = Math.round(day.activities.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0) / 60); return m >= 60 ? `${Math.floor(m / 60)}h${m % 60 > 0 ? ` ${m % 60}m` : ''}` : `${m}m`; })()}</span>
                     {getDayAvgMoodEmoji(day) && <span>{getDayAvgMoodEmoji(day)}</span>}
                   </span>
                 </div>
