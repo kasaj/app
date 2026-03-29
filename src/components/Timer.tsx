@@ -149,12 +149,21 @@ export default function Timer({ durationMinutes, onComplete, onCancel: _onCancel
       </div>
 
       {!isCompleted && (
-        <button
-          onClick={togglePause}
-          className="px-6 py-2 rounded-xl bg-themed-input text-themed-secondary hover:bg-themed-input transition-colors"
-        >
-          {isRunning ? t.timer.pause : t.timer.resume}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={togglePause}
+            className="px-6 py-2 rounded-xl bg-themed-input text-themed-secondary transition-colors"
+          >
+            {isRunning ? t.timer.pause : t.timer.resume}
+          </button>
+          <button
+            onClick={() => onComplete(totalSeconds - secondsLeft)}
+            className="px-6 py-2 rounded-xl transition-colors font-medium"
+            style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
+          >
+            {t.flow.finish}
+          </button>
+        </div>
       )}
     </div>
   );
