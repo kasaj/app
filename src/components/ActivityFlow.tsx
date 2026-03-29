@@ -53,23 +53,16 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
         <div className="flex justify-center">
           <StarRating value={newRating} onChange={setNewRating} size="sm" />
         </div>
-        <div className="flex gap-2">
+        <div>
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder={t.time.commentPlaceholder}
-            className="flex-1 p-3 rounded-xl bg-themed-input border border-themed
+            className="w-full p-3 rounded-xl bg-themed-input border border-themed
                      focus:outline-none focus:border-themed-accent resize-none h-14
                      text-themed-primary placeholder:text-themed-faint text-base"
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onAdd(); } }}
           />
-          <button
-            onClick={onAdd}
-            className="px-4 rounded-xl text-sm transition-colors self-stretch"
-            style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
-          >
-            +
-          </button>
         </div>
       </div>
       {comments.map((comment) => (
@@ -478,7 +471,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   )}
                   <button
                     onClick={() => setEditingVariants(!editingVariants)}
-                    className={`px-2 py-1.5 text-xs rounded-full border transition-colors ${
+                    className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                       editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                     }`}
                   >
@@ -487,7 +480,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   {editingVariants && (
                     <button
                       onClick={() => setShowVariantRegistry(!showVariantRegistry)}
-                      className={`px-2 py-1.5 text-xs rounded-full border transition-colors ${
+                      className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                         showVariantRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                       }`}
                     >
@@ -577,7 +570,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   )}
                   <button
                     onClick={() => setEditingVariants(!editingVariants)}
-                    className={`px-2 py-1.5 text-xs rounded-full border transition-colors ${
+                    className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                       editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                     }`}
                   >
@@ -586,7 +579,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   {editingVariants && (
                     <button
                       onClick={() => setShowVariantRegistry(!showVariantRegistry)}
-                      className={`px-2 py-1.5 text-xs rounded-full border transition-colors ${
+                      className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                         showVariantRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                       }`}
                     >
@@ -617,10 +610,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
               </>)}
 
               <div className="pt-4 space-y-4">
-                <h3 className="font-serif text-lg text-themed-secondary text-center">
-                  {t.flow.howFeelNow}
-                </h3>
-
                 <CommentsBlock
                   comments={localComments}
                   newComment={newComment}
@@ -704,7 +693,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   )}
                   <button
                     onClick={() => setEditingVariants(!editingVariants)}
-                    className={`px-2 py-1.5 text-xs rounded-full border transition-colors ${
+                    className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                       editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                     }`}
                   >
@@ -713,7 +702,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   {editingVariants && (
                     <button
                       onClick={() => setShowVariantRegistry(!showVariantRegistry)}
-                      className={`px-2 py-1.5 text-xs rounded-full border transition-colors ${
+                      className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                         showVariantRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                       }`}
                     >
