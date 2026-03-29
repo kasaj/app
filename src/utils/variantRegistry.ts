@@ -1,4 +1,5 @@
 import { loadActivities, saveActivities } from './activities';
+import { getCachedConfig } from './config';
 
 const STORAGE_KEY = 'pra_variant_registry';
 const DIRTY_KEY = 'pra_variant_registry_dirty';
@@ -50,8 +51,12 @@ export function removeFromRegistry(variant: string): void {
 }
 
 export function rebuildRegistry(): string[] {
-  const activities = loadActivities();
   const all = new Set<string>();
+  // From config default properties
+  const config = getCachedConfig();
+  config?.properties?.forEach(v => all.add(v));
+  // From all activities
+  const activities = loadActivities();
   activities.forEach(a => a.properties?.forEach(v => all.add(v)));
   const sorted = [...all].sort((a, b) => a.localeCompare(b, 'cs'));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sorted));
