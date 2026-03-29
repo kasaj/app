@@ -26,8 +26,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [moodRating, setMoodRating] = useState<Rating | null>(null);
   const [moodComment, setMoodComment] = useState('');
 
-  const saveMoodEntry = useCallback((rating: Rating | null, text: string) => {
-    if (!rating && !text.trim()) return;
+  const flushMood = useCallback(() => {
+    if (!moodRating && !moodComment.trim()) return;
     const now = new Date().toISOString();
     const id = generateId();
 
@@ -47,9 +47,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       durationMinutes: null,
       comments: [{
         id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-        text: text.trim(),
+        text: moodComment.trim(),
         createdAt: now,
-        rating: rating || undefined,
+        rating: moodRating || undefined,
       }],
       linkedFromId: prevInSession?.id,
     });
@@ -60,9 +60,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       });
     }
 
-    if (rating) setMoodRating(rating);
+    setMoodRating(null);
+    setMoodComment('');
     setRefreshKey((k) => k + 1);
-  }, []);
+  }, [moodRating, moodComment]);
+
+  // Flush mood on unmount (page navigation)
+  useEffect(() => {
+    return () => { flushMood(); };
+  }, [flushMood]);
 
   // Translate activities for display - filter out core activities
   const translatedActivities = useMemo(() =>
@@ -145,12 +151,11 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   }, [refreshKey, sessionStart]);
 
   const handleActivityClick = (activity: ActivityDefinition) => {
-    // Find the original activity for editing
+    flushMood();
     const originalActivity = activities.find(a => a.type === activity.type);
     if (editMode) {
       setEditingActivity(originalActivity || activity);
     } else {
-      // Use translated activity for display in flow
       setActiveActivity(activity);
     }
   };
@@ -325,7 +330,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       {/* Quick mood */}
       <div className="card mb-4 p-3">
         <div className="flex items-center justify-between mb-2">
-          <StarRating value={moodRating} onChange={(r) => saveMoodEntry(r, '')} size="md" />
+          <StarRating value={moodRating} onChange={(r) => setMoodRating(r)} size="md" />
           <span className="flex items-center gap-2">
             {(totalCountPerActivity.get('nalada') || 0) > 0 && (
               <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
@@ -349,8 +354,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           className="w-full p-2 rounded-xl bg-themed-input border border-themed
                    focus:outline-none focus:border-themed-accent resize-none h-10
                    text-themed-primary placeholder:text-themed-faint text-sm"
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveMoodEntry(null, moodComment); } }}
-          onBlur={() => { if (moodComment.trim()) saveMoodEntry(null, moodComment); }}
         />
       </div>
 
