@@ -329,7 +329,10 @@ export default function PageToday() {
       <div className="card mb-4 p-3">
         <div className="flex items-center justify-between mb-2">
           <StarRating value={moodRating} onChange={(r) => saveMoodEntry(r, '')} size="md" />
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-2">
+            {(totalCountPerActivity.get('nalada') || 0) > 0 && (
+              <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
+            )}
             <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
               completedTodayCounts.has('nalada') ? '' : 'opacity-20'
             }`} style={{ backgroundColor: completedTodayCounts.has('nalada') ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
