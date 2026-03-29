@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { ActivityDefinition, Rating } from '../types';
 import { useLanguage } from '../i18n';
 import {
@@ -25,13 +25,20 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [refreshKey, setRefreshKey] = useState(0);
   const [moodRating, setMoodRating] = useState<Rating | null>(null);
   const [moodComment, setMoodComment] = useState('');
+  const moodRatingRef = useRef<Rating | null>(null);
+  const moodCommentRef = useRef('');
+
+  // Keep refs in sync
+  useEffect(() => { moodRatingRef.current = moodRating; }, [moodRating]);
+  useEffect(() => { moodCommentRef.current = moodComment; }, [moodComment]);
 
   const flushMood = useCallback(() => {
-    if (!moodRating && !moodComment.trim()) return;
+    const r = moodRatingRef.current;
+    const c = moodCommentRef.current;
+    if (!r && !c.trim()) return;
     const now = new Date().toISOString();
     const id = generateId();
 
-    // Find previous nalada in current session to auto-link
     const ss = localStorage.getItem('pra_session_start') || now;
     const todayEntry = getDayEntry(getTodayDate());
     const prevInSession = todayEntry?.activities
@@ -47,9 +54,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       durationMinutes: null,
       comments: [{
         id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-        text: moodComment.trim(),
+        text: c.trim(),
         createdAt: now,
-        rating: moodRating || undefined,
+        rating: r || undefined,
       }],
       linkedFromId: prevInSession?.id,
     });
@@ -60,10 +67,12 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       });
     }
 
+    moodRatingRef.current = null;
+    moodCommentRef.current = '';
     setMoodRating(null);
     setMoodComment('');
     setRefreshKey((k) => k + 1);
-  }, [moodRating, moodComment]);
+  }, []);
 
   // Flush mood on unmount (page navigation)
   useEffect(() => {
