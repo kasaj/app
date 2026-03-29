@@ -19,7 +19,8 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const [description, setDescription] = useState(activity?.description || '');
   const [isTimed, setIsTimed] = useState(activity?.durationMinutes !== null);
   const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || '15');
-  const [variantsText, setVariantsText] = useState(activity?.variants?.join(', ') || '');
+  const [variants, setVariants] = useState<string[]>(activity?.variants || []);
+  const [newVariant, setNewVariant] = useState('');
 
   const initialRender = useRef(true);
 
@@ -31,7 +32,6 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
     }
     if (isNew || !name.trim()) return;
 
-    const variants = variantsText.split(',').map(v => v.trim()).filter(Boolean);
     const updated: ActivityDefinition = {
       type: activity?.type || generateActivityType(),
       name: name.trim(),
@@ -41,12 +41,21 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
       variants: variants.length > 0 ? variants : undefined,
     };
     onSave(updated);
-  }, [name, emoji, description, isTimed, duration, variantsText]);
+  }, [name, emoji, description, isTimed, duration, variants]);
+
+  const handleAddVariant = () => {
+    const text = newVariant.trim();
+    if (!text || variants.includes(text)) return;
+    setVariants([...variants, text]);
+    setNewVariant('');
+  };
+
+  const handleRemoveVariant = (v: string) => {
+    setVariants(variants.filter(x => x !== v));
+  };
 
   const handleSubmit = () => {
     if (!name.trim()) return;
-
-    const variants = variantsText.split(',').map(v => v.trim()).filter(Boolean);
 
     const newActivity: ActivityDefinition = {
       type: activity?.type || generateActivityType(),
@@ -161,10 +170,25 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
 
           <div>
             <label className="block text-sm text-themed-muted mb-2">{t.editor.variants}</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {variants.map((v) => (
+                <div key={v} className="relative">
+                  <span className="px-3 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-muted inline-block">
+                    {v}
+                  </span>
+                  <button
+                    onClick={() => handleRemoveVariant(v)}
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-themed-warn text-white flex items-center justify-center text-xs"
+                  >×</button>
+                </div>
+              ))}
+            </div>
             <input
               type="text"
-              value={variantsText}
-              onChange={(e) => setVariantsText(e.target.value)}
+              value={newVariant}
+              onChange={(e) => setNewVariant(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
+              onBlur={() => { if (newVariant.trim()) handleAddVariant(); }}
               placeholder={t.editor.variantsPlaceholder}
               className="w-full p-3 rounded-xl bg-themed-input border border-themed
                        focus:outline-none focus:border-themed-accent
