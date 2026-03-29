@@ -24,7 +24,7 @@ export default function StarRating({ value, onChange, size = 'md', scale }: Star
         <button
           key={v}
           type="button"
-          onClick={() => onChange(v as Rating)}
+          onClick={() => onChange((value === v ? null : v) as Rating)}
           className={`transition-transform hover:scale-110 ${
             value === v ? 'opacity-100' : 'grayscale opacity-40'
           }`}
