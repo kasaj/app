@@ -25,6 +25,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [refreshKey, setRefreshKey] = useState(0);
   const [moodRating, setMoodRating] = useState<Rating | null>(null);
   const [moodComment, setMoodComment] = useState('');
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const moodRatingRef = useRef<Rating | null>(null);
   const moodCommentRef = useRef('');
 
@@ -79,9 +81,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     return () => { flushMood(); };
   }, [flushMood]);
 
-  // Translate activities for display - filter out core activities
-  const translatedActivities = useMemo(() =>
-    activities.filter(a => !a.core).map(a => getTranslatedActivity(a, t)),
+  // Translate all activities for display (including core for reorder)
+  const allTranslated = useMemo(() =>
+    activities.map(a => getTranslatedActivity(a, t)),
     [activities, t, language]
   );
 
@@ -169,6 +171,27 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     }
   };
 
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (index: number) => {
+    if (dragIndex === null || dragIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex) {
+      const reordered = [...activities];
+      const [moved] = reordered.splice(dragIndex, 1);
+      reordered.splice(dragOverIndex, 0, moved);
+      saveActivities(reordered);
+      setActivities(reordered);
+    }
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
   const handleSaveActivity = useCallback((activity: ActivityDefinition) => {
     const current = loadActivities();
     const index = current.findIndex((a) => a.type === activity.type);
@@ -198,90 +221,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     setActivities(updated);
     setEditingActivity(null);
   }, [editingActivity]);
-
-  const handleMoveActivity = useCallback((activityType: string, direction: 'up' | 'down') => {
-    const current = [...activities];
-    const index = current.findIndex((a) => a.type === activityType);
-    if (index < 0) return;
-
-    const activity = current[index];
-    const isTimed = activity.durationMinutes !== null;
-
-    // Find indices of same type activities (timed or untimed)
-    const sameTypeIndices = current
-      .map((a, i) => ({ a, i }))
-      .filter(({ a }) => (a.durationMinutes !== null) === isTimed)
-      .map(({ i }) => i);
-
-    const posInGroup = sameTypeIndices.indexOf(index);
-
-    if (direction === 'up' && posInGroup > 0) {
-      const targetIndex = sameTypeIndices[posInGroup - 1];
-      [current[index], current[targetIndex]] = [current[targetIndex], current[index]];
-    } else if (direction === 'down' && posInGroup < sameTypeIndices.length - 1) {
-      const targetIndex = sameTypeIndices[posInGroup + 1];
-      [current[index], current[targetIndex]] = [current[targetIndex], current[index]];
-    }
-
-    saveActivities(current);
-    setActivities(current);
-  }, [activities]);
-
-
-  const renderActivityWithControls = (activity: ActivityDefinition, index: number, total: number) => (
-    <div key={activity.type} className="relative flex items-center gap-2">
-      {editMode && (
-        <div className="flex flex-col gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMoveActivity(activity.type, 'up');
-            }}
-            disabled={index === 0}
-            className="p-1 text-themed-faint hover:text-themed-accent-solid disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMoveActivity(activity.type, 'down');
-            }}
-            disabled={index === total - 1}
-            className="p-1 text-themed-faint hover:text-themed-accent-solid disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
-      )}
-
-      <div className="flex-1 relative">
-        <ActivityCard
-          activity={activity}
-          onClick={() => handleActivityClick(activity)}
-          completedToday={completedTodayCounts.has(activity.type)}
-          completedCount={completedTodayCounts.get(activity.type) || 0}
-          completedYesterday={completedPreviousCounts.has(activity.type)}
-          yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
-          totalCount={totalCountPerActivity.get(activity.type) || 0}
-          totalSeconds={totalTimePerActivity.get(activity.type) || 0}
-        />
-        {editMode && (
-          <div className="absolute top-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: 'var(--accent-solid)' }}>
-            <svg className="w-2.5 h-2.5" style={{ color: 'var(--accent-text-on-solid)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="page-container">
@@ -336,54 +275,92 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
         </div>
       )}
 
-      {/* Quick mood */}
-      <div
-        className="card mb-4 p-3"
-        onBlur={(e) => {
-          // Flush only when focus leaves the mood container entirely
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-            flushMood();
-          }
-        }}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <StarRating value={moodRating} onChange={(r) => setMoodRating(r)} size="md" />
-          <span className="flex items-center gap-2">
-            {(totalCountPerActivity.get('nalada') || 0) > 0 && (
-              <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
-            )}
-            {(completedTodayCounts.get('nalada') || 0) > 1 && (
-              <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get('nalada')}</span>
-            )}
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
-              completedTodayCounts.has('nalada') ? '' : 'opacity-20'
-            }`} style={{ backgroundColor: completedTodayCounts.has('nalada') ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
-              <svg className="w-3 h-3" style={{ color: completedTodayCounts.has('nalada') ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-          </span>
-        </div>
-        <textarea
-          value={moodComment}
-          onChange={(e) => {
-            setMoodComment(e.target.value);
-            e.target.style.height = 'auto';
-            e.target.style.height = e.target.scrollHeight + 'px';
-          }}
-          placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
-          className="w-full p-2 rounded-xl bg-themed-input border border-themed
-                   focus:outline-none focus:border-themed-accent resize-none min-h-[2.5rem]
-                   text-themed-primary placeholder:text-themed-faint text-sm overflow-hidden"
-        />
-      </div>
-
       <section>
         <div className="space-y-2">
-          {translatedActivities.map((activity, index) =>
-            renderActivityWithControls(activity, index, translatedActivities.length)
-          )}
-
+          {allTranslated.map((activity, index) => (
+            <div
+              key={activity.type}
+              draggable={editMode}
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => { e.preventDefault(); handleDragOver(index); }}
+              onDragEnd={handleDragEnd}
+              onTouchStart={() => { if (editMode) handleDragStart(index); }}
+              onTouchMove={(e) => {
+                if (!editMode || dragIndex === null) return;
+                const touch = e.touches[0];
+                const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                const row = el?.closest('[data-activity-index]');
+                if (row) handleDragOver(Number(row.getAttribute('data-activity-index')));
+              }}
+              onTouchEnd={handleDragEnd}
+              data-activity-index={index}
+              className={`transition-opacity ${dragIndex === index ? 'opacity-40' : ''} ${dragOverIndex === index ? 'border-t-2 border-themed-accent' : ''}`}
+            >
+              {activity.core ? (
+                /* Core activity (mood) */
+                <div
+                  className="card p-3"
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) flushMood();
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <StarRating value={moodRating} onChange={(r) => setMoodRating(r)} size="md" />
+                    <span className="flex items-center gap-2">
+                      {(totalCountPerActivity.get(activity.type) || 0) > 0 && (
+                        <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get(activity.type)}</span>
+                      )}
+                      {(completedTodayCounts.get(activity.type) || 0) > 1 && (
+                        <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get(activity.type)}</span>
+                      )}
+                      <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                        completedTodayCounts.has(activity.type) ? '' : 'opacity-20'
+                      }`} style={{ backgroundColor: completedTodayCounts.has(activity.type) ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
+                        <svg className="w-3 h-3" style={{ color: completedTodayCounts.has(activity.type) ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    </span>
+                  </div>
+                  <textarea
+                    value={moodComment}
+                    onChange={(e) => {
+                      setMoodComment(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                    placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
+                    className="w-full p-2 rounded-xl bg-themed-input border border-themed
+                             focus:outline-none focus:border-themed-accent resize-none min-h-[2.5rem]
+                             text-themed-primary placeholder:text-themed-faint text-sm overflow-hidden"
+                  />
+                </div>
+              ) : (
+                /* Regular activity */
+                <div className="relative">
+                  <ActivityCard
+                    activity={activity}
+                    onClick={() => handleActivityClick(activity)}
+                    completedToday={completedTodayCounts.has(activity.type)}
+                    completedCount={completedTodayCounts.get(activity.type) || 0}
+                    completedYesterday={completedPreviousCounts.has(activity.type)}
+                    yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
+                    totalCount={totalCountPerActivity.get(activity.type) || 0}
+                    totalSeconds={totalTimePerActivity.get(activity.type) || 0}
+                  />
+                  {editMode && (
+                    <div className="absolute top-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: 'var(--accent-solid)' }}>
+                      <svg className="w-2.5 h-2.5" style={{ color: 'var(--accent-text-on-solid)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
