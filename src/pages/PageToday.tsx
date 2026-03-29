@@ -240,6 +240,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
+                flushMood();
                 const now = new Date().toISOString();
                 setSessionStart(now);
                 localStorage.setItem('pra_session_start', now);
