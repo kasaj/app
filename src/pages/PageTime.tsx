@@ -832,18 +832,6 @@ export default function PageTime() {
         </div>
       </section>
 
-      {/* Overall mood */}
-      <h2 className="font-serif text-base text-themed-secondary mb-3">{language === 'cs' ? 'Průměr' : 'Average'}</h2>
-      <div className="card flex justify-center py-4 mb-6">
-        <div className="flex gap-1.5 text-2xl">
-          {loadMoodScale().map(({ value: v, emoji: e }) => (
-            <span key={v} className={v === Math.round(summaryStats.overallMood) ? 'opacity-100' : 'grayscale opacity-30'}>
-              {e}
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* Calendar */}
       <ActivityCalendar
         data={data}
