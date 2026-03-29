@@ -6,13 +6,13 @@ export interface MoodScaleItem {
 const STORAGE_KEY = 'pra_mood_scale';
 
 const DEFAULT_SCALE: MoodScaleItem[] = [
-  { value: 0, emoji: '😡' },
-  { value: 1, emoji: '😰' },
-  { value: 2, emoji: '😞' },
-  { value: 3, emoji: '😐' },
-  { value: 4, emoji: '🙂' },
-  { value: 5, emoji: '😄' },
-  { value: 6, emoji: '🤩' },
+  { value: 1, emoji: '😡' },
+  { value: 2, emoji: '😰' },
+  { value: 3, emoji: '😞' },
+  { value: 4, emoji: '😐' },
+  { value: 5, emoji: '🙂' },
+  { value: 6, emoji: '😄' },
+  { value: 7, emoji: '🤩' },
 ];
 
 export function loadMoodScale(): MoodScaleItem[] {

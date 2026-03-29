@@ -373,7 +373,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
               const rated: number[] = localComments.filter(c => c.rating != null).map(c => c.rating as number);
               if (rated.length === 0) return null;
               const avg = Math.round((rated.reduce((s, r) => s + r, 0) / rated.length) * 10) / 10;
-              const rounded = Math.round(Math.min(6, Math.max(0, avg)));
+              const rounded = Math.round(Math.min(7, Math.max(1, avg)));
               return (
                 <div className="flex gap-0.5 text-sm">
                   {loadMoodScale().map(({ value: v, emoji: e }) => (

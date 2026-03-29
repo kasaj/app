@@ -374,7 +374,7 @@ export default function PageTime() {
     });
     const overallMood = allMoodRatings.length > 0
       ? Math.round((allMoodRatings.reduce((s, r) => s + r, 0) / allMoodRatings.length) * 10) / 10
-      : 3; // default 😐
+      : 4; // default 😐
 
     const toHM = (s: number) => ({ hours: Math.floor(s / 3600), minutes: Math.floor((s % 3600) / 60) });
     const firstDate = data.length > 0 ? data[data.length - 1].date : null;
@@ -637,7 +637,7 @@ export default function PageTime() {
                 interval={trendRange === 'month' ? 4 : trendRange === 'day' ? 1 : 0}
               />
               <YAxis yAxisId="count" hide />
-              <YAxis yAxisId="rating" domain={[0, 5]} hide />
+              <YAxis yAxisId="rating" domain={[1, 7]} hide />
               <Tooltip
                 contentStyle={{
                   backgroundColor: colors.tooltipBg,
@@ -700,7 +700,7 @@ export default function PageTime() {
                   tickLine={false}
                 />
                 <YAxis
-                  domain={[1, 5]}
+                  domain={[1, 7]}
                   tick={{ fontSize: 11, fill: colors.tick }}
                   axisLine={false}
                   tickLine={false}
