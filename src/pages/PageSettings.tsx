@@ -618,9 +618,17 @@ export default function PageSettings() {
 
         {/* Mood scale */}
         <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-4">
-            {t.settings.moodScale}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-lg text-themed-primary">
+              {t.settings.moodScale}
+            </h2>
+            <button
+              onClick={() => { setMoodScale(getDefaultMoodScale()); saveMoodScale(getDefaultMoodScale()); }}
+              className="text-xs text-themed-faint hover:text-themed-muted"
+            >
+              Reset
+            </button>
+          </div>
           <div className="flex items-stretch justify-between gap-1">
             {moodScale.map((item, idx) => (
               <div key={item.value} className="flex flex-col items-center gap-0.5 flex-1">
@@ -657,19 +665,21 @@ export default function PageSettings() {
               </div>
             ))}
           </div>
-          <button
-            onClick={() => { setMoodScale(getDefaultMoodScale()); saveMoodScale(getDefaultMoodScale()); }}
-            className="text-xs text-themed-faint hover:text-themed-muted mt-3"
-          >
-            Reset
-          </button>
         </section>
 
         {/* Variant registry */}
         <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-4">
-            {language === 'cs' ? 'Vlastnosti' : 'Properties'}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-lg text-themed-primary">
+              {language === 'cs' ? 'Vlastnosti' : 'Properties'}
+            </h2>
+            <button
+              onClick={() => { const rebuilt = rebuildRegistry(); setVariantRegistry(rebuilt); }}
+              className="text-xs text-themed-faint hover:text-themed-muted"
+            >
+              Reset
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {variantRegistry.map((v) => (
               <button
@@ -704,13 +714,7 @@ export default function PageSettings() {
                        text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
             />
           </div>
-          <div className="flex justify-between mt-3">
-            <button
-              onClick={() => { const rebuilt = rebuildRegistry(); setVariantRegistry(rebuilt); }}
-              className="text-xs text-themed-faint hover:text-themed-muted"
-            >
-              Reset
-            </button>
+          <div className="flex justify-end mt-3">
             {variantRegistry.length > 0 && (
               <button
                 onClick={() => {
