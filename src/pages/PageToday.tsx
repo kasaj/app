@@ -19,7 +19,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const { t, language } = useLanguage();
   const [activities, setActivities] = useState<ActivityDefinition[]>(() => loadActivities());
   const [activeActivity, setActiveActivity] = useState<ActivityDefinition | null>(null);
-  const [editMode, setEditMode] = useState(false);
   const [editingActivity, setEditingActivity] = useState<ActivityDefinition | null>(null);
   const [showNewActivity, setShowNewActivity] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -163,12 +162,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
   const handleActivityClick = (activity: ActivityDefinition) => {
     flushMood();
-    const originalActivity = activities.find(a => a.type === activity.type);
-    if (editMode) {
-      setEditingActivity(originalActivity || activity);
-    } else {
-      setActiveActivity(activity);
-    }
+    setActiveActivity(activity);
   };
 
   const handleDragStart = (index: number) => {
@@ -250,19 +244,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setEditMode(!editMode)}
-              className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
-              style={{
-                backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
-                color: editMode ? 'var(--accent-text-on-solid)' : 'var(--text-secondary)',
-              }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </button>
           </div>
