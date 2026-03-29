@@ -367,7 +367,7 @@ export default function PageSettings() {
         if (!praFile.version || !Array.isArray(praFile.activities)) throw new Error('Invalid');
         importPraFile(praFile, language);
         setImportStatus('success');
-        setTimeout(() => window.location.reload(), 1500);
+        setTimeout(() => { window.scrollTo(0, 0); window.location.reload(); }, 1500);
       } catch {
         setImportStatus('error');
       }
@@ -390,7 +390,7 @@ export default function PageSettings() {
     setSynced(true);
     setTimeout(() => {
       setSynced(false);
-      window.location.reload();
+      { window.scrollTo(0, 0); window.location.reload(); };
     }, 1000);
   }, []);
 
@@ -411,7 +411,7 @@ export default function PageSettings() {
       });
     }
     // Reload
-    window.location.reload();
+    { window.scrollTo(0, 0); window.location.reload(); };
   }, [t]);
 
   const handleImportConfig = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -425,7 +425,7 @@ export default function PageSettings() {
         praFile.type = 'config'; // force config mode (no history import)
         importPraFile(praFile, language);
         setImportStatus('success');
-        setTimeout(() => window.location.reload(), 1500);
+        setTimeout(() => { window.scrollTo(0, 0); window.location.reload(); }, 1500);
       } catch {
         setImportStatus('error');
       }
