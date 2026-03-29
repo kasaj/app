@@ -139,7 +139,7 @@ interface ActivityFlowProps {
   onNavigatePage?: (page: string) => void;
 }
 
-export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, existingActivity, onUpdateExisting, onAddComment, onUpdateComment: _onUpdateComment, onNavigateLinked, onNavigatePrev: _onNavigatePrev, onNavigateNext: _onNavigateNext, onCreateLinked: _onCreateLinked, onNavigatePage }: ActivityFlowProps) {
+export default function ActivityFlow({ activity, onClose, onEdit, existingActivity, onUpdateExisting, onAddComment, onUpdateComment: _onUpdateComment, onNavigateLinked, onNavigatePrev: _onNavigatePrev, onNavigateNext: _onNavigateNext, onCreateLinked: _onCreateLinked, onNavigatePage }: ActivityFlowProps) {
   const { t, language } = useLanguage();
   const isTimed = activity.durationMinutes !== null;
   const isEditing = !!existingActivity;
@@ -349,7 +349,17 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
       <div className="flex-1 overflow-auto">
         <div className="max-w-md mx-auto p-4">
           <header className="mb-4">
-            <h1 className="font-serif text-3xl text-themed-primary">{activity.emoji} {activity.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-serif text-3xl text-themed-primary flex-1">{activity.emoji} {activity.name}</h1>
+              {onEdit && (
+                <button onClick={() => { handleClose(); onEdit(); }} className="text-themed-faint hover:text-themed-muted p-1">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              )}
+            </div>
             <p className="text-themed-faint mt-1">{activity.description}</p>
             <div className="flex items-center gap-2 mt-1">
               <input
