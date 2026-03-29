@@ -334,12 +334,10 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
     <div className="fixed inset-0 bg-themed-base z-50 flex flex-col">
       <div className="flex-1 overflow-auto">
         <div className="max-w-md mx-auto p-4">
-          <div className="flex flex-col items-center gap-0.5 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{activity.emoji}</span>
-              <h2 className="font-serif text-xl text-themed-primary">{activity.name}</h2>
-            </div>
-            <div className="flex items-center gap-2">
+          <header className="mb-4">
+            <h1 className="font-serif text-3xl text-themed-primary">{activity.name}</h1>
+            <p className="text-themed-faint mt-1">{activity.description}</p>
+            <div className="flex items-center gap-2 mt-1">
               <input
                 type="date"
                 value={toLocalDate(startedAt)}
@@ -351,7 +349,7 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
                     setStartedAt(current.toISOString());
                   }
                 }}
-                className="text-center text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
+                className="text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
               <input
                 type="time"
@@ -364,29 +362,26 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
                     setStartedAt(current.toISOString());
                   }
                 }}
-                className="text-center text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
+                className="text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
             </div>
-            {(() => {
-              const rated: number[] = localComments.filter(c => c.rating != null).map(c => c.rating as number);
-              if (rated.length === 0) return null;
-              const avg = Math.round((rated.reduce((s, r) => s + r, 0) / rated.length) * 10) / 10;
-              const rounded = Math.round(Math.min(7, Math.max(1, avg)));
-              return (
-                <div className="flex gap-0.5 text-sm">
-                  {loadMoodScale().map(({ value: v, emoji: e }) => (
-                    <span key={v} className={v === rounded ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
+          </header>
+          {(() => {
+            const rated: number[] = localComments.filter(c => c.rating != null).map(c => c.rating as number);
+            if (rated.length === 0) return null;
+            const avg = Math.round((rated.reduce((s, r) => s + r, 0) / rated.length) * 10) / 10;
+            const rounded = Math.round(Math.min(7, Math.max(1, avg)));
+            return (
+              <div className="flex gap-0.5 text-sm mb-2">
+                {loadMoodScale().map(({ value: v, emoji: e }) => (
+                  <span key={v} className={v === rounded ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
+                ))}
+              </div>
+            );
+          })()}
           {/* Nečasové aktivity */}
           {!isTimed && (
             <div className="space-y-3 py-2">
-              <p className="text-center text-themed-muted leading-relaxed">
-                {activity.description}
-              </p>
 
               {(<>
                 <div className="flex flex-wrap gap-2 justify-center">
@@ -483,10 +478,6 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
           {/* Časové aktivity - před */}
           {isTimed && timedStep === 'rating-before' && (
             <div className="space-y-3 py-2">
-              <p className="text-center text-themed-muted leading-relaxed">
-                {activity.description}
-              </p>
-
               {(<>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {localVariants.map((variant) => (

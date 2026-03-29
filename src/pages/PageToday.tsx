@@ -333,6 +333,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {(totalCountPerActivity.get('nalada') || 0) > 0 && (
               <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
             )}
+            {(completedTodayCounts.get('nalada') || 0) > 1 && (
+              <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get('nalada')}</span>
+            )}
             <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
               completedTodayCounts.has('nalada') ? '' : 'opacity-20'
             }`} style={{ backgroundColor: completedTodayCounts.has('nalada') ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
@@ -340,9 +343,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             </span>
-            {(completedTodayCounts.get('nalada') || 0) > 1 && (
-              <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get('nalada')}</span>
-            )}
           </span>
         </div>
         <textarea
