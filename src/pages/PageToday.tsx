@@ -78,9 +78,17 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     setRefreshKey((k) => k + 1);
   }, []);
 
-  // Flush mood on unmount (page navigation)
+  // Flush mood on page navigation or tab hide
   useEffect(() => {
-    return () => { flushMood(); };
+    const handleBeforeNav = () => flushMood();
+    window.addEventListener('pra-flush-mood', handleBeforeNav);
+    const handleVisibility = () => { if (document.hidden) flushMood(); };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('pra-flush-mood', handleBeforeNav);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      flushMood();
+    };
   }, [flushMood]);
 
   // Translate all activities for display (including core for reorder)

@@ -351,7 +351,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
           <header className="mb-4">
             <div className="flex items-center gap-2">
               <h1 className="font-serif text-3xl text-themed-primary flex-1">{activity.emoji} {activity.name}</h1>
-              {onEdit && (
+              {onEdit && !(isTimed && timedStep === 'rating-after') && (
                 <button onClick={() => { handleClose(); onEdit(); }} className="text-themed-faint hover:text-themed-muted p-1">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

@@ -12,6 +12,7 @@ import { loadTheme, applyTheme, watchSystemTheme } from './utils/theme';
 function AppContent() {
   const [currentPage, setCurrentPageRaw] = useState<Page>('today');
   const setCurrentPage = (page: Page) => {
+    window.dispatchEvent(new Event('pra-flush-mood'));
     window.scrollTo(0, 0);
     setCurrentPageRaw(page);
   };
