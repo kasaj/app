@@ -813,8 +813,7 @@ export default function PageTime() {
       </section>
 
       {/* Overall mood */}
-      <div className="card flex items-center justify-center gap-3 py-4 mb-6">
-        <span className="text-sm text-themed-muted">{t.time.rating}:</span>
+      <div className="card flex justify-center py-4 mb-6">
         <div className="flex gap-1.5 text-2xl">
           {loadMoodScale().map(({ value: v, emoji: e }) => (
             <span key={v} className={v === Math.round(summaryStats.overallMood) ? 'opacity-100' : 'grayscale opacity-30'}>
