@@ -31,8 +31,8 @@ function AppContent() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}>
       <main>
-        {currentPage === 'today' && <PageToday />}
-        {currentPage === 'time' && <PageTime />}
+        {currentPage === 'today' && <PageToday onNavigate={(p: string) => setCurrentPage(p as Page)} />}
+        {currentPage === 'time' && <PageTime onNavigate={(p: string) => setCurrentPage(p as Page)} />}
         {currentPage === 'info' && <PageInfo />}
         {currentPage === 'settings' && <PageSettings />}
       </main>

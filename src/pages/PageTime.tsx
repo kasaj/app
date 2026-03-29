@@ -283,7 +283,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
   );
 }
 
-export default function PageTime() {
+export default function PageTime({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const { t, language } = useLanguage();
   const [data, setData] = useState(() => loadAllData());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -939,6 +939,11 @@ export default function PageTime() {
             onNavigatePrev={idx > 0 ? handleNavigatePrev : undefined}
             onNavigateNext={idx < allActivitiesFlat.length - 1 ? handleNavigateNext : undefined}
             onCreateLinked={() => handleCreateLinked(editingRecord)}
+            onNavigatePage={(page) => {
+              setEditingRecord(null);
+              setData(loadAllData());
+              if (onNavigate) onNavigate(page);
+            }}
           />
         );
       })()}

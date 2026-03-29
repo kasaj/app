@@ -15,7 +15,7 @@ import ActivityEditor from '../components/ActivityEditor';
 import StarRating from '../components/StarRating';
 
 
-export default function PageToday() {
+export default function PageToday({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const { t, language } = useLanguage();
   const [activities, setActivities] = useState<ActivityDefinition[]>(() => loadActivities());
   const [activeActivity, setActiveActivity] = useState<ActivityDefinition | null>(null);
@@ -391,6 +391,12 @@ export default function PageToday() {
             const original = activities.find(a => a.type === activeActivity.type);
             setActiveActivity(null);
             setEditingActivity(original || activeActivity);
+          }}
+          onNavigatePage={(page) => {
+            setActiveActivity(null);
+            setActivities(loadActivities());
+            setRefreshKey((k) => k + 1);
+            if (onNavigate) onNavigate(page as import('../types').Page);
           }}
         />
       )}
