@@ -291,12 +291,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             >
               {activity.core ? (
                 /* Core activity (mood) */
-                <div
-                  className="card p-3"
-                  onBlur={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget as Node)) flushMood();
-                  }}
-                >
+                <div className="card p-3">
                   <div className="flex items-center justify-between mb-2">
                     <StarRating value={moodRating} onChange={(r) => setMoodRatingSync(r)} size="md" />
                     <span className="flex items-center gap-2">
@@ -328,6 +323,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                              focus:outline-none focus:border-themed-accent resize-none min-h-[2.5rem]
                              text-themed-primary placeholder:text-themed-faint text-sm overflow-hidden"
                   />
+                  {(moodRating || moodComment.trim()) && (
+                    <button
+                      onClick={flushMood}
+                      className="mt-2 w-full py-1.5 rounded-xl text-xs transition-colors"
+                      style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
+                    >
+                      {language === 'cs' ? 'Uložit' : 'Save'}
+                    </button>
+                  )}
                 </div>
               ) : (
                 /* Regular activity */
