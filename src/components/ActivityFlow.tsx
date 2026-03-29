@@ -33,13 +33,12 @@ function toLocalDatetime(isoStr: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewRating, onAdd, onUpdate, onUpdateRating, onUpdateTime, onDelete, lang: _lang, t }: {
+function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewRating, onUpdate, onUpdateRating, onUpdateTime, onDelete, lang: _lang, t }: {
   comments: ActivityComment[];
   newComment: string;
   setNewComment: (v: string) => void;
   newRating: Rating | null;
   setNewRating: (r: Rating) => void;
-  onAdd: () => void;
   onUpdate?: (commentId: string, text: string) => void;
   onUpdateRating?: (commentId: string, rating: Rating) => void;
   onUpdateTime?: (commentId: string, isoTime: string) => void;
@@ -56,11 +55,15 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
         <div>
           <textarea
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            onChange={(e) => {
+              setNewComment(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+            }}
             placeholder={t.time.commentPlaceholder}
             className="w-full p-3 rounded-xl bg-themed-input border border-themed
-                     focus:outline-none focus:border-themed-accent resize-none h-14
-                     text-themed-primary placeholder:text-themed-faint text-base"
+                     focus:outline-none focus:border-themed-accent resize-none min-h-[3.5rem]
+                     text-themed-primary placeholder:text-themed-faint text-base overflow-hidden"
           />
         </div>
       </div>
@@ -99,14 +102,16 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
           </div>
           <textarea
             defaultValue={comment.text}
+            ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+            onChange={(e) => { e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
             onBlur={(e) => {
               if (e.target.value !== comment.text && onUpdate) {
                 onUpdate(comment.id, e.target.value);
               }
             }}
             className="w-full p-3 rounded-xl bg-themed-input border border-themed
-                     focus:outline-none focus:border-themed-accent resize-none h-16
-                     text-themed-primary text-base"
+                     focus:outline-none focus:border-themed-accent resize-none min-h-[3.5rem]
+                     text-themed-primary text-base overflow-hidden"
           />
         </div>
       ))}
@@ -197,30 +202,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     return id;
   }, [activity, startedAt, isTimed, selectedVariant, ratingBefore, ratingAfter, rating]);
 
-  const handleAddNewComment = useCallback(() => {
-    if (!newComment.trim() && !newCommentRating) return;
-
-    const comment: ActivityComment = {
-      id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-      text: newComment.trim(),
-      createdAt: new Date().toISOString(),
-      rating: newCommentRating || undefined,
-    };
-
-    setLocalComments((prev) => [comment, ...prev]);
-    setNewCommentRating(null);
-
-    if (isEditing && onAddComment) {
-      onAddComment(newComment.trim());
-    } else {
-      // New record - ensure saved, then update comments
-      const id = ensureSaved();
-      const allComments = [comment, ...localComments];
-      updateActivityById(id, { comments: allComments });
-    }
-
-    setNewComment('');
-  }, [newComment, newCommentRating, isEditing, onAddComment, ensureSaved, localComments]);
 
   const persistComments = useCallback((updated: ActivityComment[]) => {
     if (savedIdRef.current) {
@@ -465,7 +446,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 setNewComment={setNewComment}
                 newRating={newCommentRating}
                 setNewRating={setNewCommentRating}
-                onAdd={handleAddNewComment}
+
                 onUpdate={handleUpdateComment}
                 onUpdateRating={handleUpdateCommentRating}
                 onUpdateTime={handleUpdateCommentTime}
@@ -565,7 +546,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   setNewComment={setNewComment}
                   newRating={newCommentRating}
                   setNewRating={setNewCommentRating}
-                  onAdd={handleAddNewComment}
+  
                   onUpdate={handleUpdateComment}
                   onUpdateRating={handleUpdateCommentRating}
                   lang={language}
@@ -687,7 +668,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 setNewComment={setNewComment}
                 newRating={newCommentRating}
                 setNewRating={setNewCommentRating}
-                onAdd={handleAddNewComment}
+
                 onUpdate={handleUpdateComment}
                 onUpdateRating={handleUpdateCommentRating}
                 onUpdateTime={handleUpdateCommentTime}
