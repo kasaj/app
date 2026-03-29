@@ -839,16 +839,12 @@ export default function PageTime() {
                   sessions.push(chain);
                 }
               }
-              // Sort sessions by first activity time (newest first)
-              sessions.sort((a, b) => new Date(b[0].startedAt).getTime() - new Date(a[0].startedAt).getTime());
+              // Sort sessions by chain size (largest first)
+              sessions.sort((a, b) => b.length - a.length);
 
               return sessions.map((session, sessionIndex) => (
                 <div key={`session-${sessionIndex}`}>
-                  <div className={`py-2 px-1 text-xs font-medium text-themed-faint ${
-                    sessionIndex > 0 ? 'border-t border-themed mt-2' : ''
-                  }`}>
-                    {language === 'cs' ? 'Relace' : 'Session'}: {sessions.length - sessionIndex}
-                  </div>
+                  {sessionIndex > 0 && <div className="border-t border-themed mt-2" />}
                   {session.map((activity) => (
                     <ActivityRow
                       key={activity.id}
