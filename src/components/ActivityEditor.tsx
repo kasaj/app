@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ActivityDefinition } from '../types';
 import { useLanguage } from '../i18n';
 import { generateActivityType } from '../utils/activities';
+import { addToRegistry, loadVariantRegistry } from '../utils/variantRegistry';
 
 interface ActivityEditorProps {
   activity?: ActivityDefinition;
@@ -21,6 +22,7 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || '15');
   const [variants, setVariants] = useState<string[]>(activity?.variants || []);
   const [newVariant, setNewVariant] = useState('');
+  const [showRegistry, setShowRegistry] = useState(false);
 
   const initialRender = useRef(true);
 
@@ -48,6 +50,7 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
     if (!text || variants.includes(text)) return;
     setVariants([...variants, text]);
     setNewVariant('');
+    addToRegistry(text);
   };
 
   const handleRemoveVariant = (v: string) => {
@@ -192,7 +195,31 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
                 className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input
                          text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
               />
+              <button
+                onClick={() => setShowRegistry(!showRegistry)}
+                className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
+                  showRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
+                }`}
+              >
+                {showRegistry ? '▲' : '▼'}
+              </button>
             </div>
+            {showRegistry && (() => {
+              const registry = loadVariantRegistry().filter(v => !variants.includes(v));
+              return registry.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-themed">
+                  {registry.map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setVariants([...variants, v])}
+                      className="px-3 py-1.5 text-xs rounded-full border border-dashed border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid transition-colors"
+                    >
+                      + {v}
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
 

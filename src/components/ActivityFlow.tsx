@@ -3,6 +3,7 @@ import { Activity, ActivityDefinition, ActivityComment, Rating } from '../types'
 import { useLanguage } from '../i18n';
 import { generateId, addActivity, updateActivityById, getDayEntry, getTodayDate } from '../utils/storage';
 import { loadActivities, saveActivities } from '../utils/activities';
+import { addToRegistry } from '../utils/variantRegistry';
 import { loadMoodScale } from '../utils/moodScale';
 import StarRating from './StarRating';
 import Timer from './Timer';
@@ -318,6 +319,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     setLocalVariants(updated);
     setNewVariantText('');
     persistVariants(updated);
+    addToRegistry(text);
   }, [newVariantText, localVariants, persistVariants]);
 
   const handleRemoveVariant = useCallback((variant: string) => {

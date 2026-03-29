@@ -7,6 +7,7 @@ import { DayEntry, ActivityDefinition } from '../types';
 import { loadMoodScale, saveMoodScale, getDefaultMoodScale, MoodScaleItem } from '../utils/moodScale';
 import { Theme, loadTheme, saveTheme } from '../utils/theme';
 import { getCachedConfig } from '../utils/config';
+import { loadVariantRegistry, removeFromRegistry } from '../utils/variantRegistry';
 
 interface ExportActivity {
   type: string;
@@ -294,6 +295,7 @@ export default function PageSettings() {
   const [theme, setThemeState] = useState<Theme>(loadTheme);
   const [moodScale, setMoodScale] = useState<MoodScaleItem[]>(() => loadMoodScale());
   const [editingMoodIdx, setEditingMoodIdx] = useState<number | null>(null);
+  const [variantRegistry, setVariantRegistry] = useState<string[]>(() => loadVariantRegistry());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleThemeChange = (newTheme: Theme) => {
@@ -593,6 +595,32 @@ export default function PageSettings() {
               </button>
             ))}
           </div>
+        </section>
+
+        {/* Variant registry */}
+        <section className="card">
+          <h2 className="font-serif text-lg text-themed-primary mb-4">
+            {language === 'cs' ? 'Registr variant' : 'Variant Registry'}
+          </h2>
+          {variantRegistry.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {variantRegistry.map((v) => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    removeFromRegistry(v);
+                    setVariantRegistry(prev => prev.filter(x => x !== v));
+                  }}
+                  className="px-3 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-muted hover:border-themed-warn transition-colors"
+                >
+                  {v}
+                  <span className="ml-1.5 text-themed-faint">×</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-themed-faint">{language === 'cs' ? 'Žádné varianty' : 'No variants'}</p>
+          )}
         </section>
 
         {/* Mood scale */}
