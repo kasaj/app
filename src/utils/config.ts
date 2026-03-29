@@ -34,8 +34,8 @@ export interface ConfigActivity {
   emoji: string;
   durationMinutes: number | null;
   core?: boolean;
-  cs: { name: string; description: string; variants?: string[] };
-  en: { name: string; description: string; variants?: string[] };
+  cs: { name: string; description: string; properties?: string[] };
+  en: { name: string; description: string; properties?: string[] };
 }
 
 export interface AppConfig {

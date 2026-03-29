@@ -15,7 +15,7 @@ export interface ActivityDefinition {
   emoji: string;
   description: string;
   durationMinutes: number | null; // null = nečasová aktivita
-  variants?: string[]; // Možnosti/varianty aktivity
+  properties?: string[]; // Vlastnosti aktivity
   core?: boolean; // speciální aktivita (např. nálada) - nezobrazuje se v běžném seznamu
 }
 

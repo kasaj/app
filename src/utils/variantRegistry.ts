@@ -40,9 +40,9 @@ export function removeFromRegistry(variant: string): void {
   const activities = loadActivities();
   let changed = false;
   activities.forEach(a => {
-    if (a.variants?.includes(variant)) {
-      a.variants = a.variants.filter(v => v !== variant);
-      if (a.variants.length === 0) a.variants = undefined;
+    if (a.properties?.includes(variant)) {
+      a.properties = a.properties.filter(v => v !== variant);
+      if (a.properties.length === 0) a.properties = undefined;
       changed = true;
     }
   });
@@ -52,7 +52,7 @@ export function removeFromRegistry(variant: string): void {
 export function rebuildRegistry(): string[] {
   const activities = loadActivities();
   const all = new Set<string>();
-  activities.forEach(a => a.variants?.forEach(v => all.add(v)));
+  activities.forEach(a => a.properties?.forEach(v => all.add(v)));
   const sorted = [...all].sort((a, b) => a.localeCompare(b, 'cs'));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sorted));
   return sorted;

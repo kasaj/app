@@ -11,7 +11,7 @@
       "cs": {
         "name": "Vyrovnání - Pauza",
         "description": "Na pár minut se vědomě zastavit, vnímat, pobýt sám se sebou...",
-        "variants": [
+        "properties": [
           "Dech nosem",
           "Sken těla",
           "Slunce",
@@ -25,7 +25,7 @@
       "en": {
         "name": "Pause",
         "description": "Consciously stop for a few minutes, observe, be present with yourself...",
-        "variants": [
+        "properties": [
           "Nose breathing",
           "Long exhale sss (calming)",
           "Body scan",
@@ -48,7 +48,7 @@
       "cs": {
         "name": "Pohyb - Aktivita",
         "description": "Rozproudění energie v těle, alespoň kapka potu, zahřátí...",
-        "variants": [
+        "properties": [
           "Pohyb",
           "Sport",
           "Protažení",
@@ -62,7 +62,7 @@
       "en": {
         "name": "Movement - Activity",
         "description": "Get the energy flowing in the body, at least a drop of sweat, warm up...",
-        "variants": [
+        "properties": [
           "Movement",
           "Sport",
           "Stretching",
@@ -81,7 +81,7 @@
       "cs": {
         "name": "Usebrání - Výživa",
         "description": "Vědomé jednání jako tiché sezení, konzumace jídel, otevřená otázka, vnitřní prostor, pozorování přírody, pocitů, myšlenek",
-        "variants": [
+        "properties": [
           "Meditace",
           "Imaginace",
           "Kontemplace",
@@ -97,7 +97,7 @@
       "en": {
         "name": "Contemplation - Nourishment",
         "description": "Conscious action such as silent sitting, mindful eating, open question, inner space, observing nature, feelings, thoughts",
-        "variants": [
+        "properties": [
           "Meditation",
           "Imagination",
           "Contemplation",
@@ -118,7 +118,7 @@
       "cs": {
         "name": "Komentář - Informace",
         "description": "Vědomá sebereflexe, kotvení, záměr, poznámka",
-        "variants": [
+        "properties": [
           "Probuzení",
           "Záměr",
           "Spánek 8h",
@@ -138,7 +138,7 @@
       "en": {
         "name": "Comment - Information",
         "description": "Conscious self-reflection, anchoring, intention, note",
-        "variants": [
+        "properties": [
           "Intention",
           "Sleep 8h",
           "Fail",
@@ -160,7 +160,7 @@
       "cs": {
         "name": "Vztahy - Interakce",
         "description": "Vědomý kontakt s druhým člověkem, mezilidské vztahy, společnost, komunita",
-        "variants": [
+        "properties": [
           "Objetí",
           "Sdílení",
           "Setkání",
@@ -174,7 +174,7 @@
       "en": {
         "name": "Relationships - Interaction",
         "description": "Conscious contact with another person, interpersonal relationships, society, community",
-        "variants": [
+        "properties": [
           "Embrace",
           "Sharing",
           "Meeting",
@@ -193,7 +193,7 @@
       "cs": {
         "name": "Výzvy - Integrace",
         "description": "Vědomé čelení tomu, čemu se vyhýbám, malý krok středem, konkrétní akce k růstu",
-        "variants": [
+        "properties": [
           "Dlouhý výdech sss (uklidnění)",
           "Konfrontace strachu",
           "Přijetí bolesti, pocitu",
@@ -209,7 +209,7 @@
       "en": {
         "name": "Challenge - Integration",
         "description": "Consciously facing what I avoid, a small step through the middle, a concrete action toward growth",
-        "variants": [
+        "properties": [
           "Confronting fear",
           "Accepting pain",
           "Admitting a feeling",
@@ -232,12 +232,12 @@
       "cs": {
         "name": "Nálada",
         "description": "Zaznamenej svůj aktuální stav",
-        "variants": []
+        "properties": []
       },
       "en": {
         "name": "Mood",
         "description": "Record your current state",
-        "variants": []
+        "properties": []
       }
     }
   ],

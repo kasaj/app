@@ -147,7 +147,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const ratingAfter = existingActivity?.ratingAfter || null;
   const rating = existingActivity?.rating || null;
 
-  const [localVariants, setLocalVariants] = useState<string[]>(activity.variants || []);
+  const [localVariants, setLocalVariants] = useState<string[]>(activity.properties || []);
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
 
@@ -307,7 +307,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     const all = loadActivities();
     const idx = all.findIndex(a => a.type === activity.type);
     if (idx >= 0) {
-      all[idx] = { ...all[idx], variants: updated };
+      all[idx] = { ...all[idx], properties: updated };
       saveActivities(all);
     }
   }, [activity.type]);

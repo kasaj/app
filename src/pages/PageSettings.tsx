@@ -15,7 +15,7 @@ interface ExportActivity {
   durationMinutes: number | null;
   name: string;
   description: string;
-  variants?: string[];
+  properties?: string[];
 }
 
 interface PraFile {
@@ -42,7 +42,7 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
 
   const exportActivities: ExportActivity[] = activities.map((a) => ({
     type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
-    name: a.name, description: a.description, variants: a.variants,
+    name: a.name, description: a.description, properties: a.properties,
   }));
 
   const cfgInfo = { ...(getCachedConfig()?.info?.[lang as 'cs' | 'en'] || {}) };
@@ -121,7 +121,7 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
 
   const exportActivities: ExportActivity[] = activities.map((a) => ({
     type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
-    name: a.name, description: a.description, variants: a.variants,
+    name: a.name, description: a.description, properties: a.properties,
   }));
 
   const loadNotes = (l: string) => {
@@ -149,7 +149,7 @@ function importPraFile(file: PraFile, currentLang: string): void {
     const existingTypes = new Set(existing.map(a => a.type));
     const imported: ActivityDefinition[] = file.activities.map((item) => ({
       type: item.type, emoji: item.emoji, durationMinutes: item.durationMinutes,
-      name: item.name, description: item.description, variants: item.variants,
+      name: item.name, description: item.description, properties: item.properties,
     }));
     // Add only activities that don't already exist
     const newActivities = imported.filter(a => !existingTypes.has(a.type));

@@ -46,14 +46,14 @@ const DEFAULT_ACTIVITY_BASE: Array<{
 export const getDefaultActivities = (t: Translations): ActivityDefinition[] => {
   return DEFAULT_ACTIVITY_BASE.map((base) => {
     const activityTrans = t.activities[base.type as keyof typeof t.activities];
-    const variants = 'variants' in activityTrans ? [...(activityTrans as unknown as { variants: readonly string[] }).variants] : undefined;
+    const properties = 'variants' in activityTrans ? [...(activityTrans as unknown as { variants: readonly string[] }).variants] : undefined;
     return {
       type: base.type,
       emoji: base.emoji,
       durationMinutes: base.durationMinutes,
       name: activityTrans.name,
       description: activityTrans.desc,
-      variants,
+      properties,
     };
   });
 };
@@ -99,12 +99,12 @@ export const getTranslatedActivity = (
   if (!activityTrans) {
     return activity;
   }
-  const variants = 'variants' in activityTrans ? [...(activityTrans as unknown as { variants: readonly string[] }).variants] : activity.variants;
+  const properties = 'variants' in activityTrans ? [...(activityTrans as unknown as { variants: readonly string[] }).variants] : activity.properties;
   return {
     ...activity,
     name: activityTrans.name,
     description: activityTrans.desc,
-    variants,
+    properties,
   };
 };
 
@@ -116,7 +116,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '⏸️',
     description: 'Na pár minut se zastavit, vnímat, pobýt sám se sebou',
     durationMinutes: 3,
-    variants: ['Dýchání', 'Sken těla', 'Tiché zastavení'],
+    properties: ['Dýchání', 'Sken těla', 'Tiché zastavení'],
   },
   {
     type: 'pohyb',
@@ -124,7 +124,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '🚶',
     description: 'Protažení, procvičení, posilování, sport nebo chůze s vnímáním těla',
     durationMinutes: 30,
-    variants: ['Chůze', 'Protažení', 'Posilování', 'Jóga', 'Tanec'],
+    properties: ['Chůze', 'Protažení', 'Posilování', 'Jóga', 'Tanec'],
   },
   {
     type: 'rozjimani',
@@ -132,7 +132,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '🌅',
     description: 'Tiché sezení, otevřená otázka, vnitřní prostor, pozorování přírody, pocitů, myšlenek',
     durationMinutes: 15,
-    variants: ['Tiché sezení', 'Kontemplace', 'Journaling', 'Vděčnost'],
+    properties: ['Tiché sezení', 'Kontemplace', 'Journaling', 'Vděčnost'],
   },
   // Nečasové aktivity
   {
@@ -141,7 +141,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '📜',
     description: 'Reflexe, záměr, slovo nebo věta která provede dnem',
     durationMinutes: null,
-    variants: ['Ranní záměr', 'Večerní reflexe', 'Vděčnost', 'Afirmace'],
+    properties: ['Ranní záměr', 'Večerní reflexe', 'Vděčnost', 'Afirmace'],
   },
   {
     type: 'objeti',
@@ -149,7 +149,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '🤗',
     description: 'Vědomý kontakt s druhým člověkem',
     durationMinutes: null,
-    variants: ['Objetí', 'Podání ruky', 'Oční kontakt', 'Rozhovor'],
+    properties: ['Objetí', 'Podání ruky', 'Oční kontakt', 'Rozhovor'],
   },
   {
     type: 'vyzva',
@@ -157,7 +157,7 @@ export const DEFAULT_ACTIVITIES: ActivityDefinition[] = [
     emoji: '🔥',
     description: 'Vědomé čelení tomu, čemu se vyhýbám. Jediná konkrétní akce uprostřed nepřehlednosti.',
     durationMinutes: null,
-    variants: ['Konfrontace strachu', 'Těžký rozhovor', 'Nový návyk', 'Malý krok'],
+    properties: ['Konfrontace strachu', 'Těžký rozhovor', 'Nový návyk', 'Malý krok'],
   },
 ];
 
@@ -173,7 +173,7 @@ const getDefaultFromConfig = (lang?: string): ActivityDefinition[] => {
       durationMinutes: item.durationMinutes,
       name: localized.name,
       description: localized.description,
-      variants: localized.variants,
+      properties: localized.properties,
       core: item.core,
     };
   });
@@ -204,7 +204,7 @@ export const mergeWithConfig = (existing: ActivityDefinition[]): ActivityDefinit
     // Check if different
     if (a.name !== fromConfig.name || a.description !== fromConfig.description ||
         a.emoji !== fromConfig.emoji || a.durationMinutes !== fromConfig.durationMinutes ||
-        JSON.stringify(a.variants) !== JSON.stringify(fromConfig.variants)) {
+        JSON.stringify(a.properties) !== JSON.stringify(fromConfig.properties)) {
       changed = true;
       return fromConfig;
     }

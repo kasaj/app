@@ -20,7 +20,7 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const [description, setDescription] = useState(activity?.description || '');
   const [isTimed, setIsTimed] = useState(activity?.durationMinutes !== null);
   const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || '15');
-  const [variants, setVariants] = useState<string[]>(activity?.variants || []);
+  const [variants, setVariants] = useState<string[]>(activity?.properties || []);
   const [newVariant, setNewVariant] = useState('');
   const [showRegistry, setShowRegistry] = useState(false);
 
@@ -40,7 +40,7 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
       emoji: emoji || '✨',
       description: description.trim(),
       durationMinutes: isTimed ? parseInt(duration, 10) || 15 : null,
-      variants: variants.length > 0 ? variants : undefined,
+      properties: variants.length > 0 ? variants : undefined,
     };
     onSave(updated);
   }, [name, emoji, description, isTimed, duration, variants]);
@@ -66,7 +66,7 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
       emoji: emoji || '✨',
       description: description.trim(),
       durationMinutes: isTimed ? parseInt(duration, 10) || 15 : null,
-      variants: variants.length > 0 ? variants : undefined,
+      properties: variants.length > 0 ? variants : undefined,
     };
 
     onSave(newActivity);
