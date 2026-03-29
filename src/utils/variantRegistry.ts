@@ -18,7 +18,19 @@ export function loadVariantRegistry(): string[] {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        // Ensure config defaults are always included
+        const lang = getLang();
+        const config = getCachedConfig();
+        const configProps = config?.properties?.[lang] || [];
+        const missing = configProps.filter((v: string) => !parsed.includes(v));
+        if (missing.length > 0) {
+          const merged = [...parsed, ...missing];
+          saveVariantRegistry(merged);
+          return merged.sort((a: string, b: string) => a.localeCompare(b, lang));
+        }
+        return parsed;
+      }
     }
   } catch { /* default */ }
   return rebuildRegistry();
