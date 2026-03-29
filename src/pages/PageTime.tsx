@@ -17,12 +17,6 @@ import {
 } from 'recharts';
 
 
-/** Compute avg rating from comments of activity + all linked activities */
-
-function getActivityScore(a: Activity): number {
-  const comments = getActivityComments(a);
-  return (a.linkedActivityIds?.length || 0) + (a.linkedFromId ? 1 : 0) + comments.length;
-}
 
 function ActivityCalendar({ data, language, selectedDate, onDayClick }: {
   data: DayEntry[];
@@ -208,9 +202,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
   const def = rawDef ? getTranslatedActivity(rawDef, t) : rawDef;
   const actualTime = activity.actualDurationSeconds
     ? formatDuration(activity.actualDurationSeconds)
-    : activity.durationMinutes
-      ? `${activity.durationMinutes}m`
-      : null;
+    : `${activity.durationMinutes || 1}m`;
 
   const comments = getActivityComments(activity);
   const lastTwo = comments.slice(-2);
@@ -246,7 +238,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
                 {linkCount}
               </span>
             )}
-            {actualTime && <span className="text-themed-faint text-xs">{actualTime}</span>}
+            <span className="text-themed-faint text-xs">{actualTime}</span>
             {activity.linkedFromId && (
               <button
                 onClick={(e) => { e.stopPropagation(); onNavigate(activity.linkedFromId!); }}
@@ -754,32 +746,75 @@ export default function PageTime() {
               </div>
             ))
           ) : (
-            // Sort by score (flat list, highest first), filtered by calendar
-            (calendarDate
-              ? allActivitiesFlat.filter(a => a.startedAt.startsWith(calendarDate))
-              : allActivitiesFlat
-            )
-              .slice()
-              .sort((a, b) => getActivityScore(b) - getActivityScore(a))
-              .map((activity) => (
-                <ActivityRow
-                  key={activity.id}
-                  activity={activity}
-                  lang={language}
-                  selected={selectedIds.has(activity.id)}
-                  onToggleSelect={() => toggleSelect(activity.id)}
-                  onClickEdit={() => setEditingRecord(activity)}
-                  onCreateLinked={() => handleCreateLinked(activity)}
-                  onNavigate={handleNavigate}
-                  t={t}
-                />
-              ))
+            // Group by session (linked activity chains)
+            (() => {
+              const activities = calendarDate
+                ? allActivitiesFlat.filter(a => a.startedAt.startsWith(calendarDate))
+                : allActivitiesFlat;
+              // Build sessions: group linked activities together
+              const visited = new Set<string>();
+              const sessions: Activity[][] = [];
+              const activityMap = new Map(activities.map(a => [a.id, a]));
+
+              for (const a of activities) {
+                if (visited.has(a.id)) continue;
+                // Find chain root
+                let root = a;
+                while (root.linkedFromId && activityMap.has(root.linkedFromId) && !visited.has(root.linkedFromId)) {
+                  root = activityMap.get(root.linkedFromId)!;
+                }
+                // Collect chain forward
+                const chain: Activity[] = [];
+                const queue = [root];
+                while (queue.length > 0) {
+                  const current = queue.shift()!;
+                  if (visited.has(current.id)) continue;
+                  visited.add(current.id);
+                  chain.push(current);
+                  if (current.linkedActivityIds) {
+                    current.linkedActivityIds.forEach(id => {
+                      if (activityMap.has(id) && !visited.has(id)) queue.push(activityMap.get(id)!);
+                    });
+                  }
+                }
+                if (chain.length > 0) {
+                  chain.sort((x, y) => new Date(x.startedAt).getTime() - new Date(y.startedAt).getTime());
+                  sessions.push(chain);
+                }
+              }
+              // Sort sessions by first activity time (newest first)
+              sessions.sort((a, b) => new Date(b[0].startedAt).getTime() - new Date(a[0].startedAt).getTime());
+
+              return sessions.map((session, sessionIndex) => (
+                <div key={`session-${sessionIndex}`}>
+                  <div className={`py-2 px-1 text-xs font-medium text-themed-faint ${
+                    sessionIndex > 0 ? 'border-t border-themed mt-2' : ''
+                  }`}>
+                    {language === 'cs' ? 'Relace' : 'Session'}: {sessions.length - sessionIndex}
+                  </div>
+                  {session.map((activity) => (
+                    <ActivityRow
+                      key={activity.id}
+                      activity={activity}
+                      lang={language}
+                      selected={selectedIds.has(activity.id)}
+                      onToggleSelect={() => toggleSelect(activity.id)}
+                      onClickEdit={() => setEditingRecord(activity)}
+                      onCreateLinked={() => handleCreateLinked(activity)}
+                      onNavigate={handleNavigate}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              ));
+            })()
           )}
         </div>
       </section>
 
       {/* Overall mood */}
-      <div className="card flex justify-center py-4 mb-6">
+      <div className="card flex items-center justify-center gap-3 py-4 mb-6">
+        <span className="text-sm text-themed-muted">{t.time.rating}:</span>
         <div className="flex gap-1.5 text-2xl">
           {loadMoodScale().map(({ value: v, emoji: e }) => (
             <span key={v} className={v === Math.round(summaryStats.overallMood) ? 'opacity-100' : 'grayscale opacity-30'}>
