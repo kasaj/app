@@ -26,28 +26,26 @@ export default function PageToday() {
   const [moodRating, setMoodRating] = useState<Rating | null>(null);
   const [moodComment, setMoodComment] = useState('');
 
-  const handleSaveMood = useCallback(() => {
-    if (!moodRating && !moodComment.trim()) return;
+  const saveMoodEntry = useCallback((rating: Rating | null, text: string) => {
+    if (!rating && !text.trim()) return;
     const now = new Date().toISOString();
-    const id = generateId();
-    const comments = (moodComment.trim() || moodRating) ? [{
-      id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-      text: moodComment.trim(),
-      createdAt: now,
-      rating: moodRating || undefined,
-    }] : [];
     addActivity({
-      id,
+      id: generateId(),
       type: 'nalada',
       startedAt: now,
       completedAt: now,
       durationMinutes: null,
-      comments,
+      comments: [{
+        id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+        text: text.trim(),
+        createdAt: now,
+        rating: rating || undefined,
+      }],
     });
     setMoodRating(null);
     setMoodComment('');
     setRefreshKey((k) => k + 1);
-  }, [moodRating, moodComment]);
+  }, []);
 
   // Translate activities for display - depends on language to ensure re-render on language change
   const translatedActivities = useMemo(() =>
@@ -319,27 +317,18 @@ export default function PageToday() {
       {/* Quick mood */}
       <div className="card mb-4 p-3">
         <div className="flex justify-center mb-2">
-          <StarRating value={moodRating} onChange={setMoodRating} size="md" />
+          <StarRating value={moodRating} onChange={(r) => saveMoodEntry(r, '')} size="md" />
         </div>
-        <div className="flex gap-2">
-          <textarea
-            value={moodComment}
-            onChange={(e) => setMoodComment(e.target.value)}
-            placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
-            className="flex-1 p-2 rounded-xl bg-themed-input border border-themed
-                     focus:outline-none focus:border-themed-accent resize-none h-10
-                     text-themed-primary placeholder:text-themed-faint text-sm"
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveMood(); } }}
-          />
-          <button
-            onClick={handleSaveMood}
-            disabled={!moodRating && !moodComment.trim()}
-            className="px-4 rounded-xl text-sm transition-colors disabled:opacity-30"
-            style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
-          >
-            +
-          </button>
-        </div>
+        <textarea
+          value={moodComment}
+          onChange={(e) => setMoodComment(e.target.value)}
+          placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
+          className="w-full p-2 rounded-xl bg-themed-input border border-themed
+                   focus:outline-none focus:border-themed-accent resize-none h-10
+                   text-themed-primary placeholder:text-themed-faint text-sm"
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveMoodEntry(null, moodComment); } }}
+          onBlur={() => { if (moodComment.trim()) saveMoodEntry(null, moodComment); }}
+        />
       </div>
 
       <section>
