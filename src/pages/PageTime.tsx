@@ -197,7 +197,20 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
 
   const comments = getActivityComments(activity);
   const lastTwo = comments.slice(-2);
-  const linkCount = (activity.linkedActivityIds?.length || 0) + (activity.linkedFromId ? 1 : 0) + comments.length;
+  // Count position in chain: how many activities before this one + 1
+  const chainPosition = (() => {
+    let count = 1;
+    let currentId = activity.linkedFromId;
+    const visited = new Set<string>([activity.id]);
+    while (currentId && !visited.has(currentId)) {
+      visited.add(currentId);
+      count++;
+      const found = findActivityById(currentId);
+      currentId = found?.activity.linkedFromId;
+    }
+    return count;
+  })();
+  const linkCount = chainPosition + comments.length;
 
   return (
     <div className="py-2 flex items-start gap-2">
