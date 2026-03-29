@@ -236,7 +236,20 @@ export default function PageToday() {
       <header className="mb-6">
         <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
         <div className="flex items-center justify-between mt-1">
-          <p className="text-themed-faint">{t.today.subtitle}</p>
+          <div className="flex items-center gap-3">
+            <p className="text-themed-faint">{t.today.subtitle}</p>
+            <button
+              onClick={() => {
+                const now = new Date().toISOString();
+                setSessionStart(now);
+                localStorage.setItem('pra_session_start', now);
+                setRefreshKey((k) => k + 1);
+              }}
+              className="text-xs text-themed-faint hover:text-themed-accent-solid transition-colors"
+            >
+              {t.settings.newSession}
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowNewActivity(true)}
@@ -273,21 +286,6 @@ export default function PageToday() {
           <p className="text-sm text-themed-accent">{t.today.editHint}</p>
         </div>
       )}
-
-      <button
-        onClick={() => {
-          const now = new Date().toISOString();
-          setSessionStart(now);
-          localStorage.setItem('pra_session_start', now);
-          setRefreshKey((k) => k + 1);
-        }}
-        className="mb-3 w-full flex items-center justify-center gap-2 py-2 text-sm text-themed-faint hover:text-themed-accent-solid transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        {t.settings.newSession}
-      </button>
 
       <section>
         <div className="space-y-2">
