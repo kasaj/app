@@ -29,8 +29,7 @@ export default function PageToday() {
     [activities, t, language]
   );
 
-  const timedActivities = translatedActivities.filter((a) => a.durationMinutes !== null);
-  const untimedActivities = translatedActivities.filter((a) => a.durationMinutes === null);
+
 
   // Session timestamp - activities before this are "previous" (gray), after are "current" (blue)
   // Persists across page refresh, only reset via button or midnight
@@ -275,11 +274,10 @@ export default function PageToday() {
         </div>
       )}
 
-      <section className="mb-6">
-        <h2 className="font-serif text-base text-themed-secondary mb-3">{t.today.timedSection}</h2>
+      <section>
         <div className="space-y-2">
-          {timedActivities.map((activity, index) =>
-            renderActivityWithControls(activity, index, timedActivities.length)
+          {translatedActivities.map((activity, index) =>
+            renderActivityWithControls(activity, index, translatedActivities.length)
           )}
 
           {editMode && (
@@ -293,29 +291,6 @@ export default function PageToday() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               {t.today.addTimed}
-            </button>
-          )}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="font-serif text-base text-themed-secondary mb-3">{t.today.momentsSection}</h2>
-        <div className="space-y-2">
-          {untimedActivities.map((activity, index) =>
-            renderActivityWithControls(activity, index, untimedActivities.length)
-          )}
-
-          {editMode && (
-            <button
-              onClick={handleAddNew}
-              className="w-full p-3 rounded-xl border-2 border-dashed border-themed-medium
-                       text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid
-                       transition-colors flex items-center justify-center gap-2 text-sm"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {t.today.addMoment}
             </button>
           )}
         </div>
