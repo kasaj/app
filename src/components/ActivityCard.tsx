@@ -52,7 +52,7 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
           <span className="text-xs text-themed-faint opacity-50">{totalCount}</span>
         )}
 
-        {/* Session count (when >1) */}
+        {/* Session count before checkbox (when >1) */}
         {(completedCount || 0) > 1 && (
           <span className="text-xs font-medium text-themed-accent-solid">{completedCount}</span>
         )}
