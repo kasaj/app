@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Activity, ActivityDefinition, ActivityComment, Rating } from '../types';
 import { useLanguage } from '../i18n';
-import { generateId, addActivity, updateActivityById } from '../utils/storage';
+import { generateId, addActivity, updateActivityById, getDayEntry, getTodayDate } from '../utils/storage';
 import { loadMoodScale } from '../utils/moodScale';
 import StarRating from './StarRating';
 import Timer from './Timer';
@@ -162,6 +162,15 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
     const id = generateId();
     const now = new Date().toISOString();
+
+    // Find previous activity of same type in current session to auto-link
+    const sessionStart = localStorage.getItem('pra_session_start') || now;
+    const todayEntry = getDayEntry(getTodayDate());
+    const prevInSession = todayEntry?.activities
+      .filter(a => a.type === activity.type && new Date(a.completedAt || a.startedAt) >= new Date(sessionStart))
+      .sort((a, b) => new Date(b.completedAt || b.startedAt).getTime() - new Date(a.completedAt || a.startedAt).getTime())
+      [0];
+
     const newActivity: Activity = {
       id,
       type: activity.type,
@@ -174,8 +183,17 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
       ratingAfter: isTimed ? (ratingAfter || undefined) : undefined,
       rating: !isTimed ? (rating || undefined) : undefined,
       comments: [],
+      linkedFromId: prevInSession?.id,
     };
     addActivity(newActivity);
+
+    // Update previous activity's linkedActivityIds
+    if (prevInSession) {
+      updateActivityById(prevInSession.id, {
+        linkedActivityIds: [...(prevInSession.linkedActivityIds || []), id],
+      });
+    }
+
     savedIdRef.current = id;
     return id;
   }, [activity, startedAt, isTimed, selectedVariant, ratingBefore, ratingAfter, rating]);
