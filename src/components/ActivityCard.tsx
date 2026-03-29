@@ -35,28 +35,26 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
         <span className="text-2xl">{activity.emoji}</span>
         <span className="font-serif text-themed-primary flex-1">{activity.name}</span>
 
-        {/* Total time for timed activities */}
+        {/* Timed: total time + duration badge */}
         {activity.durationMinutes && (totalSeconds || 0) > 0 && (
           <span className="text-xs text-themed-faint opacity-50">
             {formatTotalTime(totalSeconds || 0)}
           </span>
         )}
-
-        {/* Session count (when >1) */}
-        {(completedCount || 0) > 1 && (
-          <span className="text-xs font-medium text-themed-accent-solid">{completedCount}</span>
-        )}
-
-        {/* Duration badge for timed */}
         {activity.durationMinutes && (
           <span className="text-sm text-themed-accent-solid bg-themed-accent px-2 py-0.5 rounded-full">
             {activity.durationMinutes} {t.today.min}
           </span>
         )}
 
-        {/* Total count for non-timed activities */}
+        {/* Non-timed: total count */}
         {!activity.durationMinutes && (totalCount || 0) > 0 && (
           <span className="text-xs text-themed-faint opacity-50">{totalCount}</span>
+        )}
+
+        {/* Session count (when >1) */}
+        {(completedCount || 0) > 1 && (
+          <span className="text-xs font-medium text-themed-accent-solid">{completedCount}</span>
         )}
 
         {/* Session check - always last */}

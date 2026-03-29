@@ -139,7 +139,7 @@ interface ActivityFlowProps {
   onNavigatePage?: (page: string) => void;
 }
 
-export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, existingActivity, onUpdateExisting, onAddComment, onUpdateComment: _onUpdateComment, onNavigateLinked: _onNavigateLinked, onNavigatePrev: _onNavigatePrev, onNavigateNext: _onNavigateNext, onCreateLinked: _onCreateLinked, onNavigatePage }: ActivityFlowProps) {
+export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, existingActivity, onUpdateExisting, onAddComment, onUpdateComment: _onUpdateComment, onNavigateLinked, onNavigatePrev: _onNavigatePrev, onNavigateNext: _onNavigateNext, onCreateLinked: _onCreateLinked, onNavigatePage }: ActivityFlowProps) {
   const { t, language } = useLanguage();
   const isTimed = activity.durationMinutes !== null;
   const isEditing = !!existingActivity;
@@ -365,20 +365,31 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
                 className="text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
             </div>
-          </header>
-          {(() => {
-            const rated: number[] = localComments.filter(c => c.rating != null).map(c => c.rating as number);
-            if (rated.length === 0) return null;
-            const avg = Math.round((rated.reduce((s, r) => s + r, 0) / rated.length) * 10) / 10;
-            const rounded = Math.round(Math.min(7, Math.max(1, avg)));
-            return (
-              <div className="flex gap-0.5 text-sm mb-2">
-                {loadMoodScale().map(({ value: v, emoji: e }) => (
-                  <span key={v} className={v === rounded ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
-                ))}
+            {isEditing && onNavigateLinked && (existingActivity?.linkedFromId || (existingActivity?.linkedActivityIds && existingActivity.linkedActivityIds.length > 0)) && (
+              <div className="flex items-center gap-2 mt-2">
+                {existingActivity?.linkedFromId && (
+                  <button
+                    onClick={() => { handleClose(); onNavigateLinked(existingActivity.linkedFromId!); }}
+                    className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                )}
+                {existingActivity?.linkedActivityIds && existingActivity.linkedActivityIds.length > 0 && (
+                  <button
+                    onClick={() => { handleClose(); onNavigateLinked(existingActivity.linkedActivityIds![existingActivity.linkedActivityIds!.length - 1]); }}
+                    className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                )}
               </div>
-            );
-          })()}
+            )}
+          </header>
           {/* Nečasové aktivity */}
           {!isTimed && (
             <div className="space-y-3 py-2">
