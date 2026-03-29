@@ -606,17 +606,20 @@ export default function PageSettings() {
                 {editingMoodIdx === idx ? (
                   <input
                     autoFocus
-                    value={item.emoji}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const emoji = [...val].pop() || item.emoji;
-                      const updated = [...moodScale];
-                      updated[idx] = { ...item, emoji };
-                      setMoodScale(updated);
-                      saveMoodScale(updated);
+                    defaultValue={item.emoji}
+                    onBlur={(e) => {
+                      const val = e.target.value.trim();
+                      if (val) {
+                        const emoji = [...val].pop()!;
+                        const updated = [...moodScale];
+                        updated[idx] = { ...item, emoji };
+                        setMoodScale(updated);
+                        saveMoodScale(updated);
+                      }
+                      setEditingMoodIdx(null);
                     }}
-                    onBlur={() => setEditingMoodIdx(null)}
-                    className="w-8 h-8 text-center text-xl bg-themed-input border border-themed-accent rounded-lg focus:outline-none"
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                    className="w-10 h-10 text-center text-xl bg-themed-input border border-themed-accent rounded-lg focus:outline-none"
                   />
                 ) : (
                   <button
