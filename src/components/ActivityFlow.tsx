@@ -335,7 +335,7 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
       <div className="flex-1 overflow-auto">
         <div className="max-w-md mx-auto p-4">
           <header className="mb-4">
-            <h1 className="font-serif text-3xl text-themed-primary">{activity.name}</h1>
+            <h1 className="font-serif text-3xl text-themed-primary">{activity.emoji} {activity.name}</h1>
             <p className="text-themed-faint mt-1">{activity.description}</p>
             <div className="flex items-center gap-2 mt-1">
               <input
@@ -589,9 +589,6 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
           {/* Časové aktivity - po (a edit mód) */}
           {isTimed && timedStep === 'rating-after' && (
             <div className="space-y-3 py-2">
-              <h3 className="font-serif text-lg text-themed-muted text-center">
-                {t.flow.whatShifted}
-              </h3>
 
               {(<>
                 <div className="flex flex-wrap gap-2 justify-center">
