@@ -260,7 +260,7 @@ export default function PageToday() {
           totalSeconds={totalTimePerActivity.get(activity.type) || 0}
         />
         {editMode && (
-          <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+          <div className="absolute top-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: 'var(--accent-solid)' }}>
             <svg className="w-2.5 h-2.5" style={{ color: 'var(--accent-text-on-solid)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
