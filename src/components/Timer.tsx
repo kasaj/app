@@ -28,11 +28,12 @@ interface TimerProps {
   durationMinutes: number;
   onComplete: (elapsedSeconds: number) => void;
   onCancel: () => void;
+  onElapsedChange?: (elapsedSeconds: number) => void;
   note?: string;
   startedAt?: string;
 }
 
-export default function Timer({ durationMinutes, onComplete, onCancel, note, startedAt }: TimerProps) {
+export default function Timer({ durationMinutes, onComplete, onCancel: _onCancel, onElapsedChange, note, startedAt }: TimerProps) {
   const { t } = useLanguage();
   const totalSeconds = durationMinutes * 60;
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
@@ -71,6 +72,7 @@ export default function Timer({ durationMinutes, onComplete, onCancel, note, sta
           return 0;
         }
         elapsedRef.current = totalSeconds - prev + 1;
+        if (onElapsedChange) onElapsedChange(elapsedRef.current);
         return prev - 1;
       });
     }, 1000);
@@ -86,11 +88,6 @@ export default function Timer({ durationMinutes, onComplete, onCancel, note, sta
       return () => clearTimeout(timeout);
     }
   }, [isCompleted, onComplete, totalSeconds]);
-
-  const handleFinishEarly = useCallback(() => {
-    const elapsed = totalSeconds - secondsLeft;
-    onComplete(elapsed);
-  }, [totalSeconds, secondsLeft, onComplete]);
 
   const togglePause = useCallback(() => {
     setIsRunning((prev) => !prev);
@@ -151,40 +148,14 @@ export default function Timer({ durationMinutes, onComplete, onCancel, note, sta
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 w-full max-w-xs">
+      {!isCompleted && (
         <button
-          onClick={() => onComplete(totalSeconds - secondsLeft)}
-          className="w-full px-4 py-3 rounded-xl transition-colors font-medium"
-          style={{ backgroundColor: 'var(--accent-solid)', color: 'var(--accent-text-on-solid)' }}
+          onClick={togglePause}
+          className="px-6 py-2 rounded-xl bg-themed-input text-themed-secondary hover:bg-themed-input transition-colors"
         >
-          {t.flow.finish}
+          {isRunning ? t.timer.pause : t.timer.resume}
         </button>
-        {!isCompleted && (
-          <>
-            <button
-              onClick={handleFinishEarly}
-              className="w-full px-4 py-2 rounded-xl border transition-colors"
-              style={{ borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }}
-            >
-              {t.timer.finishEarly}
-            </button>
-            <div className="flex gap-3">
-              <button
-                onClick={togglePause}
-                className="flex-1 px-4 py-2 rounded-xl bg-themed-input text-themed-secondary hover:bg-themed-input transition-colors"
-              >
-                {isRunning ? t.timer.pause : t.timer.resume}
-              </button>
-              <button
-                onClick={onCancel}
-                className="flex-1 px-4 py-2 rounded-xl text-themed-faint hover:text-themed-secondary transition-colors"
-              >
-                {t.timer.cancel}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      )}
     </div>
   );
 }

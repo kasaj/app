@@ -270,10 +270,10 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
         comments: finalComments.length > 0 ? finalComments : undefined,
         actualDurationSeconds: isTimed ? (actualDurationRef.current || (activity.durationMinutes || 0) * 60) : undefined,
       });
-    } else if (finalComments.length > 0) {
-      // New record not saved yet but has pending comment — save now
+    } else if (finalComments.length > 0 || (isTimed && actualDurationRef.current > 0)) {
+      // New record not saved yet — save now (has comments or timer was running)
       const id = ensureSaved();
-      updateActivityById(id, { comments: finalComments });
+      updateActivityById(id, { comments: finalComments.length > 0 ? finalComments : undefined });
     }
     onClose();
   }, [isEditing, existingActivity, onUpdateExisting, isTimed, selectedVariant, ratingBefore, ratingAfter, rating, activity, onClose, newComment, newCommentRating, localComments, onAddComment, ensureSaved, startedAt]);
@@ -319,12 +319,6 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
     setTimedStep('timer');
   };
 
-  const handleDone = () => {
-    // Record immediately with full planned duration, skip timer
-    actualDurationRef.current = (activity.durationMinutes || 0) * 60;
-    ensureSaved();
-    onClose();
-  };
 
   const handleTimerComplete = (elapsedSeconds: number) => {
     actualDurationRef.current = elapsedSeconds;
@@ -333,15 +327,13 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
 
   return (
     <div className="fixed inset-0 bg-themed-base z-50 flex flex-col">
-      <div className="px-4 pt-4 pb-1">
-        <div className="max-w-md mx-auto flex items-center gap-2">
-          <span className="text-2xl">{activity.emoji}</span>
-          <h2 className="font-serif text-xl text-themed-primary">{activity.name}</h2>
-        </div>
-      </div>
       <div className="flex-1 overflow-auto">
         <div className="max-w-md mx-auto p-4">
-          <div className="flex flex-col items-center gap-1 mb-2">
+          <div className="flex flex-col items-center gap-0.5 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{activity.emoji}</span>
+              <h2 className="font-serif text-xl text-themed-primary">{activity.name}</h2>
+            </div>
             <input
               type="datetime-local"
               value={toLocalDatetime(startedAt)}
@@ -366,7 +358,7 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
           </div>
           {/* Nečasové aktivity */}
           {!isTimed && (
-            <div className="space-y-6 py-6">
+            <div className="space-y-3 py-2">
               <p className="text-center text-themed-muted leading-relaxed">
                 {activity.description}
               </p>
@@ -465,7 +457,7 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
 
           {/* Časové aktivity - před */}
           {isTimed && timedStep === 'rating-before' && (
-            <div className="space-y-6 py-6">
+            <div className="space-y-3 py-2">
               <p className="text-center text-themed-muted leading-relaxed">
                 {activity.description}
               </p>
@@ -545,7 +537,7 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
                 })()}
               </>)}
 
-              <div className="pt-4 space-y-4">
+              <div className="pt-2 space-y-3">
                 <CommentsBlock
                   comments={localComments}
                   newComment={newComment}
@@ -572,6 +564,7 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
               durationMinutes={activity.durationMinutes}
               onComplete={handleTimerComplete}
               onCancel={handleClose}
+              onElapsedChange={(s) => { actualDurationRef.current = s; }}
               note={localComments.length > 0 ? localComments[0].text : ''}
               startedAt={startedAt}
             />
@@ -579,8 +572,8 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
 
           {/* Časové aktivity - po (a edit mód) */}
           {isTimed && timedStep === 'rating-after' && (
-            <div className="space-y-6 py-8">
-              <h3 className="font-serif text-2xl text-themed-primary text-center">
+            <div className="space-y-3 py-2">
+              <h3 className="font-serif text-lg text-themed-muted text-center">
                 {t.flow.whatShifted}
               </h3>
 
