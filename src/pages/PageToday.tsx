@@ -29,9 +29,14 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const moodRatingRef = useRef<Rating | null>(null);
   const moodCommentRef = useRef('');
 
-  // Keep refs in sync
-  useEffect(() => { moodRatingRef.current = moodRating; }, [moodRating]);
-  useEffect(() => { moodCommentRef.current = moodComment; }, [moodComment]);
+  const setMoodRatingSync = (r: Rating | null) => {
+    moodRatingRef.current = r;
+    setMoodRating(r);
+  };
+  const setMoodCommentSync = (c: string) => {
+    moodCommentRef.current = c;
+    setMoodComment(c);
+  };
 
   const flushMood = useCallback(() => {
     const r = moodRatingRef.current;
@@ -68,10 +73,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       });
     }
 
-    moodRatingRef.current = null;
-    moodCommentRef.current = '';
-    setMoodRating(null);
-    setMoodComment('');
+    setMoodRatingSync(null);
+    setMoodCommentSync('');
     setRefreshKey((k) => k + 1);
   }, []);
 
@@ -282,7 +285,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <StarRating value={moodRating} onChange={(r) => setMoodRating(r)} size="md" />
+                    <StarRating value={moodRating} onChange={(r) => setMoodRatingSync(r)} size="md" />
                     <span className="flex items-center gap-2">
                       {(totalCountPerActivity.get(activity.type) || 0) > 0 && (
                         <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get(activity.type)}</span>
@@ -302,7 +305,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   <textarea
                     value={moodComment}
                     onChange={(e) => {
-                      setMoodComment(e.target.value);
+                      setMoodCommentSync(e.target.value);
                       e.target.style.height = 'auto';
                       e.target.style.height = e.target.scrollHeight + 'px';
                     }}

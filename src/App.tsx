@@ -10,7 +10,11 @@ import { loadConfig, checkConfigUpdate } from './utils/config';
 import { loadTheme, applyTheme, watchSystemTheme } from './utils/theme';
 
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState<Page>('today');
+  const [currentPage, setCurrentPageRaw] = useState<Page>('today');
+  const setCurrentPage = (page: Page) => {
+    window.scrollTo(0, 0);
+    setCurrentPageRaw(page);
+  };
   const [, setRefresh] = useState(0);
 
   // Check for config updates when tab becomes visible
