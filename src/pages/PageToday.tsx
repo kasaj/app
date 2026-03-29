@@ -328,7 +328,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       )}
 
       {/* Quick mood */}
-      <div className="card mb-4 p-3">
+      <div
+        className="card mb-4 p-3"
+        onBlur={(e) => {
+          // Flush only when focus leaves the mood container entirely
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            flushMood();
+          }
+        }}
+      >
         <div className="flex items-center justify-between mb-2">
           <StarRating value={moodRating} onChange={(r) => setMoodRating(r)} size="md" />
           <span className="flex items-center gap-2">
@@ -349,11 +357,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
         </div>
         <textarea
           value={moodComment}
-          onChange={(e) => setMoodComment(e.target.value)}
+          onChange={(e) => {
+            setMoodComment(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = e.target.scrollHeight + 'px';
+          }}
           placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
           className="w-full p-2 rounded-xl bg-themed-input border border-themed
-                   focus:outline-none focus:border-themed-accent resize-none h-10
-                   text-themed-primary placeholder:text-themed-faint text-sm"
+                   focus:outline-none focus:border-themed-accent resize-none min-h-[2.5rem]
+                   text-themed-primary placeholder:text-themed-faint text-sm overflow-hidden"
         />
       </div>
 
