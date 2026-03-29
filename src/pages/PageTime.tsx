@@ -166,6 +166,23 @@ function ActivityCalendar({ data, language, selectedDate, onDayClick }: {
   );
 }
 
+function getDayAvgMoodEmoji(day: DayEntry): string | null {
+  const ratings: number[] = [];
+  day.activities.forEach((a) => {
+    const comments = getActivityComments(a);
+    const commentRatings = comments.filter(c => c.rating != null).map(c => c.rating!);
+    if (commentRatings.length > 0) {
+      ratings.push(...commentRatings);
+    } else {
+      const r = a.ratingAfter ?? a.rating;
+      if (r != null) ratings.push(r);
+    }
+  });
+  if (ratings.length === 0) return null;
+  const avg = ratings.reduce((s, r) => s + r, 0) / ratings.length;
+  return getMoodEmoji(avg);
+}
+
 function formatDateFull(dateStr: string, lang: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString(lang === 'cs' ? 'cs-CZ' : 'en-US', {
@@ -784,10 +801,11 @@ export default function PageTime() {
             // Sort by date (grouped by day), filtered by calendar
             (calendarDate ? data.filter(d => d.date === calendarDate) : data).map((day, dayIndex) => (
               <div key={day.date}>
-                <div className={`py-2 px-1 text-sm font-medium text-themed-muted capitalize ${
+                <div className={`py-2 px-1 text-sm font-medium text-themed-muted capitalize flex items-center justify-between ${
                   dayIndex > 0 ? 'border-t-2 border-themed mt-2' : ''
                 }`}>
-                  {formatDateFull(day.date, language)}
+                  <span>{formatDateFull(day.date, language)}</span>
+                  {getDayAvgMoodEmoji(day) && <span>{getDayAvgMoodEmoji(day)}</span>}
                 </div>
                 {day.activities
                   .slice()
