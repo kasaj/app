@@ -332,6 +332,12 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
 
   return (
     <div className="fixed inset-0 bg-themed-base z-50 flex flex-col">
+      <div className="px-4 pt-4 pb-1">
+        <div className="max-w-md mx-auto flex items-center gap-2">
+          <span className="text-2xl">{activity.emoji}</span>
+          <h2 className="font-serif text-xl text-themed-primary">{activity.name}</h2>
+        </div>
+      </div>
       <div className="flex-1 overflow-auto">
         <div className="max-w-md mx-auto p-4">
           <div className="flex flex-col items-center gap-1 mb-2">
@@ -680,8 +686,8 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
         </div>
       </div>
 
-      <div className="px-4 py-4 border-t border-themed">
-        <div className="max-w-md mx-auto flex flex-col items-center gap-2">
+      <div className="px-4 py-3 border-t border-themed">
+        <div className="max-w-md mx-auto flex justify-center">
           <button
             onClick={handleClose}
             className="w-12 h-12 rounded-full flex items-center justify-center transition-colors"
@@ -691,10 +697,6 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5m7-7l-7 7 7 7" />
             </svg>
           </button>
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{activity.emoji}</span>
-            <span className="font-serif text-sm text-themed-muted">{activity.name}</span>
-          </div>
         </div>
       </div>
     </div>
