@@ -468,6 +468,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                         value={newVariantText}
                         onChange={(e) => setNewVariantText(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
+                        onBlur={() => handleAddVariant()}
                         placeholder="+"
                         className="w-20 px-2 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
                       />
@@ -536,6 +537,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                         value={newVariantText}
                         onChange={(e) => setNewVariantText(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
+                        onBlur={() => handleAddVariant()}
                         placeholder="+"
                         className="w-20 px-2 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
                       />
@@ -632,6 +634,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                         value={newVariantText}
                         onChange={(e) => setNewVariantText(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
+                        onBlur={() => handleAddVariant()}
                         placeholder="+"
                         className="w-20 px-2 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
                       />
