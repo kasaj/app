@@ -803,65 +803,31 @@ export default function PageTime() {
               </div>
             ))
           ) : (
-            // Group by session (linked activity chains)
-            (() => {
-              const activities = calendarDate
-                ? allActivitiesFlat.filter(a => a.startedAt.startsWith(calendarDate))
-                : allActivitiesFlat;
-              // Build sessions: group linked activities together
-              const visited = new Set<string>();
-              const sessions: Activity[][] = [];
-              const activityMap = new Map(activities.map(a => [a.id, a]));
-
-              for (const a of activities) {
-                if (visited.has(a.id)) continue;
-                // Find chain root
-                let root = a;
-                while (root.linkedFromId && activityMap.has(root.linkedFromId) && !visited.has(root.linkedFromId)) {
-                  root = activityMap.get(root.linkedFromId)!;
-                }
-                // Collect chain forward
-                const chain: Activity[] = [];
-                const queue = [root];
-                while (queue.length > 0) {
-                  const current = queue.shift()!;
-                  if (visited.has(current.id)) continue;
-                  visited.add(current.id);
-                  chain.push(current);
-                  if (current.linkedActivityIds) {
-                    current.linkedActivityIds.forEach(id => {
-                      if (activityMap.has(id) && !visited.has(id)) queue.push(activityMap.get(id)!);
-                    });
-                  }
-                }
-                if (chain.length > 0) {
-                  chain.sort((x, y) => new Date(x.startedAt).getTime() - new Date(y.startedAt).getTime());
-                  sessions.push(chain);
-                }
-              }
-              // Sort sessions by chain size (largest first)
-              sessions.sort((a, b) => b.length - a.length);
-
-              return sessions.map((session, sessionIndex) => (
-                <div key={`session-${sessionIndex}`}>
-                  {sessionIndex > 0 && <div className="border-t border-themed mt-2" />}
-                  {session.map((activity) => (
-                    <ActivityRow
-                      key={activity.id}
-                      activity={activity}
-                      lang={language}
-                      selected={selectedIds.has(activity.id)}
-
-                      onToggleSelect={() => toggleSelect(activity.id)}
-                      onClickEdit={() => setEditingRecord(activity)}
-                      onCreateLinked={() => handleCreateLinked(activity)}
-                      onNavigate={handleNavigate}
-                      t={t}
-                    />
-                  ))}
-                </div>
-              ));
-            })()
+            // Sort by linkCount (highest first, then newest)
+            (calendarDate
+              ? allActivitiesFlat.filter(a => a.startedAt.startsWith(calendarDate))
+              : allActivitiesFlat
+            )
+              .slice()
+              .sort((a, b) => {
+                const countA = (a.linkedActivityIds?.length || 0) + (a.linkedFromId ? 1 : 0) + (a.comments?.length || 0);
+                const countB = (b.linkedActivityIds?.length || 0) + (b.linkedFromId ? 1 : 0) + (b.comments?.length || 0);
+                if (countB !== countA) return countB - countA;
+                return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();
+              })
+              .map((activity) => (
+                <ActivityRow
+                  key={activity.id}
+                  activity={activity}
+                  lang={language}
+                  selected={selectedIds.has(activity.id)}
+                  onToggleSelect={() => toggleSelect(activity.id)}
+                  onClickEdit={() => setEditingRecord(activity)}
+                  onCreateLinked={() => handleCreateLinked(activity)}
+                  onNavigate={handleNavigate}
+                  t={t}
+                />
+              ))
           )}
         </div>
       </section>
