@@ -227,9 +227,7 @@ function ActivityRow({ activity, lang, selected, sessionNumber, onToggleSelect, 
           <div className="flex items-center gap-1.5">
             <span className="text-themed-faint text-xs">{formatTime(activity.startedAt, lang)}</span>
             <span className="text-sm">{def?.emoji}</span>
-            {sessionNumber != null && (
-              <span className="text-xs text-themed-faint">{lang === 'cs' ? 'Relace' : 'Session'}: {sessionNumber}</span>
-            )}
+            {def?.name && <span className="text-sm text-themed-muted italic truncate">{def.name}</span>}
           </div>
           <div className="flex items-center gap-2">
             {linkCount > 0 && (
