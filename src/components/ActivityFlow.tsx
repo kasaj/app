@@ -295,6 +295,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
       updateActivityById(id, { comments: finalComments });
     }
     onClose();
+    window.scrollTo(0, 0);
   }, [isEditing, existingActivity, onUpdateExisting, isTimed, selectedVariant, ratingBefore, ratingAfter, rating, activity, onClose, newComment, newCommentRating, localComments, onAddComment, ensureSaved, startedAt]);
 
   const persistVariants = useCallback((updated: string[]) => {
