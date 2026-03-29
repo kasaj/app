@@ -559,18 +559,9 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
                   t={t}
                 />
 
-                <div className="flex gap-3">
-                  <button onClick={handleTimedBeforeSubmit} className="btn-primary flex-1">
-                    {t.flow.start} ({activity.durationMinutes} min)
-                  </button>
-                  <button
-                    onClick={handleDone}
-                    className="flex-1 py-3 rounded-xl border transition-colors"
-                    style={{ borderColor: 'var(--accent-border)', color: 'var(--accent-text)' }}
-                  >
-                    {t.flow.done}
-                  </button>
-                </div>
+                <button onClick={handleTimedBeforeSubmit} className="btn-primary w-full">
+                  {t.flow.start} ({activity.durationMinutes} min)
+                </button>
               </div>
             </div>
           )}
