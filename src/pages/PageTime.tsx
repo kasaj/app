@@ -775,7 +775,7 @@ export default function PageTime() {
                 }`}>
                   <span>{formatDateFull(day.date, language)}</span>
                   <span className="flex items-center gap-2">
-                    <span className="text-xs text-themed-faint">{day.activities.length} - {(() => { const m = Math.round(day.activities.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0) / 60); return m >= 60 ? `${Math.floor(m / 60)}h${m % 60 > 0 ? ` ${m % 60}m` : ''}` : `${m}m`; })()}</span>
+                    <span className="text-xs text-themed-faint">{(() => { const m = Math.round(day.activities.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0) / 60); return m >= 60 ? `${Math.floor(m / 60)}h${m % 60 > 0 ? ` ${m % 60}m` : ''}` : `${m}m`; })()}</span>
                     {getDayAvgMoodEmoji(day) && <span>{getDayAvgMoodEmoji(day)}</span>}
                   </span>
                 </div>
