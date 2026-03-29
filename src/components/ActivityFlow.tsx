@@ -4,6 +4,7 @@ import { useLanguage } from '../i18n';
 import { generateId, addActivity, updateActivityById, getDayEntry, getTodayDate, findActivityById } from '../utils/storage';
 import { loadActivities, saveActivities, markActivityModified } from '../utils/activities';
 import { addToRegistry, loadVariantRegistry } from '../utils/variantRegistry';
+import { getMoodEmoji } from '../utils/moodScale';
 import StarRating from './StarRating';
 import Timer from './Timer';
 
@@ -370,8 +371,27 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
               const hasFrom = !!current.linkedFromId;
               const hasTo = current.linkedActivityIds && current.linkedActivityIds.length > 0;
               if (!hasFrom && !hasTo) return null;
+              // Calculate chain average mood
+              const chainRatings: number[] = [];
+              const collectChain = (id: string, visited: Set<string>) => {
+                if (visited.has(id)) return;
+                visited.add(id);
+                const found = findActivityById(id);
+                if (!found) return;
+                const a = found.activity;
+                const comments = a.comments || [];
+                comments.forEach(c => { if (c.rating != null) chainRatings.push(c.rating); });
+                if (a.linkedFromId) collectChain(a.linkedFromId, visited);
+                if (a.linkedActivityIds) a.linkedActivityIds.forEach(lid => collectChain(lid, visited));
+              };
+              collectChain(current.id, new Set());
+              const chainAvgEmoji = chainRatings.length > 0
+                ? getMoodEmoji(chainRatings.reduce((s, r) => s + r, 0) / chainRatings.length)
+                : null;
+
               return (
                 <div className="flex items-center gap-2 mt-2">
+                  {chainAvgEmoji && <span className="text-lg">{chainAvgEmoji}</span>}
                   {hasFrom && (
                     <button
                       onClick={() => { handleClose(); onNavigateLinked(current.linkedFromId!); }}

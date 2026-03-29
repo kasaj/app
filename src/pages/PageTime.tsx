@@ -812,15 +812,27 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
               </div>
             ))
           ) : (
-            // Sort by linkCount (highest first, then newest)
+            // Sort by chain position (highest first, then newest)
             (calendarDate
               ? allActivitiesFlat.filter(a => a.startedAt.startsWith(calendarDate))
               : allActivitiesFlat
             )
               .slice()
               .sort((a, b) => {
-                const countA = (a.linkedActivityIds?.length || 0) + (a.linkedFromId ? 1 : 0) + (a.comments?.length || 0);
-                const countB = (b.linkedActivityIds?.length || 0) + (b.linkedFromId ? 1 : 0) + (b.comments?.length || 0);
+                const chainPos = (act: Activity) => {
+                  let count = 1;
+                  let currentId = act.linkedFromId;
+                  const visited = new Set<string>([act.id]);
+                  while (currentId && !visited.has(currentId)) {
+                    visited.add(currentId);
+                    count++;
+                    const found = findActivityById(currentId);
+                    currentId = found?.activity.linkedFromId;
+                  }
+                  return count + (act.comments?.length || 0);
+                };
+                const countA = chainPos(a);
+                const countB = chainPos(b);
                 if (countB !== countA) return countB - countA;
                 return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();
               })
