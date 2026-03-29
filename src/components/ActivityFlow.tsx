@@ -1,10 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { Activity, ActivityDefinition, ActivityComment, Rating } from '../types';
 import { useLanguage } from '../i18n';
-import { generateId, addActivity, updateActivityById, getDayEntry, getTodayDate } from '../utils/storage';
+import { generateId, addActivity, updateActivityById, getDayEntry, getTodayDate, findActivityById } from '../utils/storage';
 import { loadActivities, saveActivities, markActivityModified } from '../utils/activities';
 import { addToRegistry, loadVariantRegistry } from '../utils/variantRegistry';
-import { loadMoodScale } from '../utils/moodScale';
 import StarRating from './StarRating';
 import Timer from './Timer';
 
@@ -365,30 +364,37 @@ export default function ActivityFlow({ activity, onClose, onEdit: _onEdit, exist
                 className="text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
             </div>
-            {isEditing && onNavigateLinked && (existingActivity?.linkedFromId || (existingActivity?.linkedActivityIds && existingActivity.linkedActivityIds.length > 0)) && (
-              <div className="flex items-center gap-2 mt-2">
-                {existingActivity?.linkedFromId && (
-                  <button
-                    onClick={() => { handleClose(); onNavigateLinked(existingActivity.linkedFromId!); }}
-                    className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                )}
-                {existingActivity?.linkedActivityIds && existingActivity.linkedActivityIds.length > 0 && (
-                  <button
-                    onClick={() => { handleClose(); onNavigateLinked(existingActivity.linkedActivityIds![existingActivity.linkedActivityIds!.length - 1]); }}
-                    className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            )}
+            {onNavigateLinked && (() => {
+              const current = existingActivity || (savedIdRef.current ? findActivityById(savedIdRef.current)?.activity : null);
+              if (!current) return null;
+              const hasFrom = !!current.linkedFromId;
+              const hasTo = current.linkedActivityIds && current.linkedActivityIds.length > 0;
+              if (!hasFrom && !hasTo) return null;
+              return (
+                <div className="flex items-center gap-2 mt-2">
+                  {hasFrom && (
+                    <button
+                      onClick={() => { handleClose(); onNavigateLinked(current.linkedFromId!); }}
+                      className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+                  {hasTo && (
+                    <button
+                      onClick={() => { handleClose(); onNavigateLinked(current.linkedActivityIds![current.linkedActivityIds!.length - 1]); }}
+                      className="w-8 h-8 rounded-full bg-themed-input flex items-center justify-center text-themed-muted hover:text-themed-accent-solid transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </header>
           {/* Nečasové aktivity */}
           {!isTimed && (

@@ -8,7 +8,7 @@ import {
   getTranslatedActivity,
   markActivityModified,
 } from '../utils/activities';
-import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById } from '../utils/storage';
+import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById, findActivityById } from '../utils/storage';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
@@ -390,6 +390,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             const original = activities.find(a => a.type === activeActivity.type);
             setActiveActivity(null);
             setEditingActivity(original || activeActivity);
+          }}
+          onNavigateLinked={(targetId) => {
+            const found = findActivityById(targetId);
+            if (found) {
+              setActiveActivity(null);
+              setRefreshKey((k) => k + 1);
+              // Navigate to time page to edit linked activity
+              if (onNavigate) onNavigate('time' as import('../types').Page);
+            }
           }}
           onNavigatePage={(page) => {
             setActiveActivity(null);
