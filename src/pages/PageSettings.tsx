@@ -16,6 +16,7 @@ interface ExportActivity {
   name: string;
   description: string;
   properties?: string[];
+  core?: boolean;
 }
 
 interface PraFile {
@@ -33,7 +34,7 @@ interface PraFile {
   sessionStart?: string;
   activityStats?: Record<string, { count: number; totalSeconds: number; avgRating?: number; avgMood?: number; totalLinks?: number }>;
   moodScale?: MoodScaleItem[];
-  variantRegistry?: string[];
+  properties?: string[];
 }
 
 function generateBackup(lang: string, currentTheme: string, profileName: string): PraFile {
@@ -43,6 +44,7 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
   const exportActivities: ExportActivity[] = activities.map((a) => ({
     type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
     name: a.name, description: a.description, properties: a.properties,
+    core: a.core,
   }));
 
   const cfgInfo = { ...(getCachedConfig()?.info?.[lang as 'cs' | 'en'] || {}) };
@@ -111,7 +113,7 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
     userModified,
     sessionStart: localStorage.getItem('pra_session_start') || undefined,
     moodScale: loadMoodScale(),
-    variantRegistry: loadVariantRegistry(),
+    properties: loadVariantRegistry(),
     activityStats,
   } as PraFile;
 }
@@ -122,13 +124,17 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
   const exportActivities: ExportActivity[] = activities.map((a) => ({
     type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
     name: a.name, description: a.description, properties: a.properties,
+    core: a.core,
   }));
 
   const loadNotes = (l: string) => {
     try { const s = localStorage.getItem(`pra_info_notes_${l}`); if (s) return JSON.parse(s); } catch {}
     return {};
   };
-  const cfgInfo = { ...(getCachedConfig()?.info?.[lang as 'cs' | 'en'] || {}) };
+
+  const cachedConfig = getCachedConfig();
+  const infoCs = { ...(cachedConfig?.info?.cs || {}), ...loadNotes('cs') };
+  const infoEn = { ...(cachedConfig?.info?.en || {}), ...loadNotes('en') };
 
   return {
     type: 'config',
@@ -138,7 +144,9 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
     language: lang,
     theme: currentTheme,
     activities: exportActivities,
-    info: { ...cfgInfo, noteWhy: loadNotes(lang).why || '', noteHow: loadNotes(lang).how || '', noteWhat: loadNotes(lang).what || '' },
+    info: { cs: infoCs, en: infoEn },
+    moodScale: loadMoodScale(),
+    properties: loadVariantRegistry(),
   };
 }
 
@@ -150,6 +158,7 @@ function importPraFile(file: PraFile, currentLang: string): void {
     const imported: ActivityDefinition[] = file.activities.map((item) => ({
       type: item.type, emoji: item.emoji, durationMinutes: item.durationMinutes,
       name: item.name, description: item.description, properties: item.properties,
+      core: item.core,
     }));
     // Add only activities that don't already exist
     const newActivities = imported.filter(a => !existingTypes.has(a.type));
@@ -252,10 +261,10 @@ function importPraFile(file: PraFile, currentLang: string): void {
     saveMoodScale(file.moodScale);
   }
   // Variant registry
-  if (file.variantRegistry && Array.isArray(file.variantRegistry)) {
+  if (file.properties && Array.isArray(file.properties)) {
     // Merge imported registry with rebuilt from activities
     const current = rebuildRegistry();
-    const merged = [...new Set([...current, ...file.variantRegistry])];
+    const merged = [...new Set([...current, ...file.properties])];
     saveVariantRegistry(merged);
   } else {
     rebuildRegistry();
