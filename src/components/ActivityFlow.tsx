@@ -704,7 +704,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
       <div className="px-4 py-3 border-t border-themed">
         <div className="max-w-md mx-auto">
           {/* Row 1: nav + actions */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center gap-2">
             <div className="flex items-center gap-1">
               {isEditing && existingActivity?.linkedFromId && onNavigateLinked && (
                 <button
