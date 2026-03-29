@@ -35,16 +35,19 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
         <span className="text-2xl">{activity.emoji}</span>
         <span className="font-serif text-themed-primary flex-1">{activity.name}</span>
 
-        {/* Total stats */}
-        {(totalCount || 0) > 0 && (
-          <span className="text-xs text-themed-faint opacity-50">
-            {totalCount}
-          </span>
-        )}
-        {activity.durationMinutes && (totalSeconds || 0) > 0 && (
-          <span className="text-xs text-themed-faint opacity-50">
-            {formatTotalTime(totalSeconds || 0)}
-          </span>
+        {/* Total stats: count for moments, time for timed */}
+        {activity.durationMinutes ? (
+          (totalSeconds || 0) > 0 && (
+            <span className="text-xs text-themed-faint opacity-50">
+              {formatTotalTime(totalSeconds || 0)}
+            </span>
+          )
+        ) : (
+          (totalCount || 0) > 0 && (
+            <span className="text-xs text-themed-faint opacity-50">
+              {totalCount}
+            </span>
+          )
         )}
 
         {/* Current session - accent */}
