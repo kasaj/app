@@ -659,20 +659,6 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       <header className="mb-6">
         <h1 className="font-serif text-3xl text-themed-primary">{t.time.title}</h1>
         <p className="text-themed-faint mt-1">{t.time.subtitle}</p>
-        <div className="relative mt-3">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-themed-faint" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={language === 'cs' ? 'Hledat...' : 'Search...'}
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-themed-input border border-themed
-                     focus:outline-none focus:border-themed-accent
-                     text-themed-primary placeholder:text-themed-faint text-sm"
-          />
-        </div>
       </header>
 
       {/* Chart / Calendar toggle */}
@@ -810,6 +796,22 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         </div>
         )}
       </section>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-themed-faint" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={language === 'cs' ? 'Hledat...' : 'Search...'}
+          className="w-full pl-9 pr-3 py-2 rounded-xl bg-themed-input border border-themed
+                   focus:outline-none focus:border-themed-accent
+                   text-themed-primary placeholder:text-themed-faint text-sm"
+        />
+      </div>
 
       {/* Records */}
       <section className="mb-6">

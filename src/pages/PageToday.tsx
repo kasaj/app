@@ -398,7 +398,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               {(totalCountPerActivity.get('nalada') || 0) > 0 && (
                 <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
               )}
-              {(completedTodayCounts.get('nalada') || 0) > 1 && (
+              {(completedTodayCounts.get('nalada') || 0) >= 1 && (
                 <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get('nalada')}</span>
               )}
               <span className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center ${
