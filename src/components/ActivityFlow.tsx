@@ -53,7 +53,7 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
 }) {
   return (
     <div className="space-y-3">
-      <div className="card p-3 space-y-2">
+      <div className="max-w-xs mx-auto w-full card p-3 space-y-2">
         <div className="flex justify-center">
           <StarRating value={newRating} onChange={setNewRating} size="lg" />
         </div>
@@ -66,8 +66,8 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
               e.target.style.height = e.target.scrollHeight + 'px';
             }}
             placeholder={t.time.commentPlaceholder}
-            rows={2}
-            className="w-full p-3 rounded-xl bg-themed-input border border-themed
+            rows={1}
+            className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed
                      focus:outline-none focus:border-themed-accent resize-none
                      text-themed-primary placeholder:text-themed-faint text-base overflow-hidden"
           />

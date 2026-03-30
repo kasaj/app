@@ -734,7 +734,7 @@ export default function PageSettings() {
         </section>
 
         {/* Sync */}
-        <section className="card" style={{ border: '1.5px solid #22c55e' }}>
+        <section className="card" style={{ border: '1.5px solid var(--accent-solid)' }}>
           <button
             onClick={handleSync}
             className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
