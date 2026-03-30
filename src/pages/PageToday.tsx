@@ -389,10 +389,10 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 e.target.style.height = e.target.scrollHeight + 'px';
               }}
               placeholder={language === 'cs' ? 'Tak jak?' : 'So how?'}
-              rows={1}
-              className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed
+              rows={2}
+              className="w-full p-3 rounded-xl bg-themed-input border border-themed
                        focus:outline-none focus:border-themed-accent resize-none
-                       text-themed-primary placeholder:text-themed-faint text-sm overflow-hidden"
+                       text-themed-primary placeholder:text-themed-faint text-base overflow-hidden"
             />
             <div className="flex items-center justify-end gap-2 mt-2">
               {(totalCountPerActivity.get('nalada') || 0) > 0 && (

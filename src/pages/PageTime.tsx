@@ -323,26 +323,28 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
   }, []);
 
   // Search filter
+  const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
   const matchesSearch = useCallback((activity: Activity): boolean => {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
+    const q = normalize(searchQuery);
     const def = getActivityByType(activity.type);
-    if (activity.type.toLowerCase().includes(q)) return true;
-    if (def?.name?.toLowerCase().includes(q)) return true;
+    if (normalize(activity.type).includes(q)) return true;
+    if (def?.name && normalize(def.name).includes(q)) return true;
     if (def?.emoji?.includes(searchQuery)) return true;
-    if (activity.selectedVariant?.toLowerCase().includes(q)) return true;
+    if (activity.selectedVariant && normalize(activity.selectedVariant).includes(q)) return true;
     if (activity.comments) {
       for (const c of activity.comments) {
-        if (c.text?.toLowerCase().includes(q)) return true;
+        if (c.text && normalize(c.text).includes(q)) return true;
         if (c.rating) {
           const emoji = getMoodEmoji(c.rating);
           if (emoji.includes(searchQuery)) return true;
         }
       }
     }
-    if (activity.note?.toLowerCase().includes(q)) return true;
-    if (activity.noteBefore?.toLowerCase().includes(q)) return true;
-    if (activity.noteAfter?.toLowerCase().includes(q)) return true;
+    if (activity.note && normalize(activity.note).includes(q)) return true;
+    if (activity.noteBefore && normalize(activity.noteBefore).includes(q)) return true;
+    if (activity.noteAfter && normalize(activity.noteAfter).includes(q)) return true;
     return false;
   }, [searchQuery]);
 
