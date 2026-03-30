@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { loadAllData, deleteActivitiesByIds, updateActivityById, findActivityById, createLinkedActivity } from '../utils/storage';
 import { getChartColors } from '../utils/theme';
-import { getActivityByType, getTranslatedActivity, loadActivities } from '../utils/activities';
+import { getActivityByType, getTranslatedActivity } from '../utils/activities';
 import { useLanguage } from '../i18n';
 import { Activity, ActivityComment, ActivityDefinition, DayEntry } from '../types';
 import { loadMoodScale, getMoodEmoji } from '../utils/moodScale';
@@ -322,15 +322,47 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     return () => { clearInterval(interval); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
 
-  // Summary statistics
+  // Search filter
+  const matchesSearch = useCallback((activity: Activity): boolean => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const def = getActivityByType(activity.type);
+    if (activity.type.toLowerCase().includes(q)) return true;
+    if (def?.name?.toLowerCase().includes(q)) return true;
+    if (def?.emoji?.includes(searchQuery)) return true;
+    if (activity.selectedVariant?.toLowerCase().includes(q)) return true;
+    if (activity.comments) {
+      for (const c of activity.comments) {
+        if (c.text?.toLowerCase().includes(q)) return true;
+        if (c.rating) {
+          const emoji = getMoodEmoji(c.rating);
+          if (emoji.includes(searchQuery)) return true;
+        }
+      }
+    }
+    if (activity.note?.toLowerCase().includes(q)) return true;
+    if (activity.noteBefore?.toLowerCase().includes(q)) return true;
+    if (activity.noteAfter?.toLowerCase().includes(q)) return true;
+    return false;
+  }, [searchQuery]);
+
+  // Summary statistics (filtered by search and calendar)
   const summaryStats = useMemo(() => {
+    // Apply search and calendar filters
+    const filteredData = (calendarDate ? data.filter(d => d.date === calendarDate) : data)
+      .map(d => ({
+        ...d,
+        activities: d.activities.filter(matchesSearch),
+      }))
+      .filter(d => d.activities.length > 0);
+
     let totalActivities = 0;
     let totalSeconds = 0;
     let todayActivities = 0;
     let todaySeconds = 0;
     const todayStr = new Date().toISOString().split('T')[0];
 
-    data.forEach((day) => {
+    filteredData.forEach((day) => {
       day.activities.forEach((activity) => {
         totalActivities++;
         const secs = activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60);
@@ -344,7 +376,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
 
     // Overall average mood from all comments
     const allMoodRatings: number[] = [];
-    data.forEach((day) => {
+    filteredData.forEach((day) => {
       day.activities.forEach((a) => {
         const comments = getActivityComments(a);
         const commentRatings = comments.filter(c => c.rating != null).map(c => c.rating!);
@@ -361,15 +393,11 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       : 4; // default 😐
 
     const toHM = (s: number) => ({ hours: Math.floor(s / 3600), minutes: Math.floor((s % 3600) / 60) });
-    const firstDate = data.length > 0 ? data[data.length - 1].date : null;
-    const activeDays = data.filter(d => d.activities.length > 0).length;
+    const firstDate = filteredData.length > 0 ? filteredData[filteredData.length - 1].date : null;
+    const activeDays = filteredData.filter(d => d.activities.length > 0).length;
     const avgPerDay = activeDays > 0 ? Math.round(totalActivities / activeDays * 10) / 10 : 0;
 
-    // Top 3 activity types
-    const typeCounts = new Map<string, number>();
-    data.forEach(d => d.activities.forEach(a => typeCounts.set(a.type, (typeCounts.get(a.type) || 0) + 1)));
-
-    // Streak: consecutive days with activities
+    // Streak: consecutive days with activities (always from full data)
     let streak = 0;
     const today = new Date();
     for (let i = 0; i < 365; i++) {
@@ -389,7 +417,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       avgPerDay,
       streak,
     };
-  }, [data]);
+  }, [data, searchQuery, calendarDate, matchesSearch]);
 
   // Elapsed time since first activity (ticking)
   const elapsed = useMemo(() => {
@@ -413,9 +441,10 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
   const selectedDayStats = useMemo(() => {
     const targetDate = calendarDate || new Date().toISOString().split('T')[0];
     const dayEntry = data.find(d => d.date === targetDate);
-    if (!dayEntry || dayEntry.activities.length === 0) return { count: 0, minutes: 0, avgMood: null, topType: null, topTypeCount: 0, uniqueTypes: 0 };
+    const filteredActs = dayEntry ? dayEntry.activities.filter(matchesSearch) : [];
+    if (filteredActs.length === 0) return { count: 0, minutes: 0, avgMood: null, topType: null, topTypeCount: 0, uniqueTypes: 0 };
 
-    const acts = dayEntry.activities;
+    const acts = filteredActs;
     let secs = 0;
     const ratings: number[] = [];
     const typeCounts = new Map<string, number>();
@@ -444,7 +473,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       topTypeCount: topType[1],
       uniqueTypes,
     };
-  }, [data, calendarDate]);
+  }, [data, calendarDate, searchQuery, matchesSearch]);
 
   // Trend data (day/week/month) - non-cumulative per period
   const trendData = useMemo(() => {
@@ -478,10 +507,10 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       const todayStr = new Date().toISOString().split('T')[0];
       const dayEntry = data.find((d) => d.date === todayStr);
       for (let h = 5; h <= 23; h++) {
-        const hourActivities = dayEntry?.activities.filter((a) => {
+        const hourActivities = (dayEntry?.activities || []).filter(matchesSearch).filter((a) => {
           const hour = new Date(a.startedAt).getHours();
           return hour === h;
-        }) || [];
+        });
         const stats = computeStats(hourActivities);
         result.push({ day: `${h}:00`, ...stats });
       }
@@ -497,7 +526,8 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         const dateStr = date.toISOString().split('T')[0];
         const dayEntry = data.find((d) => d.date === dateStr);
 
-        const stats = dayEntry ? computeStats(dayEntry.activities) : { count: 0, avgRating: null, minutes: 0 };
+        const filtered = dayEntry ? dayEntry.activities.filter(matchesSearch) : [];
+        const stats = filtered.length > 0 ? computeStats(filtered) : { count: 0, avgRating: null, minutes: 0 };
 
         const dayName = trendRange === 'week'
           ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
@@ -507,7 +537,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     }
 
     return result;
-  }, [data, language, trendRange]);
+  }, [data, language, trendRange, matchesSearch]);
 
 
   const toggleSelect = useCallback((id: string) => {
@@ -524,17 +554,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     setData(loadAllData());
   }, []);
 
-  const [newRecordActivity, setNewRecordActivity] = useState<ActivityDefinition | null>(null);
-
-  const handleNewRecord = useCallback(() => {
-    // Get all activities and let user pick one, or default to core
-    const acts = loadActivities();
-    const core = acts.find(a => a.core);
-    if (core) {
-      const translated = getTranslatedActivity(core, t);
-      setNewRecordActivity(translated);
-    }
-  }, [t]);
+  const [newRecordActivity, _setNewRecordActivity] = useState<ActivityDefinition | null>(null);
 
   const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
@@ -544,32 +564,6 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
   }, [selectedIds]);
 
   // Search filter
-  const matchesSearch = useCallback((activity: Activity): boolean => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    const def = getActivityByType(activity.type);
-    // Search in activity type, name, emoji
-    if (activity.type.toLowerCase().includes(q)) return true;
-    if (def?.name?.toLowerCase().includes(q)) return true;
-    if (def?.emoji?.includes(searchQuery)) return true;
-    // Search in selectedVariant
-    if (activity.selectedVariant?.toLowerCase().includes(q)) return true;
-    // Search in comments text and rating emoji
-    if (activity.comments) {
-      for (const c of activity.comments) {
-        if (c.text?.toLowerCase().includes(q)) return true;
-        if (c.rating) {
-          const emoji = getMoodEmoji(c.rating);
-          if (emoji.includes(searchQuery)) return true;
-        }
-      }
-    }
-    // Legacy notes
-    if (activity.note?.toLowerCase().includes(q)) return true;
-    if (activity.noteBefore?.toLowerCase().includes(q)) return true;
-    if (activity.noteAfter?.toLowerCase().includes(q)) return true;
-    return false;
-  }, [searchQuery]);
 
   // Flat list of all activities sorted by time (newest first)
   const allActivitiesFlat = useMemo(() => {
@@ -700,7 +694,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
 
         {showView === 'calendar' && (
           <ActivityCalendar
-            data={data}
+            data={searchQuery.trim() ? data.map(d => ({ ...d, activities: d.activities.filter(matchesSearch) })).filter(d => d.activities.length > 0) : data}
             language={language}
             selectedDate={calendarDate}
             onDayClick={setCalendarDate}
@@ -838,14 +832,6 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
                        hover:bg-themed-input transition-colors"
             >
               {selectedIds.size === allActivityIds.length ? t.time.deselectAll : t.time.selectAll}
-            </button>
-            <button
-              onClick={handleNewRecord}
-              className="px-2.5 py-1.5 text-sm rounded-xl bg-themed-input text-themed-muted transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
             </button>
             {selectedIds.size > 0 && (
               <button
@@ -1019,11 +1005,11 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         <ActivityFlow
           activity={newRecordActivity}
           onClose={() => {
-            setNewRecordActivity(null);
+            _setNewRecordActivity(null);
             setData(loadAllData());
           }}
           onNavigatePage={(page) => {
-            setNewRecordActivity(null);
+            _setNewRecordActivity(null);
             setData(loadAllData());
             if (onNavigate) onNavigate(page);
           }}

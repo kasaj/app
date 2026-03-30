@@ -28,7 +28,8 @@ export default function StarRating({ value, onChange, size = 'md', scale, border
           onClick={() => onChange((value === v ? null : v) as Rating)}
           className={`transition-transform hover:scale-110 ${
             value === v ? 'opacity-100' : 'grayscale opacity-40'
-          } ${bordered ? `rounded-lg border ${value === v ? 'border-themed-accent' : 'border-themed'} p-1.5` : ''}`}
+          } ${bordered ? 'rounded-lg p-1.5' : ''}`}
+          style={bordered ? { border: `1.5px solid ${value === v ? 'var(--accent-solid)' : 'var(--border-light)'}` } : undefined}
         >
           {emoji}
         </button>
