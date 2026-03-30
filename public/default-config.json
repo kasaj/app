@@ -9,7 +9,7 @@
       "emoji": "🧎‍♂️",
       "durationMinutes": 15,
       "cs": {
-        "name": "Usebrání - Výživa",
+        "name": "Usebrání",
         "description": "Vědomé jednání jako tiché sezení, konzumace jídel, otevřená otázka, vnitřní prostor, pozorování přírody, pocitů, myšlenek",
         "properties": [
           "Meditace",
@@ -24,7 +24,7 @@
         ]
       },
       "en": {
-        "name": "Contemplation - Nourishment",
+        "name": "Contemplation",
         "description": "Conscious action such as silent sitting, mindful eating, open question, inner space, observing nature, feelings, thoughts",
         "properties": [
           "Meditation",
@@ -45,7 +45,7 @@
       "emoji": "🧍‍♂️",
       "durationMinutes": 1,
       "cs": {
-        "name": "Vyrovnání - Pauza",
+        "name": "Pauza",
         "description": "Na pár minut se vědomě zastavit, vnímat, pobýt sám se sebou...",
         "properties": [
           "Dech nosem",
@@ -112,8 +112,8 @@
         ]
       },
       "en": {
-        "name": "Relationships - Interaction",
-        "description": "Conscious contact with another person, interpersonal relationships, society, community",
+        "name": "Relationships",
+        "description": "Interaction: Conscious contact with another person, interpersonal relationships, society, community",
         "properties": [
           "Embrace",
           "Sharing",
@@ -131,8 +131,8 @@
       "emoji": "🔥",
       "durationMinutes": null,
       "cs": {
-        "name": "Výzvy - Integrace",
-        "description": "Vědomé čelení tomu, čemu se vyhýbám, malý krok středem, konkrétní akce k růstu",
+        "name": "Výzvy",
+        "description": "Integrace: Vědomé čelení tomu, čemu se vyhýbám, malý krok středem, konkrétní akce k růstu",
         "properties": [
           "Dlouhý výdech sss (uklidnění)",
           "Konfrontace strachu",
@@ -145,8 +145,8 @@
         ]
       },
       "en": {
-        "name": "Challenge - Integration",
-        "description": "Consciously facing what I avoid, a small step through the middle, a concrete action toward growth",
+        "name": "Challenge",
+        "description": "Integration: Consciously facing what I avoid, a small step through the middle, a concrete action toward growth",
         "properties": [
           "Confronting fear",
           "Accepting pain",
