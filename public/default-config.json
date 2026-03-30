@@ -94,39 +94,6 @@
       }
     },
     {
-      "type": "objeti",
-      "emoji": "👫",
-      "durationMinutes": null,
-      "cs": {
-        "name": "Vztahy",
-        "description": "Interakce: Vědomý kontakt s druhým člověkem, mezilidské vztahy, společnost, komunita",
-        "properties": [
-          "Objetí",
-          "Sdílení",
-          "Setkání",
-          "Pochopení",
-          "Odmítnutí",
-          "Selhání",
-          "Společnost",
-          "Rodina"
-        ]
-      },
-      "en": {
-        "name": "Relationships",
-        "description": "Interaction: Conscious contact with another person, interpersonal relationships, society, community",
-        "properties": [
-          "Embrace",
-          "Sharing",
-          "Meeting",
-          "Understanding",
-          "Rejection",
-          "Failure",
-          "Society",
-          "Family"
-        ]
-      }
-    },
-    {
       "type": "vyzva",
       "emoji": "🔥",
       "durationMinutes": null,
