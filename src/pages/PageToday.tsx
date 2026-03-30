@@ -384,8 +384,11 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           ); })()}
 
           {/* Config activities */}
+          {(() => {
+            const configTypes = new Set((getCachedConfig()?.activities || []).map(a => a.type));
+            return (
           <div className="mt-4 space-y-2">
-            {allTranslated.filter(a => !a.core).map((activity) => (
+            {allTranslated.filter(a => !a.core && configTypes.has(a.type)).map((activity) => (
               <ActivityCard
                 key={activity.type}
                 activity={activity}
@@ -399,6 +402,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               />
             ))}
           </div>
+          ); })()}
         </section>
       )}
 
