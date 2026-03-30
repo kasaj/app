@@ -1,9 +1,9 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { loadAllData, deleteActivitiesByIds, updateActivityById, findActivityById, createLinkedActivity } from '../utils/storage';
 import { getChartColors } from '../utils/theme';
-import { getActivityByType, getTranslatedActivity } from '../utils/activities';
+import { getActivityByType, getTranslatedActivity, loadActivities } from '../utils/activities';
 import { useLanguage } from '../i18n';
-import { Activity, ActivityComment, DayEntry } from '../types';
+import { Activity, ActivityComment, ActivityDefinition, DayEntry } from '../types';
 import { loadMoodScale, getMoodEmoji } from '../utils/moodScale';
 import ActivityFlow from '../components/ActivityFlow';
 import {
@@ -523,6 +523,18 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     setData(loadAllData());
   }, []);
 
+  const [newRecordActivity, setNewRecordActivity] = useState<ActivityDefinition | null>(null);
+
+  const handleNewRecord = useCallback(() => {
+    // Get all activities and let user pick one, or default to core
+    const acts = loadActivities();
+    const core = acts.find(a => a.core);
+    if (core) {
+      const translated = getTranslatedActivity(core, t);
+      setNewRecordActivity(translated);
+    }
+  }, [t]);
+
   const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
     deleteActivitiesByIds(Array.from(selectedIds));
@@ -782,6 +794,14 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
             >
               {selectedIds.size === allActivityIds.length ? t.time.deselectAll : t.time.selectAll}
             </button>
+            <button
+              onClick={handleNewRecord}
+              className="px-2.5 py-1.5 text-sm rounded-xl bg-themed-input text-themed-muted transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
             {selectedIds.size > 0 && (
               <button
                 onClick={handleDeleteSelected}
@@ -945,6 +965,21 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         </div>
       </section>
 
+
+      {newRecordActivity && (
+        <ActivityFlow
+          activity={newRecordActivity}
+          onClose={() => {
+            setNewRecordActivity(null);
+            setData(loadAllData());
+          }}
+          onNavigatePage={(page) => {
+            setNewRecordActivity(null);
+            setData(loadAllData());
+            if (onNavigate) onNavigate(page);
+          }}
+        />
+      )}
 
       {editingRecord && (() => {
         const def = getActivityByType(editingRecord.type);
