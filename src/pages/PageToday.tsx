@@ -378,7 +378,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             }}
           >
             <div className="flex justify-center mb-3">
-              <StarRating value={moodRating} onChange={(r) => setMoodRatingSync(r)} size="lg" bordered />
+              <StarRating value={moodRating} onChange={(r) => setMoodRatingSync(r)} size="lg" />
             </div>
             <textarea
               ref={moodTextareaRef}
