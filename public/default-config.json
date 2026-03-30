@@ -112,16 +112,16 @@
     },
     {
       "type": "nalada",
-      "emoji": "📊",
+      "emoji": "🌌",
       "durationMinutes": null,
       "core": true,
       "cs": {
-        "name": "Nálada",
+        "name": "Prostor",
         "description": "Zaznamenej svůj aktuální stav",
         "properties": []
       },
       "en": {
-        "name": "Mood",
+        "name": "Space",
         "description": "Record your current state",
         "properties": []
       }
