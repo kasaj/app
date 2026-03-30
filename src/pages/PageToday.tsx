@@ -9,6 +9,7 @@ import {
   markActivityModified,
 } from '../utils/activities';
 import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById, findActivityById } from '../utils/storage';
+import { loadVariantRegistry, addToRegistry } from '../utils/variantRegistry';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
@@ -26,9 +27,14 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [moodComment, setMoodComment] = useState('');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const controlMode = localStorage.getItem('pra_control_mode') || 'default';
+  const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
+  const [editingProperties, setEditingProperties] = useState(false);
+  const [newPropertyText, setNewPropertyText] = useState('');
   const moodRatingRef = useRef<Rating | null>(null);
   const moodCommentRef = useRef('');
   const moodTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const selectedPropertiesRef = useRef<Set<string>>(new Set());
 
   const setMoodRatingSync = (r: Rating | null) => {
     moodRatingRef.current = r;
@@ -38,11 +44,20 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     moodCommentRef.current = c;
     setMoodComment(c);
   };
+  const toggleProperty = (prop: string) => {
+    setSelectedProperties(prev => {
+      const next = new Set(prev);
+      if (next.has(prop)) next.delete(prop); else next.add(prop);
+      selectedPropertiesRef.current = next;
+      return next;
+    });
+  };
 
   const flushMood = useCallback(() => {
     const r = moodRatingRef.current;
     const c = moodCommentRef.current;
-    if (!r && !c.trim()) return;
+    const props = [...selectedPropertiesRef.current];
+    if (!r && !c.trim() && props.length === 0) return;
     const now = new Date().toISOString();
     const id = generateId();
 
@@ -66,6 +81,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
         rating: r || undefined,
       }],
       linkedFromId: prevInSession?.id,
+      selectedVariant: props.length > 0 ? props.join(', ') : undefined,
     });
 
     if (prevInSession) {
@@ -76,6 +92,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
     setMoodRatingSync(null);
     setMoodCommentSync('');
+    selectedPropertiesRef.current = new Set();
+    setSelectedProperties(new Set());
     if (moodTextareaRef.current) {
       moodTextareaRef.current.style.height = 'auto';
     }
@@ -268,6 +286,102 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
 
 
+      {controlMode === 'custom' ? (
+        <section>
+          {/* Properties above core */}
+          <div className="flex flex-wrap gap-2 mb-4 justify-center">
+            {loadVariantRegistry().map((prop) => (
+              <button
+                key={prop}
+                onClick={() => toggleProperty(prop)}
+                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                  selectedProperties.has(prop)
+                    ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                    : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                }`}
+              >
+                {prop}
+              </button>
+            ))}
+            {editingProperties && (
+              <input
+                type="text"
+                value={newPropertyText}
+                onChange={(e) => setNewPropertyText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const text = newPropertyText.trim();
+                    if (text) {
+                      addToRegistry(text);
+                      setNewPropertyText('');
+                    }
+                  }
+                }}
+                onBlur={() => {
+                  const text = newPropertyText.trim();
+                  if (text) { addToRegistry(text); setNewPropertyText(''); }
+                }}
+                placeholder="+"
+                className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input
+                         text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
+              />
+            )}
+            <button
+              onClick={() => setEditingProperties(!editingProperties)}
+              className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
+                editingProperties ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
+              }`}
+            >
+              {editingProperties ? '✓' : '+'}
+            </button>
+          </div>
+
+          {/* Core activity centered */}
+          <div
+            className="card p-4"
+            onBlur={(e) => {
+              setTimeout(() => {
+                if (!e.currentTarget.contains(document.activeElement)) flushMood();
+              }, 100);
+            }}
+          >
+            <div className="flex justify-center mb-3">
+              <StarRating value={moodRating} onChange={(r) => setMoodRatingSync(r)} size="lg" />
+            </div>
+            <textarea
+              ref={moodTextareaRef}
+              value={moodComment}
+              onChange={(e) => {
+                setMoodCommentSync(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
+              className="w-full p-3 rounded-xl bg-themed-input border border-themed
+                       focus:outline-none focus:border-themed-accent resize-none min-h-[3rem]
+                       text-themed-primary placeholder:text-themed-faint text-sm overflow-hidden"
+            />
+            <div className="flex items-center justify-between mt-2">
+              <span className="flex items-center gap-2">
+                {(totalCountPerActivity.get('nalada') || 0) > 0 && (
+                  <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
+                )}
+                {(completedTodayCounts.get('nalada') || 0) > 1 && (
+                  <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get('nalada')}</span>
+                )}
+              </span>
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                completedTodayCounts.has('nalada') ? '' : 'opacity-20'
+              }`} style={{ backgroundColor: completedTodayCounts.has('nalada') ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
+                <svg className="w-3 h-3" style={{ color: completedTodayCounts.has('nalada') ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        </section>
+      ) : (
       <section>
         <div className="space-y-2">
           {allTranslated.map((activity, index) => (
@@ -353,6 +467,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           ))}
         </div>
       </section>
+      )}
 
       {activeActivity && (
         <ActivityFlow
