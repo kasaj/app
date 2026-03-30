@@ -165,11 +165,9 @@
   ],
   "properties": {
     "cs": [
-      "💨 Dlouhý výdech, uklidnění", "Nový návyk", "Aha",
-      "Pocit", "Zkušenost", "Společnost","❗️","🙏 Fail", "👌 Gesto klidu", "💻 Práce", "🏡 Práce", "🍩 Sladkost", "😴 Spánek 8h",
-      "🏋️ Posilování", "🏃‍♂️ Sport", "🌘 Stín", "😨 Strach", "🥱 Únava", "📜 Záměr", "🤗 Obejmutí",
-      "☀️", "☕️", "🍵", "♟️", "🌅 Probuzení", "🍲 Jídlo", "🐕", "👫", "👫👫 Rodina", "💤 Sen", "💩", "💭 Myšlenka", "📝 Poznámka",
-      "🔭 Pozornost", "🚶‍♂️ Procházka", "🛌 Usínání"
+       "❗️","☀️", "☕️", "🍵","🐕","💩", "👫","💨 Dlouhý výdech, uklidnění", "Nový návyk", "Aha", "Pocit", "👫👫 Rodina", "Společnost"
+       "🙏 Fail", "👌 Gesto klidu", "💻 Práce", "🏡 Práce", "🍩 Sladkost", "😴 Spánek 8h", "🏃‍♂️ Sport", "🌘 Stín", "😨 Strach", "🥱 Únava", "📜 Záměr", "🤗 Obejmutí",
+      "🍲 Jídlo", "💭 Myšlenka", "📝 Poznámka", "🔭 Pozornost", "🚶‍♂️ Procházka","🌅 Probuzení", "🛌 Usínání","💤 Sen"
     ],
     "en": [
       "💨 Long exhale, calming)", "New habit", "Aha",
