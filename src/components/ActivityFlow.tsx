@@ -359,12 +359,12 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
       <div className="px-4 pt-4 pb-2">
         <div className="max-w-md mx-auto">
           <h1 className="font-serif text-3xl text-themed-primary">{activity.emoji} {activity.name}</h1>
-          <p className="text-themed-faint mt-3 max-w-xs mx-auto">{activity.description}</p>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto flex flex-col">
         <div className="max-w-md mx-auto px-4 w-full flex-1 flex flex-col justify-center">
+          <p className="text-themed-faint text-center max-w-xs mx-auto mb-1">{activity.description}</p>
           <div className="flex flex-col items-center gap-1 mb-2">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
