@@ -316,7 +316,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       {(
         <section>
           {/* Properties above core */}
-          <div className="flex flex-wrap gap-1.5 mb-3 justify-center">
+          <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
             {loadVariantRegistry().slice().sort((a, b) => {
               const aIsEmoji = /^\p{Emoji}/u.test(a);
               const bIsEmoji = /^\p{Emoji}/u.test(b);
@@ -414,7 +414,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           </div>
 
           {/* All non-core activities with move controls */}
-          <div className="mt-4 space-y-2">
+          <div className="mt-1.5 space-y-1.5">
             {allTranslated.filter(a => !a.core).map((activity, idx, arr) => (
               <div key={activity.type} className="flex items-center gap-1">
                 {editMode ? (
