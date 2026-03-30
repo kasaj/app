@@ -370,29 +370,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
           <p className="text-themed-faint text-center max-w-xs mx-auto mb-4">{activity.description}</p>
           <div className="flex flex-col items-center gap-1 mb-2">
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  if (nowActive) {
-                    // Restore original
-                    setCompletedAt(originalCompletedAt.current);
-                    actualDurationRef.current = originalDuration.current;
-                    setNowActive(false);
-                  } else {
-                    // Set to now
-                    const now = new Date();
-                    setCompletedAt(now.toISOString());
-                    const diff = Math.round((now.getTime() - new Date(startedAt).getTime()) / 1000);
-                    if (diff > 0) actualDurationRef.current = diff;
-                    setNowActive(true);
-                  }
-                }}
-                className={`transition-colors ${nowActive ? 'text-themed-accent-solid' : 'text-themed-faint hover:text-themed-accent-solid'}`}
-                title="now"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
               <div className="flex items-center gap-2">
               <input
                 type="date"
@@ -441,6 +418,27 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 className="text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
               </div>
+              <button
+                onClick={() => {
+                  if (nowActive) {
+                    setCompletedAt(originalCompletedAt.current);
+                    actualDurationRef.current = originalDuration.current;
+                    setNowActive(false);
+                  } else {
+                    const now = new Date();
+                    setCompletedAt(now.toISOString());
+                    const diff = Math.round((now.getTime() - new Date(startedAt).getTime()) / 1000);
+                    if (diff > 0) actualDurationRef.current = diff;
+                    setNowActive(true);
+                  }
+                }}
+                className={`transition-colors ${nowActive ? 'text-themed-accent-solid' : 'text-themed-faint hover:text-themed-accent-solid'}`}
+                title="now"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
               {onEdit && !(isTimed && (timedStep === 'rating-after' || timedStep === 'timer')) && (
                 <button onClick={() => { handleClose(); onEdit(); }} className="text-themed-faint hover:text-themed-muted p-1 ml-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
