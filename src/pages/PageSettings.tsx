@@ -464,6 +464,24 @@ export default function PageSettings() {
 
         </section>
 
+        {/* Statement + tip */}
+        <section className="card" style={{ borderLeft: '3px solid var(--text-faint)' }}>
+          <p className="text-sm text-themed-muted">{t.settings.statement}</p>
+          <p className="text-xs text-themed-faint italic mt-2">{t.settings.backupHint}</p>
+        </section>
+
+        {/* Install */}
+        <section className="card">
+          <h2 className="font-serif text-lg text-themed-primary mb-3">
+            {t.settings.installTitle}
+          </h2>
+          <div className="space-y-2 text-sm text-themed-muted">
+            <p>{t.settings.installStep1}</p>
+            <p>{t.settings.installStep2iOS}</p>
+            <p>{t.settings.installStep2Android}</p>
+          </div>
+        </section>
+
         {/* Export / Import */}
         <section className="card">
           <div className="flex items-center justify-between mb-4">
@@ -547,24 +565,6 @@ export default function PageSettings() {
               {importStatus === 'success' ? t.settings.importSuccess : t.settings.importError}
             </div>
           )}
-        </section>
-
-        {/* Statement + tip */}
-        <section className="card" style={{ borderLeft: '3px solid var(--text-faint)' }}>
-          <p className="text-sm text-themed-muted">{t.settings.statement}</p>
-          <p className="text-xs text-themed-faint italic mt-2">{t.settings.backupHint}</p>
-        </section>
-
-        {/* Install */}
-        <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-3">
-            {t.settings.installTitle}
-          </h2>
-          <div className="space-y-2 text-sm text-themed-muted">
-            <p>{t.settings.installStep1}</p>
-            <p>{t.settings.installStep2iOS}</p>
-            <p>{t.settings.installStep2Android}</p>
-          </div>
         </section>
 
         {/* Jazyk */}
