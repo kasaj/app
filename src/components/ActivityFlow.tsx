@@ -269,12 +269,16 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
         comments: finalComments.length > 0 ? finalComments : undefined,
       });
     } else if (savedIdRef.current) {
-      updateActivityById(savedIdRef.current, {
-        startedAt,
-        selectedVariant: selectedVariant || undefined,
-        comments: finalComments.length > 0 ? finalComments : undefined,
-        actualDurationSeconds: isTimed ? (actualDurationRef.current || (activity.durationMinutes || 0) * 60) : undefined,
-      });
+      // Only update if there are changes (new comments or variant)
+      const hasNewData = finalComments.length > localComments.length || selectedVariant;
+      if (hasNewData || localComments.length > 0) {
+        updateActivityById(savedIdRef.current, {
+          startedAt,
+          selectedVariant: selectedVariant || undefined,
+          comments: finalComments.length > 0 ? finalComments : undefined,
+          actualDurationSeconds: isTimed ? (actualDurationRef.current || (activity.durationMinutes || 0) * 60) : undefined,
+        });
+      }
     } else if (finalComments.length > 0 || (isTimed && actualDurationRef.current > 0)) {
       // New record not saved yet — save now (has comments or timer was running)
       const id = ensureSaved();
