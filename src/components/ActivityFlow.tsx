@@ -421,7 +421,8 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 className="text-sm text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
             </div>
-            {onNavigateLinked && (() => {
+          </div>
+          {onNavigateLinked && (() => {
               const current = existingActivity || (savedIdRef.current ? findActivityById(savedIdRef.current)?.activity : null);
               if (!current) return null;
               const hasFrom = !!current.linkedFromId;
@@ -471,7 +472,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 </div>
               );
             })()}
-          </header>
           {/* Nečasové aktivity */}
           {!isTimed && (
             <div className="space-y-3 py-2">
