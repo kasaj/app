@@ -10,7 +10,6 @@ import {
 } from '../utils/activities';
 import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById, findActivityById } from '../utils/storage';
 import { loadVariantRegistry, addToRegistry } from '../utils/variantRegistry';
-import { getCachedConfig } from '../utils/config';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
@@ -198,6 +197,26 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   };
 
 
+  const handleMoveActivity = useCallback((type: string, direction: 'up' | 'down') => {
+    const current = [...activities];
+    const index = current.findIndex(a => a.type === type);
+    if (index < 0) return;
+    // Skip core activities for swap targets
+    const findTarget = (from: number, dir: number): number => {
+      let i = from + dir;
+      while (i >= 0 && i < current.length) {
+        if (!current[i].core) return i;
+        i += dir;
+      }
+      return -1;
+    };
+    const target = findTarget(index, direction === 'up' ? -1 : 1);
+    if (target < 0) return;
+    [current[index], current[target]] = [current[target], current[index]];
+    saveActivities(current);
+    setActivities(current);
+  }, [activities]);
+
   const handleSaveActivity = useCallback((activity: ActivityDefinition) => {
     const current = loadActivities();
     const index = current.findIndex((a) => a.type === activity.type);
@@ -364,46 +383,45 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             </div>
           </div>
 
-          {/* User-added activities (via +) */}
-          {(() => {
-            const configTypes = new Set((getCachedConfig()?.activities || []).map(a => a.type));
-            const userActivities = allTranslated.filter(a => !a.core && !configTypes.has(a.type));
-            return userActivities.length > 0 && (
-            <div className="mt-4 space-y-2">
-              {userActivities.map((activity) => (
-                <ActivityCard
-                  key={activity.type}
-                  activity={activity}
-                  onClick={() => handleActivityClick(activity)}
-                  completedToday={completedTodayCounts.has(activity.type)}
-                  completedCount={completedTodayCounts.get(activity.type) || 0}
-                  totalCount={totalCountPerActivity.get(activity.type) || 0}
-                  totalSeconds={totalTimePerActivity.get(activity.type) || 0}
-                />
-              ))}
-            </div>
-          ); })()}
-
-          {/* Config activities */}
-          {(() => {
-            const configTypes = new Set((getCachedConfig()?.activities || []).map(a => a.type));
-            return (
+          {/* All non-core activities with move controls */}
           <div className="mt-4 space-y-2">
-            {allTranslated.filter(a => !a.core && configTypes.has(a.type)).map((activity) => (
-              <ActivityCard
-                key={activity.type}
-                activity={activity}
-                onClick={() => handleActivityClick(activity)}
-                completedToday={completedTodayCounts.has(activity.type)}
-                completedCount={completedTodayCounts.get(activity.type) || 0}
-                completedYesterday={completedPreviousCounts.has(activity.type)}
-                yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
-                totalCount={totalCountPerActivity.get(activity.type) || 0}
-                totalSeconds={totalTimePerActivity.get(activity.type) || 0}
-              />
+            {allTranslated.filter(a => !a.core).map((activity, idx, arr) => (
+              <div key={activity.type} className="flex items-center gap-1">
+                <div className="flex flex-col">
+                  <button
+                    onClick={() => handleMoveActivity(activity.type, 'up')}
+                    disabled={idx === 0}
+                    className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleMoveActivity(activity.type, 'down')}
+                    disabled={idx === arr.length - 1}
+                    className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex-1">
+                  <ActivityCard
+                    activity={activity}
+                    onClick={() => handleActivityClick(activity)}
+                    completedToday={completedTodayCounts.has(activity.type)}
+                    completedCount={completedTodayCounts.get(activity.type) || 0}
+                    completedYesterday={completedPreviousCounts.has(activity.type)}
+                    yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
+                    totalCount={totalCountPerActivity.get(activity.type) || 0}
+                    totalSeconds={totalTimePerActivity.get(activity.type) || 0}
+                  />
+                </div>
+              </div>
             ))}
           </div>
-          ); })()}
         </section>
       )}
 
