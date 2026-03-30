@@ -10,6 +10,7 @@ import {
 } from '../utils/activities';
 import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById, findActivityById } from '../utils/storage';
 import { loadVariantRegistry, addToRegistry } from '../utils/variantRegistry';
+import { getMoodEmoji } from '../utils/moodScale';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
@@ -76,7 +77,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       durationMinutes: null,
       comments: [{
         id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-        text: c.trim(),
+        text: [props.length > 0 ? props.join(', ') : '', c.trim()].filter(Boolean).join(' — '),
         createdAt: now,
         rating: r || undefined,
       }],
@@ -192,6 +193,16 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     return { totalTimePerActivity: times, totalCountPerActivity: counts };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, sessionStart]);
+
+  // Today's activities for custom view
+  const todayActivities = useMemo(() => {
+    const todayEntry = getDayEntry(getTodayDate());
+    if (!todayEntry) return [];
+    return todayEntry.activities
+      .slice()
+      .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const handleActivityClick = (activity: ActivityDefinition) => {
     flushMood();
@@ -380,6 +391,40 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               </span>
             </div>
           </div>
+
+          {/* Today's records */}
+          {todayActivities.length > 0 && (
+            <div className="mt-4 space-y-1">
+              {todayActivities.map((a) => {
+                const def = activities.find(d => d.type === a.type);
+                const translated = def ? getTranslatedActivity(def, t) : null;
+                const time = new Date(a.startedAt).toLocaleTimeString(language === 'cs' ? 'cs-CZ' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+                const comment = a.comments?.[0];
+                return (
+                  <div key={a.id} className="card px-3 py-2 cursor-pointer" onClick={() => {
+                    if (translated) {
+                      flushMood();
+                      setActiveActivity(translated);
+                    }
+                  }}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-themed-faint">{time}</span>
+                      <span className="text-sm">{translated?.emoji || '📊'}</span>
+                      {a.selectedVariant && (
+                        <span className="text-xs text-themed-muted truncate flex-1">{a.selectedVariant}</span>
+                      )}
+                      {!a.selectedVariant && comment?.text && (
+                        <span className="text-xs text-themed-muted truncate flex-1">{comment.text}</span>
+                      )}
+                      {comment?.rating && (
+                        <span className="text-sm">{getMoodEmoji(comment.rating)}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       ) : (
       <section>
