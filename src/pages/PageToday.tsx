@@ -28,6 +28,20 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editingProperties, setEditingProperties] = useState(false);
   const [newPropertyText, setNewPropertyText] = useState('');
+  const [hiddenProperties, setHiddenProperties] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('pra_hidden_properties');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+  const toggleHideProperty = (prop: string) => {
+    setHiddenProperties(prev => {
+      const next = new Set(prev);
+      if (next.has(prop)) next.delete(prop); else next.add(prop);
+      localStorage.setItem('pra_hidden_properties', JSON.stringify([...next]));
+      return next;
+    });
+  };
   const moodRatingRef = useRef<Rating | null>(null);
   const moodCommentRef = useRef('');
   const moodTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -293,18 +307,21 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               const bIsEmoji = /^\p{Emoji}/u.test(b);
               if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
               return a.localeCompare(b, language);
-            }).map((prop) => (
-              <button
-                key={prop}
-                onClick={() => toggleProperty(prop)}
-                className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                  selectedProperties.has(prop)
-                    ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                    : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
-                }`}
-              >
-                {prop}
-              </button>
+            }).filter(prop => editingProperties || !hiddenProperties.has(prop)).map((prop) => (
+              <div key={prop} className="relative">
+                <button
+                  onClick={() => editingProperties ? toggleHideProperty(prop) : toggleProperty(prop)}
+                  className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                    editingProperties && hiddenProperties.has(prop)
+                      ? 'opacity-30 border-themed bg-themed-input text-themed-faint line-through'
+                      : selectedProperties.has(prop)
+                        ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                        : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                  }`}
+                >
+                  {prop}
+                </button>
+              </div>
             ))}
             {editingProperties && (
               <input
@@ -393,7 +410,26 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           <div className="mt-4 space-y-2">
             {allTranslated.filter(a => !a.core).map((activity, idx, arr) => (
               <div key={activity.type} className="flex items-center gap-1">
-                <div className="w-5" />
+                <div className="flex flex-col">
+                  <button
+                    onClick={() => handleMoveActivity(activity.type, 'up')}
+                    disabled={idx === 0}
+                    className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleMoveActivity(activity.type, 'down')}
+                    disabled={idx === arr.length - 1}
+                    className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
                 <div className="flex-1">
                   <ActivityCard
                     activity={activity}
