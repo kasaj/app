@@ -739,12 +739,12 @@ export default function PageSettings() {
             onClick={handleSync}
             className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
           >
-            <svg className="w-5 h-5" style={{ color: '#22c55e' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-themed-accent-solid" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
             </svg>
             <div>
-              <div className="font-medium" style={{ color: '#22c55e' }}>
+              <div className="text-themed-accent-solid font-medium">
                 {synced ? `${t.settings.syncSuccess} ✓` : t.settings.syncConfig}
               </div>
               <div className="text-sm text-themed-faint">{t.settings.syncConfigDesc}</div>
@@ -753,7 +753,7 @@ export default function PageSettings() {
         </section>
 
         {/* Reset */}
-        <section className="card" style={{ border: '1.5px solid #ef4444' }}>
+        <section className="card">
           <button
             onClick={handleReset}
             className="w-full flex items-center gap-3 p-3 rounded-xl text-left"
