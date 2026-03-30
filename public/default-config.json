@@ -5,39 +5,6 @@
   "theme": "modern",
   "activities": [
     {
-      "type": "pohyb",
-      "emoji": "🏃‍♂️",
-      "durationMinutes": 30,
-      "cs": {
-        "name": "Pohyb - Aktivita",
-        "description": "Rozproudění energie v těle, alespoň kapka potu, zahřátí...",
-        "properties": [
-          "Pohyb",
-          "Sport",
-          "Protažení",
-          "Posilování",
-          "Rovnováha",
-          "Kliky",
-          "Pět tibeťanů",
-          "Jóga"
-        ]
-      },
-      "en": {
-        "name": "Movement - Activity",
-        "description": "Get the energy flowing in the body, at least a drop of sweat, warm up...",
-        "properties": [
-          "Movement",
-          "Sport",
-          "Stretching",
-          "Strengthening",
-          "Balance",
-          "Push-ups",
-          "Five Tibetans",
-          "Yoga"
-        ]
-      }
-    },
-    {
       "type": "rozjimani",
       "emoji": "🧎‍♂️",
       "durationMinutes": 15,
