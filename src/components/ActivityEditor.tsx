@@ -237,7 +237,8 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
           {!isNew && onDelete && (
             <button
               onClick={onDelete}
-              className="w-full py-2.5 text-themed-warn hover:text-themed-warn transition-colors text-sm"
+              className="w-full py-2.5 transition-colors text-sm"
+              style={{ color: '#ef4444' }}
             >
               {t.editor.delete}
             </button>
