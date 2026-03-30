@@ -285,6 +285,15 @@ export const updateActivity = (
 
 export const deleteActivity = (type: ActivityType): ActivityDefinition[] => {
   const activities = loadActivities();
+  // Preserve emoji/name for history display
+  const toDelete = activities.find(a => a.type === type);
+  if (toDelete) {
+    try {
+      const archived: Record<string, { emoji: string; name: string }> = JSON.parse(localStorage.getItem('pra_archived_activities') || '{}');
+      archived[type] = { emoji: toDelete.emoji, name: toDelete.name };
+      localStorage.setItem('pra_archived_activities', JSON.stringify(archived));
+    } catch { /* ignore */ }
+  }
   const filtered = activities.filter((a) => a.type !== type);
   saveActivities(filtered);
   markUserModified(type);
@@ -304,7 +313,16 @@ export const generateActivityType = (): ActivityType => {
 
 export const getActivityByType = (type: string): ActivityDefinition | undefined => {
   const activities = loadActivities();
-  return activities.find((a) => a.type === type);
+  const found = activities.find((a) => a.type === type);
+  if (found) return found;
+  // Check archived (deleted) activities for history display
+  try {
+    const archived = JSON.parse(localStorage.getItem('pra_archived_activities') || '{}');
+    if (archived[type]) {
+      return { type, emoji: archived[type].emoji, name: archived[type].name, description: '', durationMinutes: null };
+    }
+  } catch { /* ignore */ }
+  return undefined;
 };
 
 export const isTimedActivity = (activity: ActivityDefinition): boolean => {
