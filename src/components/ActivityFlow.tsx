@@ -521,6 +521,18 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   >
                     {editingVariants ? '✓' : '+'}
                   </button>
+                  <button
+                    onClick={() => {
+                      const now = new Date();
+                      setCompletedAt(now.toISOString());
+                      const diff = Math.round((now.getTime() - new Date(startedAt).getTime()) / 1000);
+                      if (diff > 0) actualDurationRef.current = diff;
+                    }}
+                    className="w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid"
+                    title="now"
+                  >
+                    ⏱
+                  </button>
                   {editingVariants && (
                     <button
                       onClick={() => setShowVariantRegistry(!showVariantRegistry)}
@@ -615,6 +627,18 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     }`}
                   >
                     {editingVariants ? '✓' : '+'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const now = new Date();
+                      setCompletedAt(now.toISOString());
+                      const diff = Math.round((now.getTime() - new Date(startedAt).getTime()) / 1000);
+                      if (diff > 0) actualDurationRef.current = diff;
+                    }}
+                    className="w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid"
+                    title="now"
+                  >
+                    ⏱
                   </button>
                   {editingVariants && (
                     <button
@@ -727,6 +751,18 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     }`}
                   >
                     {editingVariants ? '✓' : '+'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const now = new Date();
+                      setCompletedAt(now.toISOString());
+                      const diff = Math.round((now.getTime() - new Date(startedAt).getTime()) / 1000);
+                      if (diff > 0) actualDurationRef.current = diff;
+                    }}
+                    className="w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid"
+                    title="now"
+                  >
+                    ⏱
                   </button>
                   {editingVariants && (
                     <button
