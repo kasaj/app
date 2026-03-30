@@ -275,22 +275,26 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
           </div>
         </div>
 
-        {/* Comment rows: time left, mood scale right */}
+        {/* Comment rows */}
         {lastTwo.map((c) => (
-          <div key={`${c.id}-${c.rating || 0}`} className="flex items-center justify-between mt-0.5">
-            <div className="flex items-center gap-1.5 text-sm min-w-0">
-              <span className="text-themed-faint text-xs flex-shrink-0">{formatTime(c.updatedAt || c.createdAt, lang)}</span>
-              {c.text && <span className="text-themed-muted text-xs truncate">{c.text}</span>}
-            </div>
-            {c.rating != null && (
-              <div className="flex gap-px flex-shrink-0 ml-1" style={{ fontSize: '0.55rem' }}>
-                {loadMoodScale().map(({ value: v, emoji: e }) => (
-                  <span key={v} className={v === c.rating ? 'opacity-100' : 'grayscale opacity-30'}>{e}</span>
-                ))}
-              </div>
-            )}
+          <div key={`${c.id}-${c.rating || 0}`} className="flex items-center gap-1.5 text-sm min-w-0 mt-0.5">
+            <span className="text-themed-faint text-xs flex-shrink-0">{formatTime(c.updatedAt || c.createdAt, lang)}</span>
+            {c.text && <span className="text-themed-muted text-xs truncate">{c.text}</span>}
           </div>
         ))}
+
+        {/* Mood scale - always visible */}
+        {(() => {
+          const allRatings = comments.filter(c => c.rating != null).map(c => c.rating!);
+          const latestRating = allRatings.length > 0 ? allRatings[0] : null;
+          return (
+            <div className="flex gap-px mt-1" style={{ fontSize: '0.55rem' }}>
+              {loadMoodScale().map(({ value: v, emoji: e }) => (
+                <span key={v} className={latestRating != null && v === latestRating ? 'opacity-100' : 'grayscale opacity-20'}>{e}</span>
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
