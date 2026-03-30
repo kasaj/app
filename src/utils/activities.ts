@@ -5,6 +5,7 @@ import { getCachedConfig } from './config';
 
 const ACTIVITIES_STORAGE_KEY = 'pra_activities';
 const USER_MODIFIED_KEY = 'pra_user_modified_activities';
+const USER_DELETED_KEY = 'pra_user_deleted_activities';
 
 // Track which activity types the user has explicitly edited
 function getUserModified(): Set<string> {
@@ -17,6 +18,20 @@ function getUserModified(): Set<string> {
 
 export function markActivityModified(type: string): void {
   markUserModified(type);
+}
+
+function getUserDeleted(): Set<string> {
+  try {
+    const stored = localStorage.getItem(USER_DELETED_KEY);
+    if (stored) return new Set(JSON.parse(stored));
+  } catch { /* default */ }
+  return new Set();
+}
+
+function markUserDeleted(type: string): void {
+  const deleted = getUserDeleted();
+  deleted.add(type);
+  localStorage.setItem(USER_DELETED_KEY, JSON.stringify([...deleted]));
 }
 
 function markUserModified(type: string): void {
@@ -212,8 +227,9 @@ export const mergeWithConfig = (existing: ActivityDefinition[]): ActivityDefinit
     return a;
   });
 
-  // Add new activities from config
-  const newFromConfig = configActivities.filter(a => !existingTypes.has(a.type));
+  // Add new activities from config (skip user-deleted ones)
+  const deletedTypes = getUserDeleted();
+  const newFromConfig = configActivities.filter(a => !existingTypes.has(a.type) && !deletedTypes.has(a.type));
   if (newFromConfig.length > 0) {
     merged.push(...newFromConfig);
     changed = true;
@@ -272,6 +288,7 @@ export const deleteActivity = (type: ActivityType): ActivityDefinition[] => {
   const filtered = activities.filter((a) => a.type !== type);
   saveActivities(filtered);
   markUserModified(type);
+  markUserDeleted(type);
   return filtered;
 };
 
