@@ -637,7 +637,6 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       <div className="page-container">
         <header className="mb-8">
           <h1 className="font-serif text-3xl text-themed-primary">{t.time.title}</h1>
-          <p className="text-themed-faint mt-2">{t.time.subtitle}</p>
         </header>
 
         <div className="card text-center py-12">
@@ -654,7 +653,6 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     <div className="page-container">
       <header className="mb-6">
         <h1 className="font-serif text-3xl text-themed-primary">{t.time.title}</h1>
-        <p className="text-themed-faint mt-1">{t.time.subtitle}</p>
       </header>
 
       {/* Chart / Calendar toggle */}

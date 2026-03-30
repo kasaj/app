@@ -74,7 +74,7 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
         </div>
       </div>
       {comments.map((comment) => (
-        <div key={`${comment.id}-${comment.rating || 0}`} className="space-y-1">
+        <div key={`${comment.id}-${comment.rating || 0}`} className="max-w-xs mx-auto w-full space-y-1">
           <div className="flex items-center gap-2">
             <input
               type="time"
@@ -115,8 +115,8 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
                 onUpdate(comment.id, e.target.value);
               }
             }}
-            className="w-full p-3 rounded-xl bg-themed-input border border-themed
-                     focus:outline-none focus:border-themed-accent resize-none min-h-[3.5rem]
+            className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed
+                     focus:outline-none focus:border-themed-accent resize-none
                      text-themed-primary text-base overflow-hidden"
           />
         </div>
@@ -663,7 +663,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   t={t}
                 />
 
-                <button onClick={handleTimedBeforeSubmit} className="btn-primary w-full">
+                <button onClick={handleTimedBeforeSubmit} className="btn-primary w-full max-w-xs mx-auto block">
                   {t.flow.start} ({activity.durationMinutes} min)
                 </button>
               </div>

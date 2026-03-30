@@ -264,9 +264,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   return (
     <div className="page-container">
       <header className="mb-6">
-        <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-themed-faint">{t.today.subtitle}</p>
+        <div className="flex items-center justify-between">
+          <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
