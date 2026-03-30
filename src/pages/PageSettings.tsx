@@ -314,9 +314,6 @@ export default function PageSettings() {
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
   const [exportTab, setExportTab] = useState<'backup' | 'config'>('backup');
   const [theme, setThemeState] = useState<Theme>(loadTheme);
-  const [controlMode, setControlMode] = useState<'default' | 'custom'>(() =>
-    (localStorage.getItem('pra_control_mode') as 'default' | 'custom') || 'default'
-  );
   const [moodScale, setMoodScale] = useState<MoodScaleItem[]>(() => loadMoodScale());
   const [editingMoodIdx, setEditingMoodIdx] = useState<number | null>(null);
   const [variantRegistry, setVariantRegistry] = useState<string[]>(() => loadVariantRegistry());
@@ -617,32 +614,6 @@ export default function PageSettings() {
                 }}
               >
                 {th === 'classic' ? t.settings.themeClassic : th === 'modern' ? t.settings.themeModern : t.settings.themeDark}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Control mode */}
-        <section className="card">
-          <h2 className="font-serif text-lg mb-4" style={{ color: 'var(--text-secondary)' }}>
-            {t.settings.control}
-          </h2>
-          <div className="flex gap-3">
-            {(['default', 'custom'] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => {
-                  setControlMode(mode);
-                  localStorage.setItem('pra_control_mode', mode);
-                }}
-                className="flex-1 py-3 px-2 rounded-xl border transition-colors text-sm"
-                style={{
-                  backgroundColor: controlMode === mode ? 'var(--accent-bg)' : 'var(--bg-input)',
-                  borderColor: controlMode === mode ? 'var(--accent-border)' : 'var(--border-light)',
-                  color: controlMode === mode ? 'var(--accent-text)' : 'var(--text-muted)',
-                }}
-              >
-                {mode === 'default' ? t.settings.controlDefault : t.settings.controlCustom}
               </button>
             ))}
           </div>

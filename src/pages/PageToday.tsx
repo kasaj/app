@@ -26,9 +26,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [refreshKey, setRefreshKey] = useState(0);
   const [moodRating, setMoodRating] = useState<Rating | null>(null);
   const [moodComment, setMoodComment] = useState('');
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const controlMode = localStorage.getItem('pra_control_mode') || 'default';
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editingProperties, setEditingProperties] = useState(false);
   const [newPropertyText, setNewPropertyText] = useState('');
@@ -200,26 +197,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     setActiveActivity(activity);
   };
 
-  const handleDragStart = (index: number) => {
-    setDragIndex(index);
-  };
-
-  const handleDragOver = (index: number) => {
-    if (dragIndex === null || dragIndex === index) return;
-    setDragOverIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    if (dragIndex !== null && dragOverIndex !== null && dragIndex !== dragOverIndex) {
-      const reordered = [...activities];
-      const [moved] = reordered.splice(dragIndex, 1);
-      reordered.splice(dragOverIndex, 0, moved);
-      saveActivities(reordered);
-      setActivities(reordered);
-    }
-    setDragIndex(null);
-    setDragOverIndex(null);
-  };
 
   const handleSaveActivity = useCallback((activity: ActivityDefinition) => {
     const current = loadActivities();
@@ -288,7 +265,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
 
 
-      {controlMode === 'custom' ? (
+      {(
         <section>
           {/* Properties above core */}
           <div className="flex flex-wrap gap-2 mb-4 justify-center">
@@ -423,92 +400,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             ))}
           </div>
         </section>
-      ) : (
-      <section>
-        <div className="space-y-2">
-          {allTranslated.map((activity, index) => (
-            <div
-              key={activity.type}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={(e) => { e.preventDefault(); handleDragOver(index); }}
-              onDragEnd={handleDragEnd}
-              onTouchStart={() => handleDragStart(index)}
-              onTouchMove={(e) => {
-                if (dragIndex === null) return;
-                const touch = e.touches[0];
-                const el = document.elementFromPoint(touch.clientX, touch.clientY);
-                const row = el?.closest('[data-activity-index]');
-                if (row) handleDragOver(Number(row.getAttribute('data-activity-index')));
-              }}
-              onTouchEnd={handleDragEnd}
-              data-activity-index={index}
-              className={`transition-opacity ${dragIndex === index ? 'opacity-40' : ''} ${dragOverIndex === index ? 'border-t-2 border-themed-accent' : ''}`}
-            >
-              {activity.core ? (
-                /* Core activity (mood) */
-                <div
-                  className="card p-3"
-                  onBlur={(e) => {
-                    // Delay to allow clicks within the container
-                    setTimeout(() => {
-                      if (!e.currentTarget.contains(document.activeElement)) {
-                        flushMood();
-                      }
-                    }, 100);
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <StarRating value={moodRating} onChange={(r) => setMoodRatingSync(r)} size="md" />
-                    <span className="flex items-center gap-2">
-                      {(totalCountPerActivity.get(activity.type) || 0) > 0 && (
-                        <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get(activity.type)}</span>
-                      )}
-                      {(completedTodayCounts.get(activity.type) || 0) > 1 && (
-                        <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get(activity.type)}</span>
-                      )}
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                        completedTodayCounts.has(activity.type) ? '' : 'opacity-20'
-                      }`} style={{ backgroundColor: completedTodayCounts.has(activity.type) ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
-                        <svg className="w-3 h-3" style={{ color: completedTodayCounts.has(activity.type) ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </span>
-                    </span>
-                  </div>
-                  <textarea
-                    ref={moodTextareaRef}
-                    value={moodComment}
-                    onChange={(e) => {
-                      setMoodCommentSync(e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = e.target.scrollHeight + 'px';
-                    }}
-                    placeholder={language === 'cs' ? 'Jak se cítíš...' : 'How do you feel...'}
-                    className="w-full p-2 rounded-xl bg-themed-input border border-themed
-                             focus:outline-none focus:border-themed-accent resize-none min-h-[2.5rem]
-                             text-themed-primary placeholder:text-themed-faint text-sm overflow-hidden"
-                  />
-                </div>
-              ) : (
-                /* Regular activity */
-                <div className="relative">
-                  <ActivityCard
-                    activity={activity}
-                    onClick={() => handleActivityClick(activity)}
-                    completedToday={completedTodayCounts.has(activity.type)}
-                    completedCount={completedTodayCounts.get(activity.type) || 0}
-                    completedYesterday={completedPreviousCounts.has(activity.type)}
-                    yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
-                    totalCount={totalCountPerActivity.get(activity.type) || 0}
-                    totalSeconds={totalTimePerActivity.get(activity.type) || 0}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
       )}
 
       {activeActivity && (
