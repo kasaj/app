@@ -27,6 +27,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [moodComment, setMoodComment] = useState('');
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editMode, setEditMode] = useState(false);
+  const [customTime, setCustomTime] = useState<string | null>(null);
+  const customTimeRef = useRef<string | null>(null);
+  const setCustomTimeSync = (t: string | null) => { customTimeRef.current = t; setCustomTime(t); };
   const [newPropertyText, setNewPropertyText] = useState('');
   const [hiddenProperties, setHiddenProperties] = useState<Set<string>>(() => {
     try {
@@ -69,7 +72,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     const c = moodCommentRef.current;
     const props = [...selectedPropertiesRef.current];
     if (!r && !c.trim() && props.length === 0) return;
-    const now = new Date().toISOString();
+    const now = customTimeRef.current || new Date().toISOString();
     const id = generateId();
 
     const ss = localStorage.getItem('pra_session_start') || now;
@@ -105,6 +108,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     setMoodCommentSync('');
     selectedPropertiesRef.current = new Set();
     setSelectedProperties(new Set());
+    setCustomTimeSync(null);
     if (moodTextareaRef.current) {
       moodTextareaRef.current.style.height = 'auto';
     }
@@ -308,12 +312,37 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             </button>
           </div>
         </div>
-      {/* Current date/time - outside flex center */}
-      <div className="text-center text-xs text-themed-faint py-1">
-        {new Date().toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
-      </div>
       {(
         <section className="flex-1 flex flex-col justify-center">
+          {/* Date/time - editable */}
+          <div className="flex items-center justify-center gap-2 mb-1.5">
+            <input
+              type="date"
+              value={(() => { const d = customTime ? new Date(customTime) : new Date(); const pad = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })()}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const current = customTime ? new Date(customTime) : new Date();
+                  const [y, m, d] = e.target.value.split('-').map(Number);
+                  current.setFullYear(y, m - 1, d);
+                  setCustomTimeSync(current.toISOString());
+                }
+              }}
+              className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
+            />
+            <input
+              type="time"
+              value={(() => { const d = customTime ? new Date(customTime) : new Date(); const pad = (n: number) => n.toString().padStart(2, '0'); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; })()}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const current = customTime ? new Date(customTime) : new Date();
+                  const [h, min] = e.target.value.split(':').map(Number);
+                  current.setHours(h, min);
+                  setCustomTimeSync(current.toISOString());
+                }
+              }}
+              className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
+            />
+          </div>
           {/* Properties above core */}
           <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
             {loadVariantRegistry().slice().sort((a, b) => {
