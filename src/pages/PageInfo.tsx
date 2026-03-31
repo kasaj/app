@@ -182,9 +182,6 @@ export default function PageInfo() {
           </section>
         )}
 
-        <footer className="text-center text-sm text-themed-faint py-12">
-          <a href="https://github.com/kasaj/app" target="_blank" rel="noopener noreferrer" className="text-themed-accent-solid hover:underline">github.com/kasaj/app</a>
-        </footer>
       </div>
     </div>
   );

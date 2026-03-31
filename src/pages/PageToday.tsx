@@ -262,7 +262,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   }, [editingActivity]);
 
   return (
-    <div className="page-container">
+    <div className="page-container min-h-screen flex flex-col">
       <header className="mb-6">
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
@@ -314,7 +314,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
 
       {(
-        <section>
+        <section className="flex-1 flex flex-col justify-center">
           {/* Properties above core */}
           <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
             {loadVariantRegistry().slice().sort((a, b) => {
