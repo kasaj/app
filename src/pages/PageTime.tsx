@@ -518,16 +518,39 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     if (trendRange === 'day') {
       const todayStr = new Date().toISOString().split('T')[0];
       const dayEntry = data.find((d) => d.date === todayStr);
-      for (let h = 5; h <= 23; h++) {
-        const hourActivities = (dayEntry?.activities || []).filter(matchesSearch).filter((a) => {
-          const hour = new Date(a.startedAt).getHours();
-          return hour === h;
+      // Collect all events (activities + comments) by hour for today
+      const hourEvents = new Map<number, { count: number; ratings: number[]; secs: number }>();
+      for (let h = 0; h < 24; h++) hourEvents.set(h, { count: 0, ratings: [], secs: 0 });
+
+      (dayEntry?.activities || []).filter(matchesSearch).forEach(a => {
+        const h = new Date(a.startedAt).getHours();
+        const slot = hourEvents.get(h)!;
+        slot.count++;
+        slot.secs += a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60);
+        const comments = getActivityComments(a);
+        comments.forEach(c => {
+          if (c.createdAt) {
+            const cDate = new Date(c.createdAt).toISOString().split('T')[0];
+            if (cDate === todayStr) {
+              const cH = new Date(c.createdAt).getHours();
+              const cSlot = hourEvents.get(cH)!;
+              if (cH !== h) cSlot.count++; // count comment as separate event if different hour
+              if (c.rating != null) cSlot.ratings.push(c.rating);
+            }
+          } else if (c.rating != null) {
+            slot.ratings.push(c.rating);
+          }
         });
-        const count = hourActivities.length;
-        const totalSecs = hourActivities.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0);
-        const hourRatings = ratingsByHour.get(h) || [];
-        const avgRating = hourRatings.length > 0 ? Math.round((hourRatings.reduce((s, r) => s + r, 0) / hourRatings.length) * 10) / 10 : null;
-        result.push({ day: `${h}:00`, count, avgRating, minutes: Math.round(totalSecs / 60) });
+        if (!comments.some(c => c.rating != null)) {
+          const r = a.ratingAfter ?? a.rating;
+          if (r != null) slot.ratings.push(r);
+        }
+      });
+
+      for (let h = 5; h <= 23; h++) {
+        const slot = hourEvents.get(h)!;
+        const avgRating = slot.ratings.length > 0 ? Math.round((slot.ratings.reduce((s, r) => s + r, 0) / slot.ratings.length) * 10) / 10 : null;
+        result.push({ day: `${h}:00`, count: slot.count, avgRating, minutes: Math.round(slot.secs / 60) });
       }
     } else {
       const today = new Date();
