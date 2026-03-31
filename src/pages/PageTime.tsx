@@ -194,10 +194,10 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
   const baseDurationSec = activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60);
   const durationMin = Math.max(1, Math.round((baseDurationSec + comments.length * 60) / 60));
   const actualTime = durationMin >= 1440
-    ? `${Math.floor(durationMin / 1440)}d${durationMin % 1440 >= 60 ? ` ${Math.floor((durationMin % 1440) / 60)}h` : ''}`
+    ? `${Math.floor(durationMin / 1440)} d${durationMin % 1440 >= 60 ? ` ${Math.floor((durationMin % 1440) / 60)} h` : ''}`
     : durationMin >= 60
-      ? `${Math.floor(durationMin / 60)}h${durationMin % 60 > 0 ? ` ${durationMin % 60}m` : ''}`
-      : `${durationMin}m`;
+      ? `${Math.floor(durationMin / 60)} h${durationMin % 60 > 0 ? ` ${durationMin % 60} m` : ''}`
+      : `${durationMin} m`;
 
   const lastTwo = comments.slice(-2);
   // Count position in chain: how many activities before this one + 1
@@ -913,7 +913,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
                 }`}>
                   <span>{formatDateFull(day.date, language)}</span>
                   <span className="flex items-center gap-2">
-                    <span className="text-xs text-themed-faint">{(() => { const m = Math.round(day.activities.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0) / 60); return m >= 60 ? `${Math.floor(m / 60)}h${m % 60 > 0 ? ` ${m % 60}m` : ''}` : `${m}m`; })()}</span>
+                    <span className="text-xs text-themed-faint">{(() => { const m = Math.round(day.activities.reduce((s, a) => { const c = getActivityComments(a); return s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)) + c.length * 60; }, 0) / 60); return m >= 60 ? `${Math.floor(m / 60)} h${m % 60 > 0 ? ` ${m % 60} m` : ''}` : `${m} m`; })()}</span>
                     {getDayAvgMoodEmoji(day) && <span>{getDayAvgMoodEmoji(day)}</span>}
                   </span>
                 </div>
@@ -1019,7 +1019,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           </div>
           <div className="card text-center py-3">
             <div className="text-2xl font-serif text-themed-accent-solid">
-              {summaryStats.hours > 0 ? `${summaryStats.hours}${t.time.hours} ` : ''}{summaryStats.minutes}{t.time.minutes}
+              {summaryStats.hours > 0 ? `${summaryStats.hours} ${t.time.hours} ` : ''}{summaryStats.minutes} {t.time.minutes}
             </div>
             <div className="text-xs text-themed-faint mt-1">{t.time.totalTime}</div>
           </div>
