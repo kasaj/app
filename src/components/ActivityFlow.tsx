@@ -38,7 +38,7 @@ function toLocalTime(isoStr: string): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewRating, onUpdate, onUpdateRating, onUpdateTime, onDelete, lang: _lang, t }: {
+function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewRating, onUpdate, onUpdateRating, onUpdateTime: _onUpdateTime, onDelete, lang: _lang, t }: {
   comments: ActivityComment[];
   newComment: string;
   setNewComment: (v: string) => void;
@@ -76,19 +76,9 @@ function CommentsBlock({ comments, newComment, setNewComment, newRating, setNewR
       {comments.map((comment) => (
         <div key={`${comment.id}-${comment.rating || 0}`} className="max-w-xs mx-auto w-full space-y-1">
           <div className="flex items-center gap-2">
-            <input
-              type="time"
-              defaultValue={new Date(comment.createdAt).toTimeString().slice(0, 5)}
-              onChange={(e) => {
-                if (e.target.value && onUpdateTime) {
-                  const d = new Date(comment.createdAt);
-                  const [h, m] = e.target.value.split(':').map(Number);
-                  d.setHours(h, m);
-                  onUpdateTime(comment.id, d.toISOString());
-                }
-              }}
-              className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted w-14 cursor-pointer"
-            />
+            <span className="text-xs text-themed-faint">
+              {new Date(comment.createdAt).toTimeString().slice(0, 5)}
+            </span>
             <StarRating
               value={comment.rating || null}
               onChange={(r) => onUpdateRating && onUpdateRating(comment.id, r)}

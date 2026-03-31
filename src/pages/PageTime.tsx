@@ -485,31 +485,37 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
   const trendData = useMemo(() => {
     const result: Array<{ day: string; avgRating: number | null; count: number; minutes: number }> = [];
 
-    const computeStats = (activities: Activity[]) => {
-      const count = activities.length;
-      let totalSecs = 0;
-      const ratings: number[] = [];
-      activities.forEach((a) => {
-        totalSecs += a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60);
-        // Comment-based ratings first
+
+    // Collect all comment ratings by date for cross-day accuracy
+    const ratingsByDate = new Map<string, number[]>();
+    const ratingsByHour = new Map<number, number[]>();
+    data.forEach(day => {
+      day.activities.filter(matchesSearch).forEach(a => {
         const comments = getActivityComments(a);
-        const commentRatings = comments.filter(c => c.rating != null).map(c => c.rating!);
-        if (commentRatings.length > 0) {
-          ratings.push(...commentRatings);
-        } else {
-          // Fallback to legacy
+        comments.forEach(c => {
+          if (c.rating != null) {
+            const cDate = c.createdAt ? new Date(c.createdAt).toISOString().split('T')[0] : day.date;
+            if (!ratingsByDate.has(cDate)) ratingsByDate.set(cDate, []);
+            ratingsByDate.get(cDate)!.push(c.rating);
+            if (c.createdAt) {
+              const cHour = new Date(c.createdAt).getHours();
+              if (!ratingsByHour.has(cHour)) ratingsByHour.set(cHour, []);
+              ratingsByHour.get(cHour)!.push(c.rating);
+            }
+          }
+        });
+        // Legacy fallback
+        if (!comments.some(c => c.rating != null)) {
           const r = a.ratingAfter ?? a.rating;
-          if (r != null) ratings.push(r);
+          if (r != null) {
+            if (!ratingsByDate.has(day.date)) ratingsByDate.set(day.date, []);
+            ratingsByDate.get(day.date)!.push(r);
+          }
         }
       });
-      const avgRating = ratings.length > 0
-        ? Math.round((ratings.reduce((s, r) => s + r, 0) / ratings.length) * 10) / 10
-        : null;
-      return { count, avgRating, minutes: Math.round(totalSecs / 60) };
-    };
+    });
 
     if (trendRange === 'day') {
-      // Today: group by hour
       const todayStr = new Date().toISOString().split('T')[0];
       const dayEntry = data.find((d) => d.date === todayStr);
       for (let h = 5; h <= 23; h++) {
@@ -517,8 +523,11 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           const hour = new Date(a.startedAt).getHours();
           return hour === h;
         });
-        const stats = computeStats(hourActivities);
-        result.push({ day: `${h}:00`, ...stats });
+        const count = hourActivities.length;
+        const totalSecs = hourActivities.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0);
+        const hourRatings = ratingsByHour.get(h) || [];
+        const avgRating = hourRatings.length > 0 ? Math.round((hourRatings.reduce((s, r) => s + r, 0) / hourRatings.length) * 10) / 10 : null;
+        result.push({ day: `${h}:00`, count, avgRating, minutes: Math.round(totalSecs / 60) });
       }
     } else {
       const today = new Date();
@@ -533,7 +542,11 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         const dayEntry = data.find((d) => d.date === dateStr);
 
         const filtered = dayEntry ? dayEntry.activities.filter(matchesSearch) : [];
-        const stats = filtered.length > 0 ? computeStats(filtered) : { count: 0, avgRating: null, minutes: 0 };
+        const count = filtered.length;
+        const totalSecs = filtered.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0);
+        const dayRatings = ratingsByDate.get(dateStr) || [];
+        const avgRating = dayRatings.length > 0 ? Math.round((dayRatings.reduce((s, r) => s + r, 0) / dayRatings.length) * 10) / 10 : null;
+        const stats = { count, avgRating, minutes: Math.round(totalSecs / 60) };
 
         const dayName = trendRange === 'week'
           ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
