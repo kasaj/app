@@ -190,16 +190,15 @@ interface ActivityRowProps {
 function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, onCreateLinked, onNavigate, t }: ActivityRowProps) {
   const rawDef = getActivityByType(activity.type);
   const def = rawDef ? getTranslatedActivity(rawDef, t) : rawDef;
-  const durationMin = activity.actualDurationSeconds
-    ? Math.max(1, Math.round(activity.actualDurationSeconds / 60))
-    : (activity.durationMinutes || 1);
+  const comments = getActivityComments(activity);
+  const baseDurationSec = activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60);
+  const durationMin = Math.max(1, Math.round((baseDurationSec + comments.length * 60) / 60));
   const actualTime = durationMin >= 1440
     ? `${Math.floor(durationMin / 1440)}d${durationMin % 1440 >= 60 ? ` ${Math.floor((durationMin % 1440) / 60)}h` : ''}`
     : durationMin >= 60
       ? `${Math.floor(durationMin / 60)}h${durationMin % 60 > 0 ? ` ${durationMin % 60}m` : ''}`
       : `${durationMin}m`;
 
-  const comments = getActivityComments(activity);
   const lastTwo = comments.slice(-2);
   // Count position in chain: how many activities before this one + 1
   const chainPosition = (() => {
@@ -369,11 +368,13 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
 
     filteredData.forEach((day) => {
       day.activities.forEach((activity) => {
-        totalActivities++;
-        const secs = activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60);
+        const comments = getActivityComments(activity);
+        const eventCount = 1 + comments.length;
+        totalActivities += eventCount;
+        const secs = (activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60)) + (comments.length * 60);
         totalSeconds += secs;
         if (day.date === todayStr) {
-          todayActivities++;
+          todayActivities += eventCount;
           todaySeconds += secs;
         }
       });
@@ -454,10 +455,12 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     const ratings: number[] = [];
     const typeCounts = new Map<string, number>();
 
+    let totalCount = 0;
     acts.forEach(a => {
-      secs += a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60);
-      typeCounts.set(a.type, (typeCounts.get(a.type) || 0) + 1);
       const comments = getActivityComments(a);
+      totalCount += 1 + comments.length;
+      secs += (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)) + (comments.length * 60);
+      typeCounts.set(a.type, (typeCounts.get(a.type) || 0) + 1);
       const cr = comments.filter(c => c.rating != null).map(c => c.rating!);
       if (cr.length > 0) ratings.push(...cr);
       else { const r = a.ratingAfter ?? a.rating; if (r != null) ratings.push(r); }
@@ -471,7 +474,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     const mins = Math.round(secs / 60);
 
     return {
-      count: acts.length,
+      count: totalCount,
       minutes: mins,
       avgMood,
       topType: topType[0],
