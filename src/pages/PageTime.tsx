@@ -309,7 +309,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
   const { t, language } = useLanguage();
   const [data, setData] = useState(() => loadAllData());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [trendRange, setTrendRange] = useState<'day' | 'week' | 'month'>('day');
+  const [trendRange, setTrendRange] = useState<'day' | '3days' | 'week' | 'month'>('day');
   const [showView, setShowView] = useState<'chart' | 'calendar'>('chart');
   const [recordSort, setRecordSort] = useState<'date' | 'score'>('date');
   const [searchQuery, setSearchQuery] = useState('');
@@ -351,10 +351,16 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     return false;
   }, [searchQuery]);
 
-  // Summary statistics (filtered by search and calendar)
+  // Summary statistics (filtered by search, calendar and trend range)
   const summaryStats = useMemo(() => {
-    // Apply search and calendar filters
-    const filteredData = (calendarDate ? data.filter(d => d.date === calendarDate) : data)
+    // Date range filter based on trendRange
+    const nowDate = new Date();
+    const rangeDays = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : 30;
+    const rangeStart = new Date(nowDate);
+    rangeStart.setDate(rangeStart.getDate() - (rangeDays - 1));
+    const rangeStartStr = rangeStart.toISOString().split('T')[0];
+
+    const filteredData = (calendarDate ? data.filter(d => d.date === calendarDate) : data.filter(d => d.date >= rangeStartStr))
       .map(d => ({
         ...d,
         activities: d.activities.filter(matchesSearch),
@@ -425,7 +431,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       avgPerDay,
       streak,
     };
-  }, [data, searchQuery, calendarDate, matchesSearch]);
+  }, [data, searchQuery, calendarDate, matchesSearch, trendRange]);
 
   // Elapsed time since first activity (ticking)
   const elapsed = useMemo(() => {
@@ -558,7 +564,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       }
     } else {
       const today = new Date();
-      const days = trendRange === 'week' ? 7 : 30;
+      const days = trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : 30;
       const start = new Date(today);
       start.setDate(start.getDate() - (days - 1));
 
@@ -580,9 +586,11 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         const avgRating = dayRatings.length > 0 ? Math.round((dayRatings.reduce((s, r) => s + r, 0) / dayRatings.length) * 10) / 10 : null;
         const stats = { count, avgRating, minutes: Math.round(totalSecs / 60) };
 
-        const dayName = trendRange === 'week'
-          ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
-          : `${date.getDate()}.${date.getMonth() + 1}`;
+        const dayName = trendRange === '3days'
+          ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short', day: 'numeric' })
+          : trendRange === 'week'
+            ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
+            : `${date.getDate()}.${date.getMonth() + 1}`;
         result.push({ day: dayName, ...stats });
       }
     }
@@ -724,7 +732,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           </div>
           {showView === 'chart' && (
             <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
-              {(['day', 'week', 'month'] as const).map((r) => (
+              {(['day', '3days', 'week', 'month'] as const).map((r) => (
                 <button
                   key={r}
                   onClick={() => setTrendRange(r)}
@@ -734,7 +742,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
                       : 'text-themed-faint hover:text-themed-secondary'
                   }`}
                 >
-                  {r === 'day' ? t.time.trendDay : r === 'week' ? t.time.trendWeek : t.time.trendMonth}
+                  {r === 'day' ? t.time.trendDay : r === '3days' ? '3D' : r === 'week' ? t.time.trendWeek : t.time.trendMonth}
                 </button>
               ))}
             </div>
@@ -902,10 +910,15 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           {recordSort === 'date' ? (
             // Sort by date (grouped by day), filtered by calendar and search
             (calendarDate ? data.filter(d => d.date === calendarDate) : (() => {
+              const rangeDays = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : 30;
+              const rangeStart = new Date();
+              rangeStart.setDate(rangeStart.getDate() - (rangeDays - 1));
+              const rangeStartStr = rangeStart.toISOString().split('T')[0];
+              const rangeFiltered = data.filter(d => d.date >= rangeStartStr);
               const filtered = searchQuery.trim()
-                ? data.map(d => ({ ...d, activities: d.activities.filter(matchesSearch) })).filter(d => d.activities.length > 0)
-                : data;
-              let remaining = searchQuery.trim() ? 999 : 10;
+                ? rangeFiltered.map(d => ({ ...d, activities: d.activities.filter(matchesSearch) })).filter(d => d.activities.length > 0)
+                : rangeFiltered;
+              let remaining = 999;
               const result: DayEntry[] = [];
               for (const day of filtered) {
                 if (remaining <= 0) break;
