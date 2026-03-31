@@ -773,7 +773,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
               </defs>
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: trendRange === 'month' ? 9 : trendRange === 'day' ? 9 : 11, fill: colors.tick }}
+                tick={{ fontSize: trendRange === 'year' ? 8 : trendRange === 'month' ? 9 : trendRange === 'day' ? 9 : 11, fill: colors.tick }}
                 axisLine={false}
                 tickLine={false}
                 interval={trendRange === 'year' ? 29 : trendRange === 'month' ? 4 : trendRange === 'day' ? 1 : 0}

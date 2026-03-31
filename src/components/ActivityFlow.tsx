@@ -458,7 +458,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
               return (
                 <div className="flex items-center justify-center gap-2 mt-2">
-                  {chainAvgEmoji && <span className="text-lg">{chainAvgEmoji}</span>}
                   {hasFrom && (
                     <button
                       onClick={() => { handleClose(); onNavigateLinked(current.linkedFromId!); }}
@@ -469,6 +468,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                       </svg>
                     </button>
                   )}
+                  {chainAvgEmoji && <span className="text-lg">{chainAvgEmoji}</span>}
                   {hasTo && (
                     <button
                       onClick={() => { handleClose(); onNavigateLinked(current.linkedActivityIds![current.linkedActivityIds!.length - 1]); }}
