@@ -214,7 +214,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
     }
     return count;
   })();
-  const linkCount = chainPosition + comments.length;
+  const linkCount = chainPosition;
 
   return (
     <div className="py-2 flex items-start gap-2">
@@ -983,7 +983,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
                     const found = findActivityById(currentId);
                     currentId = found?.activity.linkedFromId;
                   }
-                  return count + (act.comments?.length || 0);
+                  return count;
                 };
                 const countA = chainPos(a);
                 const countB = chainPos(b);
