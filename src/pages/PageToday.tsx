@@ -263,7 +263,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
   return (
     <div className="page-container min-h-screen flex flex-col">
-      <header className="mb-6">
+      <header className="mb-2">
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
           <div className="flex items-center gap-2">
