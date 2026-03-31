@@ -192,14 +192,15 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
   const def = rawDef ? getTranslatedActivity(rawDef, t) : rawDef;
   const comments = getActivityComments(activity);
   const baseDurationSec = activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60);
-  const durationMin = Math.max(1, Math.round((baseDurationSec + comments.length * 60) / 60));
+  const extraComments = Math.max(0, comments.length - 1);
+  const durationMin = Math.max(1, Math.round((baseDurationSec + extraComments * 60) / 60));
   const actualTime = durationMin >= 1440
     ? `${Math.floor(durationMin / 1440)} d${durationMin % 1440 >= 60 ? ` ${Math.floor((durationMin % 1440) / 60)} h` : ''}`
     : durationMin >= 60
       ? `${Math.floor(durationMin / 60)} h${durationMin % 60 > 0 ? ` ${durationMin % 60} m` : ''}`
       : `${durationMin} m`;
 
-  const lastTwo = comments.slice(-2);
+  const allComments = comments;
   // Count position in chain: how many activities before this one + 1
   const chainPosition = (() => {
     let count = 1;
@@ -278,7 +279,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
         </div>
 
         {/* Comment rows: time left, mood scale right */}
-        {lastTwo.map((c) => (
+        {allComments.map((c) => (
           <div key={`${c.id}-${c.rating || 0}`} className="flex items-center justify-between mt-0.5">
             <div className="flex items-center gap-1.5 text-sm min-w-0">
               <span className="text-themed-faint text-xs flex-shrink-0">{formatTime(c.updatedAt || c.createdAt, lang)}</span>
@@ -292,7 +293,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
           </div>
         ))}
         {/* Mood scale if no comments */}
-        {lastTwo.length === 0 && (
+        {allComments.length === 0 && (
           <div className="flex justify-end gap-px mt-0.5" style={{ fontSize: '0.55rem' }}>
             {loadMoodScale().map(({ value: v, emoji: e }) => (
               <span key={v} className="grayscale opacity-20">{e}</span>
@@ -371,7 +372,8 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         const comments = getActivityComments(activity);
         const eventCount = 1 + comments.length;
         totalActivities += eventCount;
-        const secs = (activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60)) + (comments.length * 60);
+        const extraComments = Math.max(0, comments.length - 1);
+        const secs = (activity.actualDurationSeconds || (activity.durationMinutes ? activity.durationMinutes * 60 : 60)) + (extraComments * 60);
         totalSeconds += secs;
         if (day.date === todayStr) {
           todayActivities += eventCount;
@@ -459,7 +461,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     acts.forEach(a => {
       const comments = getActivityComments(a);
       totalCount += 1 + comments.length;
-      secs += (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)) + (comments.length * 60);
+      secs += (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)) + (Math.max(0, comments.length - 1) * 60);
       typeCounts.set(a.type, (typeCounts.get(a.type) || 0) + 1);
       const cr = comments.filter(c => c.rating != null).map(c => c.rating!);
       if (cr.length > 0) ratings.push(...cr);
@@ -567,8 +569,13 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         const dayEntry = data.find((d) => d.date === dateStr);
 
         const filtered = dayEntry ? dayEntry.activities.filter(matchesSearch) : [];
-        const count = filtered.length;
-        const totalSecs = filtered.reduce((s, a) => s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)), 0);
+        let count = 0;
+        let totalSecs = 0;
+        filtered.forEach(a => {
+          const c = getActivityComments(a);
+          count += 1 + c.length;
+          totalSecs += (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)) + Math.max(0, c.length - 1) * 60;
+        });
         const dayRatings = ratingsByDate.get(dateStr) || [];
         const avgRating = dayRatings.length > 0 ? Math.round((dayRatings.reduce((s, r) => s + r, 0) / dayRatings.length) * 10) / 10 : null;
         const stats = { count, avgRating, minutes: Math.round(totalSecs / 60) };
@@ -913,7 +920,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
                 }`}>
                   <span>{formatDateFull(day.date, language)}</span>
                   <span className="flex items-center gap-2">
-                    <span className="text-xs text-themed-faint">{(() => { const m = Math.round(day.activities.reduce((s, a) => { const c = getActivityComments(a); return s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)) + c.length * 60; }, 0) / 60); return m >= 60 ? `${Math.floor(m / 60)} h${m % 60 > 0 ? ` ${m % 60} m` : ''}` : `${m} m`; })()}</span>
+                    <span className="text-xs text-themed-faint">{(() => { const m = Math.round(day.activities.reduce((s, a) => { const c = getActivityComments(a); return s + (a.actualDurationSeconds || (a.durationMinutes ? a.durationMinutes * 60 : 60)) + Math.max(0, c.length - 1) * 60; }, 0) / 60); return m >= 60 ? `${Math.floor(m / 60)} h${m % 60 > 0 ? ` ${m % 60} m` : ''}` : `${m} m`; })()}</span>
                     {getDayAvgMoodEmoji(day) && <span>{getDayAvgMoodEmoji(day)}</span>}
                   </span>
                 </div>
@@ -1019,7 +1026,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           </div>
           <div className="card text-center py-3">
             <div className="text-2xl font-serif text-themed-accent-solid">
-              {summaryStats.hours > 0 ? `${summaryStats.hours} ${t.time.hours} ` : ''}{summaryStats.minutes} {t.time.minutes}
+              {summaryStats.hours > 0 ? `${summaryStats.hours} h ` : ''}{summaryStats.minutes} m
             </div>
             <div className="text-xs text-themed-faint mt-1">{t.time.totalTime}</div>
           </div>
