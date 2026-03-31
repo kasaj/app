@@ -193,7 +193,11 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
   const durationMin = activity.actualDurationSeconds
     ? Math.max(1, Math.round(activity.actualDurationSeconds / 60))
     : (activity.durationMinutes || 1);
-  const actualTime = `${durationMin} min`;
+  const actualTime = durationMin >= 1440
+    ? `${Math.floor(durationMin / 1440)}d${durationMin % 1440 >= 60 ? ` ${Math.floor((durationMin % 1440) / 60)}h` : ''}`
+    : durationMin >= 60
+      ? `${Math.floor(durationMin / 60)}h${durationMin % 60 > 0 ? ` ${durationMin % 60}m` : ''}`
+      : `${durationMin}m`;
 
   const comments = getActivityComments(activity);
   const lastTwo = comments.slice(-2);
