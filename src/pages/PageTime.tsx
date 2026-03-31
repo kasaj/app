@@ -309,7 +309,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
   const { t, language } = useLanguage();
   const [data, setData] = useState(() => loadAllData());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [trendRange, setTrendRange] = useState<'day' | '3days' | 'week' | 'month'>('day');
+  const [trendRange, setTrendRange] = useState<'day' | '3days' | 'week' | 'month' | 'year'>('day');
   const [showView, setShowView] = useState<'chart' | 'calendar'>('chart');
   const [recordSort, setRecordSort] = useState<'date' | 'score'>('date');
   const [searchQuery, setSearchQuery] = useState('');
@@ -355,7 +355,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
   const summaryStats = useMemo(() => {
     // Date range filter based on trendRange
     const nowDate = new Date();
-    const rangeDays = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : 30;
+    const rangeDays = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : trendRange === 'month' ? 30 : 365;
     const rangeStart = new Date(nowDate);
     rangeStart.setDate(rangeStart.getDate() - (rangeDays - 1));
     const rangeStartStr = rangeStart.toISOString().split('T')[0];
@@ -564,7 +564,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
       }
     } else {
       const today = new Date();
-      const days = trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : 30;
+      const days = trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : trendRange === 'month' ? 30 : 365;
       const start = new Date(today);
       start.setDate(start.getDate() - (days - 1));
 
@@ -590,7 +590,9 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short', day: 'numeric' })
           : trendRange === 'week'
             ? date.toLocaleDateString(language === 'cs' ? 'cs-CZ' : 'en-US', { weekday: 'short' })
-            : `${date.getDate()}.${date.getMonth() + 1}`;
+            : trendRange === 'year'
+              ? `${date.getDate()}.${date.getMonth() + 1}`
+              : `${date.getDate()}.${date.getMonth() + 1}`;
         result.push({ day: dayName, ...stats });
       }
     }
@@ -732,17 +734,17 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           </div>
           {showView === 'chart' && (
             <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
-              {(['day', '3days', 'week', 'month'] as const).map((r) => (
+              {(['day', '3days', 'week', 'month', 'year'] as const).map((r) => (
                 <button
                   key={r}
                   onClick={() => setTrendRange(r)}
-                  className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  className={`px-2 py-1 text-xs rounded-md transition-colors ${
                     trendRange === r
                       ? 'bg-themed-card text-themed-accent shadow-sm'
                       : 'text-themed-faint hover:text-themed-secondary'
                   }`}
                 >
-                  {r === 'day' ? t.time.trendDay : r === '3days' ? '3D' : r === 'week' ? t.time.trendWeek : t.time.trendMonth}
+                  {r === 'day' ? '1D' : r === '3days' ? '3D' : r === 'week' ? '1W' : r === 'month' ? '1M' : '1Y'}
                 </button>
               ))}
             </div>
@@ -760,7 +762,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
 
         {showView === 'chart' && (
         <div className="card">
-          <ResponsiveContainer width="100%" height={trendRange === 'month' ? 200 : 180}>
+          <ResponsiveContainer width="100%" height={trendRange === 'year' ? 220 : trendRange === 'month' ? 200 : 180}>
             <ComposedChart data={trendData} margin={{ top: 15, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
@@ -774,7 +776,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
                 tick={{ fontSize: trendRange === 'month' ? 9 : trendRange === 'day' ? 9 : 11, fill: colors.tick }}
                 axisLine={false}
                 tickLine={false}
-                interval={trendRange === 'month' ? 4 : trendRange === 'day' ? 1 : 0}
+                interval={trendRange === 'year' ? 29 : trendRange === 'month' ? 4 : trendRange === 'day' ? 1 : 0}
               />
               <YAxis
                 yAxisId="count"
@@ -910,7 +912,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
           {recordSort === 'date' ? (
             // Sort by date (grouped by day), filtered by calendar and search
             (calendarDate ? data.filter(d => d.date === calendarDate) : (() => {
-              const rangeDays = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : 30;
+              const rangeDays = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : trendRange === 'month' ? 30 : 365;
               const rangeStart = new Date();
               rangeStart.setDate(rangeStart.getDate() - (rangeDays - 1));
               const rangeStartStr = rangeStart.toISOString().split('T')[0];
@@ -961,7 +963,12 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
             // Sort by chain position (highest first, then newest)
             (calendarDate
               ? allActivitiesFlat.filter(a => a.startedAt.startsWith(calendarDate))
-              : allActivitiesFlat
+              : (() => {
+                  const rd = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : trendRange === 'month' ? 30 : 365;
+                  const rs = new Date(); rs.setDate(rs.getDate() - (rd - 1));
+                  const rss = rs.toISOString().split('T')[0];
+                  return allActivitiesFlat.filter(a => a.startedAt >= rss);
+                })()
             )
               .filter(matchesSearch)
               .slice()
