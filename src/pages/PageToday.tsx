@@ -262,7 +262,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   }, [editingActivity]);
 
   return (
-    <div className="page-container min-h-screen flex flex-col">
+    <div className="page-container min-h-screen flex flex-col" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 0.25rem)' }}>
       <header>
         <div className="flex items-center justify-between">
           <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
