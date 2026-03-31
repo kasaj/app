@@ -313,6 +313,7 @@ export default function PageSettings() {
   const [name, setName] = useState('');
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
   const [exportTab, setExportTab] = useState<'backup' | 'config'>('backup');
+  const [infoTab, setInfoTab] = useState<'info' | 'install'>('info');
   const [theme, setThemeState] = useState<Theme>(loadTheme);
   const [moodScale, setMoodScale] = useState<MoodScaleItem[]>(() => loadMoodScale());
   const [editingMoodIdx, setEditingMoodIdx] = useState<number | null>(null);
@@ -463,22 +464,50 @@ export default function PageSettings() {
 
         </section>
 
-        {/* Statement + tip */}
-        <section className="card" style={{ borderLeft: '3px solid var(--text-faint)' }}>
-          <p className="text-sm text-themed-muted">{t.settings.statement}</p>
-          <p className="text-xs text-themed-faint italic mt-2">{t.settings.backupHint}</p>
-        </section>
-
-        {/* Install */}
+        {/* Info / Install */}
         <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-3">
-            {t.settings.installTitle}
-          </h2>
-          <div className="space-y-2 text-sm text-themed-muted">
-            <p>{t.settings.installStep1}</p>
-            <p>{t.settings.installStep2iOS}</p>
-            <p>{t.settings.installStep2Android}</p>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-serif text-lg text-themed-primary">
+              {infoTab === 'info' ? 'Info' : t.settings.installTitle}
+            </h2>
+            <div className="flex gap-1 bg-themed-input rounded-lg p-0.5">
+              <button
+                onClick={() => setInfoTab('info')}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  infoTab === 'info'
+                    ? 'bg-themed-card text-themed-accent shadow-sm'
+                    : 'text-themed-faint hover:text-themed-secondary'
+                }`}
+              >
+                Info
+              </button>
+              <button
+                onClick={() => setInfoTab('install')}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  infoTab === 'install'
+                    ? 'bg-themed-card text-themed-accent shadow-sm'
+                    : 'text-themed-faint hover:text-themed-secondary'
+                }`}
+              >
+                {t.settings.installTitle}
+              </button>
+            </div>
           </div>
+
+          {infoTab === 'info' && (
+            <div>
+              <p className="text-sm text-themed-muted">{t.settings.statement}</p>
+              <p className="text-xs text-themed-faint italic mt-2">{t.settings.backupHint}</p>
+            </div>
+          )}
+
+          {infoTab === 'install' && (
+            <div className="space-y-2 text-sm text-themed-muted">
+              <p>{t.settings.installStep1}</p>
+              <p>{t.settings.installStep2iOS}</p>
+              <p>{t.settings.installStep2Android}</p>
+            </div>
+          )}
         </section>
 
         {/* Export / Import */}
