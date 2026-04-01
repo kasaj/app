@@ -46,6 +46,7 @@ export interface AppConfig {
   theme?: string;
   activities: ConfigActivity[];
   properties?: { cs: string[]; en: string[] };
+  moodScale?: Array<{ value: number; emoji: string; labelCs?: string; labelEn?: string }>;
   info: {
     cs: ConfigInfo;
     en: ConfigInfo;
