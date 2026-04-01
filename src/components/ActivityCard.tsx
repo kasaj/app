@@ -42,7 +42,11 @@ export default function ActivityCard({ activity, onClick, completedToday, comple
           </span>
         )}
         {activity.durationMinutes && (
-          <span className="text-sm text-themed-faint bg-themed-input px-2 py-0.5 rounded-full">
+          <span className={`text-sm px-2 py-0.5 rounded-full ${
+            completedToday
+              ? 'text-themed-accent-solid bg-themed-accent'
+              : 'text-themed-faint bg-themed-input'
+          }`}>
             {activity.durationMinutes} {t.today.min}
           </span>
         )}
