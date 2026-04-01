@@ -336,15 +336,20 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
     if (def?.name && normalize(def.name).includes(q)) return true;
     if (def?.emoji?.includes(searchQuery)) return true;
     if (activity.selectedVariant && normalize(activity.selectedVariant).includes(q)) return true;
-    if (activity.comments) {
-      for (const c of activity.comments) {
-        if (c.text && normalize(c.text).includes(q)) return true;
-        if (c.rating) {
-          const emoji = getMoodEmoji(c.rating);
-          if (emoji.includes(searchQuery)) return true;
-        }
+    // Search in all comments (text + rating emoji)
+    const allComments = activity.comments || [];
+    for (const c of allComments) {
+      if (c.text && normalize(c.text).includes(q)) return true;
+      if (c.rating) {
+        const emoji = getMoodEmoji(c.rating);
+        if (emoji === searchQuery.trim() || emoji.includes(searchQuery.trim())) return true;
       }
     }
+    // Legacy ratings
+    if (activity.rating) { const e = getMoodEmoji(activity.rating); if (e === searchQuery.trim() || e.includes(searchQuery.trim())) return true; }
+    if (activity.ratingBefore) { const e = getMoodEmoji(activity.ratingBefore); if (e === searchQuery.trim() || e.includes(searchQuery.trim())) return true; }
+    if (activity.ratingAfter) { const e = getMoodEmoji(activity.ratingAfter); if (e === searchQuery.trim() || e.includes(searchQuery.trim())) return true; }
+    // Legacy notes
     if (activity.note && normalize(activity.note).includes(q)) return true;
     if (activity.noteBefore && normalize(activity.noteBefore).includes(q)) return true;
     if (activity.noteAfter && normalize(activity.noteAfter).includes(q)) return true;
