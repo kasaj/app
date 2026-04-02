@@ -898,7 +898,7 @@ export default function PageTime({ onNavigate }: { onNavigate?: (page: string) =
         <div className="card">
           {recordSort === 'date' ? (
             // Sort by date (grouped by day), filtered by calendar and search
-            (calendarDate ? data.filter(d => d.date === calendarDate) : (() => {
+            (calendarDate ? data.filter(d => d.date === calendarDate).map(d => searchQuery.trim() ? ({ ...d, activities: d.activities.filter(matchesSearch) }) : d).filter(d => d.activities.length > 0) : (() => {
               const rangeDays = trendRange === 'day' ? 1 : trendRange === '3days' ? 3 : trendRange === 'week' ? 7 : trendRange === 'month' ? 30 : 365;
               const rangeStart = new Date();
               rangeStart.setDate(rangeStart.getDate() - (rangeDays - 1));
