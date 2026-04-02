@@ -366,16 +366,12 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
   return (
     <div className="fixed inset-0 bg-themed-base z-50 flex flex-col">
-      {/* Fixed header */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="max-w-md mx-auto">
-          <h1 className="font-serif text-3xl text-themed-primary">{activity.emoji} {activity.name}</h1>
-        </div>
-      </div>
-
       <div className="flex-1 overflow-auto flex flex-col">
         <div className="max-w-md mx-auto px-4 w-full flex-1 flex flex-col justify-center">
-          <p className="text-themed-faint text-center max-w-xs mx-auto mb-4">
+          <h1 className="font-serif text-3xl text-themed-primary text-center mb-2">{activity.emoji} {activity.name}</h1>
+          <p className={`text-themed-faint text-center max-w-xs mx-auto mb-4 ${
+            isTimed && timedStep === 'rating-after' ? 'font-serif text-xl' : ''
+          }`}>
             {isTimed && timedStep === 'rating-after'
               ? (language === 'cs' ? 'Jak se teď cítíš?' : 'How do you feel now?')
               : activity.description}
