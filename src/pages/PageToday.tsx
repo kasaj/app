@@ -27,6 +27,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [moodComment, setMoodComment] = useState('');
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editMode, setEditMode] = useState(false);
+  const [registryVersion, setRegistryVersion] = useState(0);
   const [customTime, setCustomTime] = useState<string | null>(null);
   const customTimeRef = useRef<string | null>(null);
   const setCustomTimeSync = (t: string | null) => { customTimeRef.current = t; setCustomTime(t); };
@@ -345,7 +346,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           </div>
           {/* Properties above core */}
           <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
-            {loadVariantRegistry().slice().sort((a, b) => {
+            {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
               const aIsEmoji = /^\p{Emoji}/u.test(a);
               const bIsEmoji = /^\p{Emoji}/u.test(b);
               if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
@@ -490,6 +491,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             setActiveActivity(null);
             setActivities(loadActivities());
             setRefreshKey((k) => k + 1);
+            setRegistryVersion((v) => v + 1);
           }}
           onEdit={() => {
             const original = activities.find(a => a.type === activeActivity.type);
@@ -519,7 +521,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           activity={editingActivity}
           onSave={handleSaveActivity}
           onDelete={handleDeleteActivity}
-          onClose={() => setEditingActivity(null)}
+          onClose={() => { setEditingActivity(null); setRegistryVersion((v) => v + 1); }}
         />
       )}
 
