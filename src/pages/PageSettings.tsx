@@ -128,11 +128,22 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
 function generateConfigExport(lang: string, currentTheme: string, profileName: string): PraFile {
   const activities = loadActivities();
 
-  const exportActivities: ExportActivity[] = activities.map((a) => ({
-    type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
-    name: a.name, description: a.description, properties: a.properties,
-    core: a.core, durationOptions: a.durationOptions, defaultDuration: a.defaultDuration,
-  }));
+  let hiddenActivitiesSet: Set<string> = new Set();
+  let hiddenPropertiesSet: Set<string> = new Set();
+  try { const s = localStorage.getItem('pra_hidden_activities'); if (s) hiddenActivitiesSet = new Set(JSON.parse(s)); } catch { /* */ }
+  try { const s = localStorage.getItem('pra_hidden_properties'); if (s) hiddenPropertiesSet = new Set(JSON.parse(s)); } catch { /* */ }
+
+  // Export only visible activities; for core activity, only visible properties
+  const exportActivities: ExportActivity[] = activities
+    .filter(a => a.core || !hiddenActivitiesSet.has(a.type))
+    .map((a) => ({
+      type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
+      name: a.name, description: a.description,
+      properties: a.core && a.properties
+        ? a.properties.filter(p => !hiddenPropertiesSet.has(p))
+        : a.properties,
+      core: a.core, durationOptions: a.durationOptions, defaultDuration: a.defaultDuration,
+    }));
 
   const loadNotes = (l: string) => {
     try { const s = localStorage.getItem(`pra_info_notes_${l}`); if (s) return JSON.parse(s); } catch {}
@@ -153,8 +164,6 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
     activities: exportActivities,
     info: { cs: infoCs, en: infoEn },
     moodScale: loadMoodScale(),
-    hiddenProperties: (() => { try { const s = localStorage.getItem('pra_hidden_properties'); return s ? JSON.parse(s) : undefined; } catch { return undefined; } })(),
-    hiddenActivities: (() => { try { const s = localStorage.getItem('pra_hidden_activities'); return s ? JSON.parse(s) : undefined; } catch { return undefined; } })(),
   };
 }
 
@@ -289,11 +298,10 @@ function importPraFile(file: PraFile, currentLang: string): void {
   if (file.moodScale && Array.isArray(file.moodScale) && file.moodScale.length > 0) {
     saveMoodScale(file.moodScale);
   }
-  // Hidden properties + activities (both backup and config)
-  if (file.hiddenProperties) localStorage.setItem('pra_hidden_properties', JSON.stringify(file.hiddenProperties));
-  if (file.hiddenActivities) localStorage.setItem('pra_hidden_activities', JSON.stringify(file.hiddenActivities));
-  // Legacy duration fields (backup only)
+  // Hidden properties, activities, durations + duration bubbles (backup only)
   if (file.type === 'backup') {
+    if (file.hiddenProperties) localStorage.setItem('pra_hidden_properties', JSON.stringify(file.hiddenProperties));
+    if (file.hiddenActivities) localStorage.setItem('pra_hidden_activities', JSON.stringify(file.hiddenActivities));
     if (file.hiddenDurations) localStorage.setItem('pra_hidden_durations', JSON.stringify(file.hiddenDurations));
     if (file.durationBubbles) localStorage.setItem('pra_duration_bubbles', JSON.stringify(file.durationBubbles));
   }
