@@ -561,13 +561,62 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
             <div className="space-y-3 py-2">
 
               <div className="pt-2 space-y-3">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
+                    const aIsEmoji = /^\p{Emoji}/u.test(a);
+                    const bIsEmoji = /^\p{Emoji}/u.test(b);
+                    if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                    return a.localeCompare(b, language);
+                  }).map((prop) => (
+                    <span key={prop} className="relative inline-flex">
+                      <button
+                        onClick={() => {
+                          if (editingVariants) return;
+                          const updated = localVariants.includes(prop)
+                            ? localVariants.filter(v => v !== prop)
+                            : [...localVariants, prop];
+                          setLocalVariants(updated);
+                          persistVariants(updated);
+                        }}
+                        className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                          localVariants.includes(prop)
+                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                            : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                        }`}
+                      >{prop}</button>
+                      {editingVariants && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                        >✕</button>
+                      )}
+                    </span>
+                  ))}
+                  {editingVariants && (
+                    <input
+                      value={newVariantText}
+                      onChange={(e) => setNewVariantText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
+                      onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
+                      placeholder="+"
+                      className="w-20 px-2 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
+                    />
+                  )}
+                  <button
+                    onClick={() => setEditingVariants(!editingVariants)}
+                    className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
+                      editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
+                    }`}
+                  >{editingVariants ? '✓' : '✎'}</button>
+                </div>
+
                 <CommentsBlock
                   comments={localComments}
                   newComment={newComment}
                   setNewComment={setNewComment}
                   newRating={newCommentRating}
                   setNewRating={setNewCommentRating}
-  
+
                   onUpdate={handleUpdateComment}
                   onUpdateRating={handleUpdateCommentRating}
                   lang={language}
