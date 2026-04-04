@@ -585,7 +585,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       className="w-16 px-2 py-1 text-xs rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent text-center"
                     />
                   )}
-                  <span className="text-themed-faint mx-1">|</span>
                 {/* Activity bubbles from config */}
                 {allTranslated.filter(a => !a.core).filter(a => editMode || !hiddenActivities.has(a.type)).map((activity) => (
                   <span key={activity.type} className="relative inline-flex">
