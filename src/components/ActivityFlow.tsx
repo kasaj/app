@@ -145,6 +145,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     const stored = activity.properties || [];
     return stored.length > 0 ? stored : getConfigProperties(activity.type);
   });
+  const [disabledVariants, setDisabledVariants] = useState<Set<string>>(new Set());
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
@@ -547,20 +548,22 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     <button
                       onClick={() => {
                         if (editingVariants) {
-                          // Toggle: only local state, persist on edit close
-                          setLocalVariants(prev => {
-                            const updated = prev.includes(prop)
-                              ? prev.filter(v => v !== prop)
-                              : [...prev, prop];
-                            return updated;
-                          });
+                          // Toggle active/disabled
+                          if (localVariants.includes(prop)) {
+                            // Deactivate: add to disabled
+                            setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
+                          } else {
+                            // Activate from core: add to local + remove from disabled
+                            setLocalVariants(prev => [...prev, prop]);
+                            setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
+                          }
                         } else {
                           setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
                         }
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                         editingVariants
-                          ? localVariants.includes(prop)
+                          ? localVariants.includes(prop) && !disabledVariants.has(prop)
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
                             : 'opacity-30 bg-themed-input border-themed text-themed-faint'
                           : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
@@ -602,7 +605,15 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   />
                 )}
                 <button
-                  onClick={() => { if (editingVariants) persistVariants(localVariants); setEditingVariants(!editingVariants); }}
+                  onClick={() => {
+                    if (editingVariants) {
+                      const active = localVariants.filter(v => !disabledVariants.has(v));
+                      persistVariants(active);
+                      setLocalVariants(active);
+                      setDisabledVariants(new Set());
+                    }
+                    setEditingVariants(!editingVariants);
+                  }}
                   className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                     editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                   }`}
@@ -658,20 +669,22 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     <button
                       onClick={() => {
                         if (editingVariants) {
-                          // Toggle: only local state, persist on edit close
-                          setLocalVariants(prev => {
-                            const updated = prev.includes(prop)
-                              ? prev.filter(v => v !== prop)
-                              : [...prev, prop];
-                            return updated;
-                          });
+                          // Toggle active/disabled
+                          if (localVariants.includes(prop)) {
+                            // Deactivate: add to disabled
+                            setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
+                          } else {
+                            // Activate from core: add to local + remove from disabled
+                            setLocalVariants(prev => [...prev, prop]);
+                            setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
+                          }
                         } else {
                           setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
                         }
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                         editingVariants
-                          ? localVariants.includes(prop)
+                          ? localVariants.includes(prop) && !disabledVariants.has(prop)
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
                             : 'opacity-30 bg-themed-input border-themed text-themed-faint'
                           : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
@@ -713,7 +726,15 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   />
                 )}
                 <button
-                  onClick={() => { if (editingVariants) persistVariants(localVariants); setEditingVariants(!editingVariants); }}
+                  onClick={() => {
+                    if (editingVariants) {
+                      const active = localVariants.filter(v => !disabledVariants.has(v));
+                      persistVariants(active);
+                      setLocalVariants(active);
+                      setDisabledVariants(new Set());
+                    }
+                    setEditingVariants(!editingVariants);
+                  }}
                   className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                     editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                   }`}
@@ -796,20 +817,22 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     <button
                       onClick={() => {
                         if (editingVariants) {
-                          // Toggle: only local state, persist on edit close
-                          setLocalVariants(prev => {
-                            const updated = prev.includes(prop)
-                              ? prev.filter(v => v !== prop)
-                              : [...prev, prop];
-                            return updated;
-                          });
+                          // Toggle active/disabled
+                          if (localVariants.includes(prop)) {
+                            // Deactivate: add to disabled
+                            setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
+                          } else {
+                            // Activate from core: add to local + remove from disabled
+                            setLocalVariants(prev => [...prev, prop]);
+                            setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
+                          }
                         } else {
                           setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
                         }
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                         editingVariants
-                          ? localVariants.includes(prop)
+                          ? localVariants.includes(prop) && !disabledVariants.has(prop)
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
                             : 'opacity-30 bg-themed-input border-themed text-themed-faint'
                           : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
@@ -851,7 +874,15 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   />
                 )}
                 <button
-                  onClick={() => { if (editingVariants) persistVariants(localVariants); setEditingVariants(!editingVariants); }}
+                  onClick={() => {
+                    if (editingVariants) {
+                      const active = localVariants.filter(v => !disabledVariants.has(v));
+                      persistVariants(active);
+                      setLocalVariants(active);
+                      setDisabledVariants(new Set());
+                    }
+                    setEditingVariants(!editingVariants);
+                  }}
                   className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
                     editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                   }`}
