@@ -123,13 +123,14 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       [0];
 
     const durOverride = selectedDurationRef.current;
+    const coreDuration = durOverride || 15;
     addActivity({
       id,
       type: 'nalada',
       startedAt: now,
       completedAt: now,
-      durationMinutes: durOverride || null,
-      actualDurationSeconds: durOverride ? durOverride * 60 : undefined,
+      durationMinutes: coreDuration,
+      actualDurationSeconds: coreDuration * 60,
       comments: [{
         id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
         text: [props.length > 0 ? props.join(', ') : '', c.trim()].filter(Boolean).join(' — '),
