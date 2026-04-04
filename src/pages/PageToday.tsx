@@ -446,7 +446,10 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
           {/* Beta: activities card with bubbles + records */}
           {viewMode === 'beta' && (
-            <div className="card p-3 mt-1.5">
+            <div className="flex items-center gap-1 mt-1.5">
+            <div className="w-5" />
+            <div className="flex-1">
+            <div className="card p-3">
               {/* Duration + activity bubbles */}
               <div className="flex flex-wrap gap-1.5 justify-center">
                 {(() => {
@@ -515,6 +518,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   </div>
                 ))}
               </div>
+            </div>
+            </div>
+            <div className="w-5" />
             </div>
           )}
 
