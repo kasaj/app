@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ActivityDefinition } from '../types';
 import { useLanguage } from '../i18n';
 import { generateActivityType } from '../utils/activities';
-import { addToRegistry, loadVariantRegistry } from '../utils/variantRegistry';
+import { addToRegistry, removeFromRegistry, loadVariantRegistry } from '../utils/variantRegistry';
 
 interface ActivityEditorProps {
   activity?: ActivityDefinition;
@@ -12,7 +12,7 @@ interface ActivityEditorProps {
 }
 
 export default function ActivityEditor({ activity, onSave, onDelete, onClose }: ActivityEditorProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isNew = !activity;
 
   const [name, setName] = useState(activity?.name || '');
@@ -22,7 +22,8 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || '15');
   const [variants, setVariants] = useState<string[]>(activity?.properties || []);
   const [newVariant, setNewVariant] = useState('');
-  const [showRegistry, setShowRegistry] = useState(false);
+  const [editingProps, setEditingProps] = useState(false);
+  const [registryVersion, setRegistryVersion] = useState(0);
 
   const initialRender = useRef(true);
 
@@ -45,17 +46,6 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
     onSave(updated);
   }, [name, emoji, description, isTimed, duration, variants]);
 
-  const handleAddVariant = () => {
-    const text = newVariant.trim();
-    if (!text || variants.includes(text)) return;
-    setVariants([...variants, text]);
-    setNewVariant('');
-    addToRegistry(text);
-  };
-
-  const handleRemoveVariant = (v: string) => {
-    setVariants(variants.filter(x => x !== v));
-  };
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -174,52 +164,58 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
           <div>
             <label className="block text-sm text-themed-muted mb-2">{t.editor.variants}</label>
             <div className="flex flex-wrap gap-2">
-              {variants.map((v) => (
-                <div key={v} className="relative">
+              {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
+                const aIsEmoji = /^\p{Emoji}/u.test(a);
+                const bIsEmoji = /^\p{Emoji}/u.test(b);
+                if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                return a.localeCompare(b, language);
+              }).map((prop) => (
+                <span key={prop} className="relative inline-flex">
                   <button
-                    onClick={() => handleRemoveVariant(v)}
-                    className="px-3 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-muted hover:border-themed-accent transition-colors"
+                    onClick={() => {
+                      if (editingProps) return;
+                      const updated = variants.includes(prop)
+                        ? variants.filter(v => v !== prop)
+                        : [...variants, prop];
+                      setVariants(updated);
+                    }}
+                    className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                      variants.includes(prop)
+                        ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                        : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                    }`}
                   >
-                    {v}
-                    <span className="ml-1.5 text-themed-faint">×</span>
+                    {prop}
                   </button>
-                </div>
+                  {editingProps && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                    >✕</button>
+                  )}
+                </span>
               ))}
-              <input
-                type="text"
-                value={newVariant}
-                onChange={(e) => setNewVariant(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
-                onBlur={() => { if (newVariant.trim()) handleAddVariant(); }}
-                placeholder="+"
-                className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input
-                         text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
-              />
+              {editingProps && (
+                <input
+                  type="text"
+                  value={newVariant}
+                  onChange={(e) => setNewVariant(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariant.trim(); if (text) { addToRegistry(text); setNewVariant(''); setRegistryVersion(v => v + 1); } } }}
+                  onBlur={() => { const text = newVariant.trim(); if (text) { addToRegistry(text); setNewVariant(''); setRegistryVersion(v => v + 1); } }}
+                  placeholder="+"
+                  className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input
+                           text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
+                />
+              )}
               <button
-                onClick={() => setShowRegistry(!showRegistry)}
-                className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
-                  showRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
+                onClick={() => setEditingProps(!editingProps)}
+                className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
+                  editingProps ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                 }`}
               >
-                {showRegistry ? '▲' : '▼'}
+                {editingProps ? '✓' : '✎'}
               </button>
             </div>
-            {showRegistry && (() => {
-              const registry = loadVariantRegistry().filter(v => !variants.includes(v));
-              return registry.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-themed">
-                  {registry.map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setVariants([...variants, v])}
-                      className="px-3 py-1.5 text-xs rounded-full border border-dashed border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid transition-colors"
-                    >
-                      + {v}
-                    </button>
-                  ))}
-                </div>
-              ) : null;
-            })()}
           </div>
         </div>
 

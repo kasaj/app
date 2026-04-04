@@ -245,6 +245,21 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, sessionStart]);
 
+  // Properties used in current session (from stored core activities)
+  const usedPropertiesInSession = useMemo(() => {
+    const todayEntry = getDayEntry(getTodayDate());
+    const used = new Set<string>();
+    if (!todayEntry) return used;
+    todayEntry.activities.forEach((a) => {
+      if (new Date(a.completedAt || a.startedAt) >= new Date(sessionStart)) {
+        if (a.selectedVariant) {
+          a.selectedVariant.split(', ').forEach(p => used.add(p.trim()));
+        }
+      }
+    });
+    return used;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey, sessionStart]);
 
   const handleActivityClick = (activity: ActivityDefinition) => {
     flushMood();
@@ -488,8 +503,10 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                           editMode && hiddenProperties.has(prop)
                             ? 'opacity-30 border-themed bg-themed-input text-themed-faint'
                             : selectedProperties.has(prop)
-                              ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                              : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                              ? 'bg-themed-accent border-themed-accent text-themed-accent font-medium'
+                              : usedPropertiesInSession.has(prop)
+                                ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                                : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                         }`}
                       >
                         {prop}
