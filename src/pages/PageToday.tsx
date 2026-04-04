@@ -501,7 +501,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                   {(() => {
                     void registryVersion;
-                    const naladaActivity = allTranslated.find(a => a.core);
+                    // Always read fresh from storage to catch bubbled properties
+                    const freshActivities = loadActivities();
+                    const naladaActivity = freshActivities.find(a => a.core);
                     const storedProps = naladaActivity?.properties || [];
                     const configProps = getConfigProperties('nalada');
                     const activityProps = storedProps.length > 0 ? storedProps : configProps;
