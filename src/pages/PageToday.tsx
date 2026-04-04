@@ -409,10 +409,10 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               }, 100);
             }}
           >
-            {/* Beta: properties inside core card */}
+            {/* Beta: all in one card - properties first */}
             {viewMode === 'beta' && (
               <>
-                <div className="flex flex-wrap gap-1.5 mb-3 justify-center">
+                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                   {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
                     const aIsEmoji = /^\p{Emoji}/u.test(a);
                     const bIsEmoji = /^\p{Emoji}/u.test(b);
@@ -434,18 +434,30 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     </button>
                   ))}
                   {editMode && (
-                    <input
-                      type="text"
-                      value={newPropertyText}
-                      onChange={(e) => setNewPropertyText(e.target.value)}
+                    <input type="text" value={newPropertyText} onChange={(e) => setNewPropertyText(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newPropertyText.trim(); if (text) { addToRegistry(text); setNewPropertyText(''); } } }}
                       onBlur={() => { const text = newPropertyText.trim(); if (text) { addToRegistry(text); setNewPropertyText(''); } }}
-                      placeholder="+"
-                      className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
-                    />
+                      placeholder="+" className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent" />
                   )}
                 </div>
-                <div className="border-t border-themed mb-3" />
+                <div className="border-t border-themed mb-2" />
+                {/* Duration + activity bubbles */}
+                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
+                  {(() => {
+                    const durations = [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
+                    return durations.map(d => (
+                      <button key={`dur-${d}`} onClick={() => setSelectedDuration(selectedDuration === d ? null : d)}
+                        className={`px-2 py-1 text-xs rounded-full border transition-colors ${selectedDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'}`}>{d} min</button>
+                    ));
+                  })()}
+                  {allTranslated.filter(a => !a.core).map((activity) => (
+                    <button key={activity.type}
+                      onClick={() => { if (selectedDuration && activity.durationMinutes) { handleActivityClick({ ...activity, durationMinutes: selectedDuration }); } else { handleActivityClick(activity); } }}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'}`}
+                    >{activity.emoji} {activity.name}</button>
+                  ))}
+                </div>
+                <div className="border-t border-themed mb-2" />
               </>
             )}
             <div className="flex justify-center mb-3">
@@ -480,56 +492,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 </svg>
               </span>
             </div>
-          </div>
-          </div>
-          <div className="w-5" />
-          </div>
-
-          {/* Beta: activities card with bubbles + records */}
-          {viewMode === 'beta' && (
-            <div className="flex items-center gap-1 mt-1.5">
-            <div className="w-5" />
-            <div className="flex-1">
-            <div className="card p-3">
-              {/* Duration + activity bubbles */}
-              <div className="flex flex-wrap gap-1.5 justify-center">
-                {(() => {
-                  const durations = [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
-                  return durations.map(d => (
-                    <button
-                      key={`dur-${d}`}
-                      onClick={() => setSelectedDuration(selectedDuration === d ? null : d)}
-                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                        selectedDuration === d
-                          ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                          : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
-                      }`}
-                    >
-                      {d} min
-                    </button>
-                  ));
-                })()}
-                {allTranslated.filter(a => !a.core).map((activity) => (
-                  <button
-                    key={activity.type}
-                    onClick={() => {
-                      if (selectedDuration && activity.durationMinutes) {
-                        handleActivityClick({ ...activity, durationMinutes: selectedDuration });
-                      } else {
-                        handleActivityClick(activity);
-                      }
-                    }}
-                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                      completedTodayCounts.has(activity.type)
-                        ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                        : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
-                    }`}
-                  >
-                    {activity.emoji} {activity.name}
-                  </button>
-                ))}
-              </div>
-              {/* Separator + activity records */}
+            {/* Beta: activity records inside core card */}
+            {viewMode === 'beta' && allTranslated.filter(a => !a.core).length > 0 && (
               <div className="border-t border-themed mt-3 pt-2 space-y-1">
                 {allTranslated.filter(a => !a.core).map((activity) => (
                   <div key={activity.type} className="flex items-center gap-2 opacity-50">
@@ -559,11 +523,11 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   </div>
                 ))}
               </div>
-            </div>
-            </div>
-            <div className="w-5" />
-            </div>
-          )}
+            )}
+          </div>
+          </div>
+          <div className="w-5" />
+          </div>
 
           {/* All non-core activities - default view only */}
           {viewMode !== 'beta' && (
