@@ -101,8 +101,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   };
   const toggleProperty = (prop: string) => {
     setSelectedProperties(prev => {
-      const next = new Set(prev);
-      if (next.has(prop)) next.delete(prop); else next.add(prop);
+      const next = prev.has(prop) ? new Set<string>() : new Set([prop]);
       selectedPropertiesRef.current = next;
       return next;
     });
