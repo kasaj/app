@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Activity, ActivityDefinition, ActivityComment, Rating } from '../types';
 import { useLanguage } from '../i18n';
 import { generateId, addActivity, updateActivityById, getDayEntry, getTodayDate, findActivityById, deleteActivitiesByIds } from '../utils/storage';
-import { loadActivities, saveActivities, markActivityModified } from '../utils/activities';
+import { loadActivities, saveActivities, markActivityModified, getConfigProperties } from '../utils/activities';
 import { addToRegistry, removeFromRegistry, loadVariantRegistry } from '../utils/variantRegistry';
 import { getMoodEmoji } from '../utils/moodScale';
 import StarRating from './StarRating';
@@ -141,7 +141,10 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const ratingAfter = existingActivity?.ratingAfter || null;
   const rating = existingActivity?.rating || null;
 
-  const [localVariants, setLocalVariants] = useState<string[]>(activity.properties || []);
+  const [localVariants, setLocalVariants] = useState<string[]>(() => {
+    const stored = activity.properties || [];
+    return stored.length > 0 ? stored : getConfigProperties(activity.type);
+  });
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);

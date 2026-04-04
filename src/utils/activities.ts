@@ -196,6 +196,17 @@ const getDefaultFromConfig = (lang?: string): ActivityDefinition[] => {
   });
 };
 
+// Get config properties for an activity type
+export const getConfigProperties = (type: string): string[] => {
+  const config = getCachedConfig();
+  if (!config?.activities?.length) return [];
+  const lang = localStorage.getItem('pra_language') === 'en' ? 'en' : 'cs';
+  const item = config.activities.find((a: { type: string }) => a.type === type);
+  if (!item) return [];
+  const localized = lang === 'en' ? item.en : item.cs;
+  return localized?.properties || [];
+};
+
 // Merge config activities into existing user activities
 // - User-modified activities: keep user version
 // - Non-modified activities: update from config
