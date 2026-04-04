@@ -494,7 +494,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {viewMode === 'beta' && allTranslated.filter(a => !a.core).length > 0 && (
               <>
                 {/* Duration bubbles + Activity bubbles */}
-                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
+                <div className="flex flex-wrap gap-1.5 mb-2 mt-4 justify-center">
                   {(() => {
                     const durations = [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
                     return durations.map(d => (
