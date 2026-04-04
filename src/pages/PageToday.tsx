@@ -806,7 +806,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {viewMode === 'beta' && allTranslated.length > 0 && (
               <>
                 {/* Activity records - cumulative by icon, checkbox aligned with session checkbox */}
-                <div className="space-y-1 mt-3 flex flex-col items-center">
+                <div className="mt-3 flex flex-col items-center">
+                  <div className="flex flex-col items-end space-y-1">
                   {(() => {
                     const todayEntry = getDayEntry(getTodayDate());
                     const todayActivities = todayEntry?.activities || [];
@@ -866,6 +867,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       </div>
                     ));
                   })()}
+                  </div>
                 </div>
               </>
             )}
