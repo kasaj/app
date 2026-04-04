@@ -155,19 +155,40 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
 }
 
 function importPraFile(file: PraFile, currentLang: string): void {
-  // Activities - merge: keep existing user activities, add new ones from import
+  // Activities - merge: update existing + add new
   if (file.activities) {
     const existing = loadActivities();
-    const existingTypes = new Set(existing.map(a => a.type));
-    const imported: ActivityDefinition[] = file.activities.map((item) => ({
+    const importedMap = new Map(file.activities.map((item) => [item.type, {
       type: item.type, emoji: item.emoji, durationMinutes: item.durationMinutes,
       name: item.name, description: item.description, properties: item.properties,
       core: item.core,
-    }));
-    // Add only activities that don't already exist
-    const newActivities = imported.filter(a => !existingTypes.has(a.type));
-    if (newActivities.length > 0) {
-      saveActivities([...existing, ...newActivities]);
+    } as ActivityDefinition]));
+
+    if (file.type === 'config') {
+      // Config import: update ALL matching activities from import
+      const updated = existing.map(a => {
+        const fromImport = importedMap.get(a.type);
+        if (fromImport) {
+          importedMap.delete(a.type);
+          return { ...a, ...fromImport };
+        }
+        return a;
+      });
+      // Add remaining new activities
+      const newActivities = Array.from(importedMap.values());
+      saveActivities([...updated, ...newActivities]);
+      // Mark all imported as user-modified so they don't get overwritten by config sync
+      const allImportedTypes = file.activities.map(a => a.type);
+      let userMod: string[] = [];
+      try { const s = localStorage.getItem('pra_user_modified_activities'); if (s) userMod = JSON.parse(s); } catch { /* */ }
+      localStorage.setItem('pra_user_modified_activities', JSON.stringify([...new Set([...userMod, ...allImportedTypes])]));
+    } else {
+      // Backup import: only add new activities (don't overwrite existing)
+      const existingTypes = new Set(existing.map(a => a.type));
+      const newActivities = Array.from(importedMap.values()).filter(a => !existingTypes.has(a.type));
+      if (newActivities.length > 0) {
+        saveActivities([...existing, ...newActivities]);
+      }
     }
   }
   // User modified tracking - merge
