@@ -522,10 +522,11 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
 
               <div className="flex flex-wrap gap-2 justify-center">
-                {/* Show: activity properties (normal) or activity+core (edit) */}
+                {/* Show: activity properties (normal) or activity+config+core (edit) */}
                 {(() => {
                   void registryVersion;
                   const activityProps = localVariants;
+                  const configProps = getConfigProperties(activity.type);
                   const coreProps = (() => {
                     const all = loadActivities();
                     const core = all.find(a => a.core);
@@ -533,7 +534,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     return stored.length > 0 ? stored : getConfigProperties('nalada');
                   })();
                   const allProps = editingVariants
-                    ? [...new Set([...activityProps, ...coreProps])]
+                    ? [...new Set([...configProps, ...activityProps, ...coreProps])]
                     : activityProps.filter(prop => !hiddenProperties.has(prop));
                   return editingVariants
                     ? allProps.sort((a, b) => {
@@ -643,10 +644,11 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
               <div className="pt-2 space-y-3">
               <div className="flex flex-wrap gap-2 justify-center">
-                {/* Show: activity properties (normal) or activity+core (edit) */}
+                {/* Show: activity properties (normal) or activity+config+core (edit) */}
                 {(() => {
                   void registryVersion;
                   const activityProps = localVariants;
+                  const configProps = getConfigProperties(activity.type);
                   const coreProps = (() => {
                     const all = loadActivities();
                     const core = all.find(a => a.core);
@@ -654,7 +656,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     return stored.length > 0 ? stored : getConfigProperties('nalada');
                   })();
                   const allProps = editingVariants
-                    ? [...new Set([...activityProps, ...coreProps])]
+                    ? [...new Set([...configProps, ...activityProps, ...coreProps])]
                     : activityProps.filter(prop => !hiddenProperties.has(prop));
                   return editingVariants
                     ? allProps.sort((a, b) => {
@@ -791,10 +793,11 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
 
               <div className="flex flex-wrap gap-2 justify-center">
-                {/* Show: activity properties (normal) or activity+core (edit) */}
+                {/* Show: activity properties (normal) or activity+config+core (edit) */}
                 {(() => {
                   void registryVersion;
                   const activityProps = localVariants;
+                  const configProps = getConfigProperties(activity.type);
                   const coreProps = (() => {
                     const all = loadActivities();
                     const core = all.find(a => a.core);
@@ -802,7 +805,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     return stored.length > 0 ? stored : getConfigProperties('nalada');
                   })();
                   const allProps = editingVariants
-                    ? [...new Set([...activityProps, ...coreProps])]
+                    ? [...new Set([...configProps, ...activityProps, ...coreProps])]
                     : activityProps.filter(prop => !hiddenProperties.has(prop));
                   return editingVariants
                     ? allProps.sort((a, b) => {
