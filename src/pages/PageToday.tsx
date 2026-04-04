@@ -29,7 +29,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [editMode, setEditMode] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
   const viewMode = localStorage.getItem('pra_view_mode') || 'default';
-  const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [customTime, setCustomTime] = useState<string | null>(null);
   const customTimeRef = useRef<string | null>(null);
   const setCustomTimeSync = (t: string | null) => { customTimeRef.current = t; setCustomTime(t); };
@@ -440,24 +439,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       placeholder="+" className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent" />
                   )}
                 </div>
-                <div className="border-t border-themed mb-2" />
-                {/* Duration + activity bubbles */}
-                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
-                  {(() => {
-                    const durations = [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
-                    return durations.map(d => (
-                      <button key={`dur-${d}`} onClick={() => setSelectedDuration(selectedDuration === d ? null : d)}
-                        className={`px-2 py-1 text-xs rounded-full border transition-colors ${selectedDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'}`}>{d} min</button>
-                    ));
-                  })()}
-                  {allTranslated.filter(a => !a.core).map((activity) => (
-                    <button key={activity.type}
-                      onClick={() => { if (selectedDuration && activity.durationMinutes) { handleActivityClick({ ...activity, durationMinutes: selectedDuration }); } else { handleActivityClick(activity); } }}
-                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'}`}
-                    >{activity.emoji} {activity.name}</button>
-                  ))}
-                </div>
-                <div className="border-t border-themed mb-2" />
               </>
             )}
             <div className="flex justify-center mb-3">
@@ -492,37 +473,70 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 </svg>
               </span>
             </div>
-            {/* Beta: activity records inside core card */}
+            {/* Beta: separator + activity bubbles with time + session total + records */}
             {viewMode === 'beta' && allTranslated.filter(a => !a.core).length > 0 && (
-              <div className="border-t border-themed mt-3 pt-2 space-y-1">
-                {allTranslated.filter(a => !a.core).map((activity) => (
-                  <div key={activity.type} className="flex items-center gap-2 opacity-50">
-                    <span className="text-sm">{activity.emoji}</span>
-                    <span className="text-xs text-themed-muted flex-1">{activity.name}</span>
-                    {activity.durationMinutes ? (
-                      (totalTimePerActivity.get(activity.type) || 0) > 0 && (
-                        <span className="text-xs text-themed-faint">
-                          {(() => { const s = totalTimePerActivity.get(activity.type) || 0; const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h} h${m > 0 ? ` ${m} m` : ''}` : `${m} m`; })()}
+              <>
+                <div className="border-t border-themed mt-3 pt-2" />
+                {/* Activity bubbles with duration */}
+                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
+                  {allTranslated.filter(a => !a.core).map((activity) => (
+                    <button key={activity.type}
+                      onClick={() => handleActivityClick(activity)}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'}`}
+                    >
+                      {activity.emoji} {activity.name}
+                      {activity.durationMinutes && (
+                        <span className={`ml-1 ${completedTodayCounts.has(activity.type) ? '' : 'text-themed-faint'}`}>
+                          {activity.durationMinutes} m
                         </span>
-                      )
-                    ) : (
-                      (totalCountPerActivity.get(activity.type) || 0) > 0 && (
-                        <span className="text-xs text-themed-faint">{totalCountPerActivity.get(activity.type)}</span>
-                      )
-                    )}
-                    {(completedTodayCounts.get(activity.type) || 0) >= 1 && (
-                      <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get(activity.type)}</span>
-                    )}
-                    <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
-                      completedTodayCounts.has(activity.type) ? '' : 'opacity-20'
-                    }`} style={{ backgroundColor: completedTodayCounts.has(activity.type) ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
-                      <svg className="w-2.5 h-2.5" style={{ color: completedTodayCounts.has(activity.type) ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </span>
-                  </div>
-                ))}
-              </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {/* Session total time */}
+                {(() => {
+                  const sessionTotal = allTranslated.filter(a => !a.core).reduce((sum, a) => {
+                    const count = completedTodayCounts.get(a.type) || 0;
+                    const dur = a.durationMinutes || 1;
+                    return sum + (count * dur);
+                  }, 0);
+                  return sessionTotal > 0 ? (
+                    <div className="text-center text-xs text-themed-accent-solid mb-2">
+                      {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
+                    </div>
+                  ) : null;
+                })()}
+                {/* Activity records */}
+                <div className="space-y-1">
+                  {allTranslated.filter(a => !a.core).map((activity) => (
+                    <div key={activity.type} className="flex items-center gap-2 opacity-50">
+                      <span className="text-sm">{activity.emoji}</span>
+                      <span className="text-xs text-themed-muted flex-1">{activity.name}</span>
+                      {activity.durationMinutes ? (
+                        (totalTimePerActivity.get(activity.type) || 0) > 0 && (
+                          <span className="text-xs text-themed-faint">
+                            {(() => { const s = totalTimePerActivity.get(activity.type) || 0; const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h} h${m > 0 ? ` ${m} m` : ''}` : `${m} m`; })()}
+                          </span>
+                        )
+                      ) : (
+                        (totalCountPerActivity.get(activity.type) || 0) > 0 && (
+                          <span className="text-xs text-themed-faint">{totalCountPerActivity.get(activity.type)}</span>
+                        )
+                      )}
+                      {(completedTodayCounts.get(activity.type) || 0) >= 1 && (
+                        <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get(activity.type)}</span>
+                      )}
+                      <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
+                        completedTodayCounts.has(activity.type) ? '' : 'opacity-20'
+                      }`} style={{ backgroundColor: completedTodayCounts.has(activity.type) ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
+                        <svg className="w-2.5 h-2.5" style={{ color: completedTodayCounts.has(activity.type) ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
           </div>
