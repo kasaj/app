@@ -462,10 +462,14 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             <div className="flex items-center justify-between gap-2 mt-2">
               {/* Beta: session total on left */}
               {viewMode === 'beta' ? (() => {
-                const sessionTotal = (completedTodayCounts.get('nalada') || 0) + allTranslated.filter(a => !a.core).reduce((sum, a) => {
-                  const count = completedTodayCounts.get(a.type) || 0;
-                  const dur = a.durationMinutes || 1;
-                  return sum + (count * dur);
+                const todayEntry = getDayEntry(getTodayDate());
+                const ss = localStorage.getItem('pra_session_start') || '';
+                const sessionActivities = todayEntry?.activities.filter(act =>
+                  new Date(act.completedAt || act.startedAt) >= new Date(ss)
+                ) || [];
+                const sessionTotal = sessionActivities.reduce((sum, act) => {
+                  const secs = act.actualDurationSeconds || (act.durationMinutes ? act.durationMinutes * 60 : 60);
+                  return sum + Math.round(secs / 60);
                 }, 0);
                 return (
                   <span className={`text-sm px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
