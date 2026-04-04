@@ -843,8 +843,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       rows.push({ key: activity.type, emoji: activity.emoji, label: activity.name, total, totalMin, sessionCount });
                     });
                     return rows.map(row => (
-                      <div key={row.key} className="flex items-center gap-2 opacity-50">
-                        <span className="flex-1" />
+                      <div key={row.key} className="flex items-center gap-2 opacity-50 justify-center">
                         <span className="text-sm">{row.emoji}</span>
                         {row.total > 0 && (
                           <span className="text-xs text-themed-faint">{row.total}</span>
