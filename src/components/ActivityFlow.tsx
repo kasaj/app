@@ -145,6 +145,20 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
+  const [hiddenProperties, setHiddenProperties] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('pra_hidden_properties');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+  const toggleHideProperty = (prop: string) => {
+    setHiddenProperties(prev => {
+      const next = new Set(prev);
+      if (next.has(prop)) next.delete(prop); else next.add(prop);
+      localStorage.setItem('pra_hidden_properties', JSON.stringify([...next]));
+      return next;
+    });
+  };
 
   const persistVariants = useCallback((updated: string[]) => {
     const all = loadActivities();
@@ -486,11 +500,11 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   const bIsEmoji = /^\p{Emoji}/u.test(b);
                   if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
                   return a.localeCompare(b, language);
-                }).map((prop) => (
+                }).filter(prop => editingVariants || !hiddenProperties.has(prop)).map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        if (editingVariants) return;
+                        if (editingVariants) { toggleHideProperty(prop); return; }
                         const updated = localVariants.includes(prop)
                           ? localVariants.filter(v => v !== prop)
                           : [...localVariants, prop];
@@ -498,9 +512,11 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                         persistVariants(updated);
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        localVariants.includes(prop)
-                          ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                        editingVariants && hiddenProperties.has(prop)
+                          ? 'opacity-30 border-themed bg-themed-input text-themed-faint'
+                          : localVariants.includes(prop)
+                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                            : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                       }`}
                     >{prop}</button>
                     {editingVariants && (
@@ -675,11 +691,11 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   const bIsEmoji = /^\p{Emoji}/u.test(b);
                   if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
                   return a.localeCompare(b, language);
-                }).map((prop) => (
+                }).filter(prop => editingVariants || !hiddenProperties.has(prop)).map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        if (editingVariants) return;
+                        if (editingVariants) { toggleHideProperty(prop); return; }
                         const updated = localVariants.includes(prop)
                           ? localVariants.filter(v => v !== prop)
                           : [...localVariants, prop];
@@ -687,9 +703,11 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                         persistVariants(updated);
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        localVariants.includes(prop)
-                          ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                        editingVariants && hiddenProperties.has(prop)
+                          ? 'opacity-30 border-themed bg-themed-input text-themed-faint'
+                          : localVariants.includes(prop)
+                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                            : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                       }`}
                     >{prop}</button>
                     {editingVariants && (
