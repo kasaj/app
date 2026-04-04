@@ -548,13 +548,13 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     <button
                       onClick={() => {
                         if (editingVariants) {
-                          // Toggle active/disabled
-                          if (localVariants.includes(prop)) {
-                            // Deactivate: add to disabled
+                          const isActive = localVariants.includes(prop) && !disabledVariants.has(prop);
+                          if (isActive) {
+                            // Deactivate
                             setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
                           } else {
-                            // Activate from core: add to local + remove from disabled
-                            setLocalVariants(prev => [...prev, prop]);
+                            // Activate
+                            if (!localVariants.includes(prop)) setLocalVariants(prev => [...prev, prop]);
                             setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
                           }
                         } else {
@@ -669,13 +669,13 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     <button
                       onClick={() => {
                         if (editingVariants) {
-                          // Toggle active/disabled
-                          if (localVariants.includes(prop)) {
-                            // Deactivate: add to disabled
+                          const isActive = localVariants.includes(prop) && !disabledVariants.has(prop);
+                          if (isActive) {
+                            // Deactivate
                             setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
                           } else {
-                            // Activate from core: add to local + remove from disabled
-                            setLocalVariants(prev => [...prev, prop]);
+                            // Activate
+                            if (!localVariants.includes(prop)) setLocalVariants(prev => [...prev, prop]);
                             setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
                           }
                         } else {
@@ -817,13 +817,13 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     <button
                       onClick={() => {
                         if (editingVariants) {
-                          // Toggle active/disabled
-                          if (localVariants.includes(prop)) {
-                            // Deactivate: add to disabled
+                          const isActive = localVariants.includes(prop) && !disabledVariants.has(prop);
+                          if (isActive) {
+                            // Deactivate
                             setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
                           } else {
-                            // Activate from core: add to local + remove from disabled
-                            setLocalVariants(prev => [...prev, prop]);
+                            // Activate
+                            if (!localVariants.includes(prop)) setLocalVariants(prev => [...prev, prop]);
                             setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
                           }
                         } else {
