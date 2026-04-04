@@ -10,7 +10,6 @@ import {
   getConfigProperties,
 } from '../utils/activities';
 import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById, findActivityById } from '../utils/storage';
-import { loadVariantRegistry, addToRegistry, removeFromRegistry } from '../utils/variantRegistry';
 import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
@@ -430,7 +429,13 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           {/* Properties - above core for default, inside core for beta */}
           {viewMode !== 'beta' && (
           <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
-            {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
+            {(() => {
+              void registryVersion;
+              const fresh = loadActivities();
+              const core = fresh.find(a => a.core);
+              const coreProps = core?.properties || getConfigProperties('nalada');
+              return coreProps;
+            })().slice().sort((a, b) => {
               const aIsEmoji = /^\p{Emoji}/u.test(a);
               const bIsEmoji = /^\p{Emoji}/u.test(b);
               if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
@@ -451,7 +456,17 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 </button>
                 {editMode && (
                   <button
-                    onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const all = loadActivities();
+                      const coreIdx = all.findIndex(a => a.core);
+                      if (coreIdx >= 0 && all[coreIdx].properties?.includes(prop)) {
+                        all[coreIdx] = { ...all[coreIdx], properties: all[coreIdx].properties!.filter(p => p !== prop) };
+                        saveActivities(all);
+                        markActivityModified(all[coreIdx].type);
+                      }
+                      setRegistryVersion(v => v + 1);
+                    }}
                     className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
                   >✕</button>
                 )}
@@ -467,14 +482,37 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     e.preventDefault();
                     const text = newPropertyText.trim();
                     if (text) {
-                      addToRegistry(text);
+                      const all = loadActivities();
+                      const coreIdx = all.findIndex(a => a.core);
+                      if (coreIdx >= 0) {
+                        const coreProps = all[coreIdx].properties || [];
+                        if (!coreProps.includes(text)) {
+                          all[coreIdx] = { ...all[coreIdx], properties: [...coreProps, text] };
+                          saveActivities(all);
+                          markActivityModified(all[coreIdx].type);
+                        }
+                      }
                       setNewPropertyText('');
+                      setRegistryVersion(v => v + 1);
                     }
                   }
                 }}
                 onBlur={() => {
                   const text = newPropertyText.trim();
-                  if (text) { addToRegistry(text); setNewPropertyText(''); }
+                  if (text) {
+                    const all = loadActivities();
+                    const coreIdx = all.findIndex(a => a.core);
+                    if (coreIdx >= 0) {
+                      const coreProps = all[coreIdx].properties || [];
+                      if (!coreProps.includes(text)) {
+                        all[coreIdx] = { ...all[coreIdx], properties: [...coreProps, text] };
+                        saveActivities(all);
+                        markActivityModified(all[coreIdx].type);
+                      }
+                    }
+                    setNewPropertyText('');
+                    setRegistryVersion(v => v + 1);
+                  }
                 }}
                 placeholder="+"
                 className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input
@@ -507,7 +545,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     const storedProps = naladaActivity?.properties || [];
                     const configProps = getConfigProperties('nalada');
                     const activityProps = storedProps.length > 0 ? storedProps : configProps;
-                    return editMode ? [...new Set([...activityProps, ...loadVariantRegistry()])] : activityProps;
+                    return activityProps;
                   })().slice().sort((a, b) => {
                     const aIsEmoji = /^\p{Emoji}/u.test(a);
                     const bIsEmoji = /^\p{Emoji}/u.test(b);
@@ -531,7 +569,18 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       </button>
                       {editMode && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Remove from core activity properties
+                            const all = loadActivities();
+                            const coreIdx = all.findIndex(a => a.core);
+                            if (coreIdx >= 0 && all[coreIdx].properties?.includes(prop)) {
+                              all[coreIdx] = { ...all[coreIdx], properties: all[coreIdx].properties!.filter(p => p !== prop) };
+                              saveActivities(all);
+                              markActivityModified(all[coreIdx].type);
+                            }
+                            setRegistryVersion(v => v + 1);
+                          }}
                           className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
                         >✕</button>
                       )}
@@ -539,8 +588,16 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   ))}
                   {editMode && (
                     <input type="text" value={newPropertyText} onChange={(e) => setNewPropertyText(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newPropertyText.trim(); if (text) { addToRegistry(text); setNewPropertyText(''); } } }}
-                      onBlur={() => { const text = newPropertyText.trim(); if (text) { addToRegistry(text); setNewPropertyText(''); } }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newPropertyText.trim(); if (text) {
+                        const all = loadActivities(); const coreIdx = all.findIndex(a => a.core);
+                        if (coreIdx >= 0) { const cp = all[coreIdx].properties || []; if (!cp.includes(text)) { all[coreIdx] = { ...all[coreIdx], properties: [...cp, text] }; saveActivities(all); markActivityModified(all[coreIdx].type); } }
+                        setNewPropertyText(''); setRegistryVersion(v => v + 1);
+                      } } }}
+                      onBlur={() => { const text = newPropertyText.trim(); if (text) {
+                        const all = loadActivities(); const coreIdx = all.findIndex(a => a.core);
+                        if (coreIdx >= 0) { const cp = all[coreIdx].properties || []; if (!cp.includes(text)) { all[coreIdx] = { ...all[coreIdx], properties: [...cp, text] }; saveActivities(all); markActivityModified(all[coreIdx].type); } }
+                        setNewPropertyText(''); setRegistryVersion(v => v + 1);
+                      } }}
                       placeholder="+" className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent" />
                   )}
                 </div>
