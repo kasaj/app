@@ -766,76 +766,58 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {/* Beta: separator + activity bubbles with time + session total + records */}
             {viewMode === 'beta' && allTranslated.length > 0 && (
               <>
-                {/* Activity records */}
+                {/* Activity records - cumulative by icon */}
                 <div className="space-y-1 mt-3">
-                  {allTranslated.map((activity) => {
-                    // For core activity, show individual records with property emojis
-                    if (activity.core) {
-                      const todayEntry = getDayEntry(getTodayDate());
-                      const coreRecords = (todayEntry?.activities || [])
-                        .filter(a => a.type === activity.type)
-                        .sort((a, b) => new Date(b.completedAt || b.startedAt).getTime() - new Date(a.completedAt || a.startedAt).getTime());
-                      if (coreRecords.length === 0) {
-                        return (
-                          <div key={activity.type} className="flex items-center gap-2 opacity-50">
-                            <span className="text-sm">{activity.emoji}</span>
-                            <span className="text-xs text-themed-muted flex-1">{activity.name}</span>
-                            <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center opacity-20`} style={{ backgroundColor: 'var(--text-faint)' }}>
-                              <svg className="w-2.5 h-2.5" style={{ color: 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </span>
-                          </div>
-                        );
-                      }
-                      return coreRecords.map((record) => {
-                        const recordEmoji = getRecordEmoji(record.selectedVariant, activity.emoji);
-                        const inSession = new Date(record.completedAt || record.startedAt) >= new Date(sessionStart);
-                        return (
-                          <div key={record.id} className="flex items-center gap-2 opacity-50">
-                            <span className="text-sm">{recordEmoji}</span>
-                            <span className="text-xs text-themed-muted flex-1">{activity.name}</span>
-                            <span className="text-xs text-themed-faint">
-                              {new Date(record.completedAt || record.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                            <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${inSession ? '' : 'opacity-20'}`}
-                              style={{ backgroundColor: inSession ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
-                              <svg className="w-2.5 h-2.5" style={{ color: inSession ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </span>
-                          </div>
-                        );
+                  {(() => {
+                    const todayEntry = getDayEntry(getTodayDate());
+                    const todayActivities = todayEntry?.activities || [];
+                    // Build cumulative rows: group by emoji
+                    const rows: { key: string; emoji: string; label: string; total: number; sessionCount: number }[] = [];
+                    // Core activity: group by record emoji
+                    const coreActivity = allTranslated.find(a => a.core);
+                    if (coreActivity) {
+                      const coreRecords = todayActivities.filter(a => a.type === coreActivity.type);
+                      const byEmoji = new Map<string, { total: number; sessionCount: number }>();
+                      coreRecords.forEach(r => {
+                        const emoji = getRecordEmoji(r.selectedVariant, coreActivity.emoji);
+                        const entry = byEmoji.get(emoji) || { total: 0, sessionCount: 0 };
+                        entry.total++;
+                        if (new Date(r.completedAt || r.startedAt) >= new Date(sessionStart)) entry.sessionCount++;
+                        byEmoji.set(emoji, entry);
                       });
+                      if (byEmoji.size === 0) {
+                        rows.push({ key: coreActivity.type, emoji: coreActivity.emoji, label: coreActivity.name, total: 0, sessionCount: 0 });
+                      } else {
+                        byEmoji.forEach((val, emoji) => {
+                          rows.push({ key: `core_${emoji}`, emoji, label: coreActivity.name, total: val.total, sessionCount: val.sessionCount });
+                        });
+                      }
                     }
-                    return (
-                    <div key={activity.type} className="flex items-center gap-2 opacity-50">
-                      <span className="text-sm">{activity.emoji}</span>
-                      <span className="text-xs text-themed-muted flex-1">{activity.name}</span>
-                      {activity.durationMinutes ? (
-                        (totalTimePerActivity.get(activity.type) || 0) > 0 && (
-                          <span className="text-xs text-themed-faint">
-                            {(() => { const s = totalTimePerActivity.get(activity.type) || 0; const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h} h${m > 0 ? ` ${m} m` : ''}` : `${m} m`; })()}
-                          </span>
-                        )
-                      ) : (
-                        (totalCountPerActivity.get(activity.type) || 0) > 0 && (
-                          <span className="text-xs text-themed-faint">{totalCountPerActivity.get(activity.type)}</span>
-                        )
-                      )}
-                      {(completedTodayCounts.get(activity.type) || 0) >= 1 && (
-                        <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get(activity.type)}</span>
-                      )}
-                      <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
-                        completedTodayCounts.has(activity.type) ? '' : 'opacity-20'
-                      }`} style={{ backgroundColor: completedTodayCounts.has(activity.type) ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
-                        <svg className="w-2.5 h-2.5" style={{ color: completedTodayCounts.has(activity.type) ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </span>
-                    </div>
-                    );
-                  })}
+                    // Non-core activities
+                    allTranslated.filter(a => !a.core).forEach(activity => {
+                      const total = totalCountPerActivity.get(activity.type) || 0;
+                      const sessionCount = completedTodayCounts.get(activity.type) || 0;
+                      rows.push({ key: activity.type, emoji: activity.emoji, label: activity.name, total, sessionCount });
+                    });
+                    return rows.map(row => (
+                      <div key={row.key} className="flex items-center gap-2 opacity-50">
+                        <span className="text-sm">{row.emoji}</span>
+                        <span className="text-xs text-themed-muted flex-1">
+                          {row.total > 0 ? `${language === 'cs' ? 'celkem' : 'total'} ${row.total}` : row.label}
+                        </span>
+                        {row.sessionCount > 0 && (
+                          <span className="text-xs font-medium text-themed-accent-solid">{row.sessionCount}</span>
+                        )}
+                        <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
+                          row.sessionCount > 0 ? '' : 'opacity-20'
+                        }`} style={{ backgroundColor: row.sessionCount > 0 ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
+                          <svg className="w-2.5 h-2.5" style={{ color: row.sessionCount > 0 ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                      </div>
+                    ));
+                  })()}
                 </div>
                 {/* Session total bubble with dokoncit checkbox */}
                 <div className="flex justify-center mt-2">
