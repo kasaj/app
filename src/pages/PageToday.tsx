@@ -345,27 +345,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
             />
           </div>
-          {/* Beta: activities as bubbles above properties */}
-          {viewMode === 'beta' && (
-            <>
-              <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
-                {allTranslated.filter(a => !a.core).map((activity) => (
-                  <button
-                    key={activity.type}
-                    onClick={() => handleActivityClick(activity)}
-                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                      completedTodayCounts.has(activity.type)
-                        ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                        : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
-                    }`}
-                  >
-                    {activity.emoji} {activity.name}
-                  </button>
-                ))}
-              </div>
-              <div className="border-t border-themed mb-1.5" />
-            </>
-          )}
           {/* Properties above core */}
           <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
             {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
@@ -415,6 +394,27 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             )}
           </div>
 
+          {/* Beta: activities as bubbles below properties */}
+          {viewMode === 'beta' && (
+            <>
+              <div className="border-t border-themed mb-1.5 mt-1.5" />
+              <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
+                {allTranslated.filter(a => !a.core).map((activity) => (
+                  <button
+                    key={activity.type}
+                    onClick={() => handleActivityClick(activity)}
+                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                      completedTodayCounts.has(activity.type)
+                        ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                        : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                    }`}
+                  >
+                    {activity.emoji} {activity.name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           {/* Core activity centered */}
           <div className="flex items-center gap-1">
           <div className="w-5" />
@@ -459,28 +459,22 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 </svg>
               </span>
             </div>
-          </div>
-          </div>
-          <div className="w-5" />
-          </div>
-
-          {/* All non-core activities */}
-          {viewMode === 'beta' ? (
-            <div className="mt-1.5 space-y-1.5">
-              {allTranslated.filter(a => !a.core).map((activity) => (
-                <div key={activity.type} className="card px-3 py-2 opacity-60">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{activity.emoji}</span>
-                    <span className="font-serif text-themed-muted flex-1 text-sm">{activity.name}</span>
+            {/* Beta: activities inside core card */}
+            {viewMode === 'beta' && allTranslated.filter(a => !a.core).length > 0 && (
+              <div className="mt-3 pt-3 border-t border-themed space-y-1.5">
+                {allTranslated.filter(a => !a.core).map((activity) => (
+                  <div key={activity.type} className="flex items-center gap-2 opacity-50">
+                    <span className="text-sm">{activity.emoji}</span>
+                    <span className="text-xs text-themed-muted flex-1">{activity.name}</span>
                     {activity.durationMinutes ? (
                       (totalTimePerActivity.get(activity.type) || 0) > 0 && (
-                        <span className="text-xs text-themed-faint opacity-50">
+                        <span className="text-xs text-themed-faint">
                           {(() => { const s = totalTimePerActivity.get(activity.type) || 0; const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h} h${m > 0 ? ` ${m} m` : ''}` : `${m} m`; })()}
                         </span>
                       )
                     ) : (
                       (totalCountPerActivity.get(activity.type) || 0) > 0 && (
-                        <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get(activity.type)}</span>
+                        <span className="text-xs text-themed-faint">{totalCountPerActivity.get(activity.type)}</span>
                       )
                     )}
                     {(completedTodayCounts.get(activity.type) || 0) >= 1 && (
@@ -494,10 +488,16 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       </svg>
                     </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
+                ))}
+              </div>
+            )}
+          </div>
+          </div>
+          <div className="w-5" />
+          </div>
+
+          {/* All non-core activities - default view only */}
+          {viewMode !== 'beta' && (
             <div className="mt-1.5 space-y-1.5">
               {allTranslated.filter(a => !a.core).map((activity, idx, arr) => (
                 <div key={activity.type} className="flex items-center gap-1">
