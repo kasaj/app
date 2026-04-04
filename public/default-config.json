@@ -85,12 +85,12 @@
       "cs": {
         "name": "Prostor",
         "description": "Zaznamenej svůj aktuální stav",
-        "properties": []
+        "properties": ["❗️","☀️", "☕️", "🍵","🐕","🍩","💩","💨 Dlouhý výdech, uklidnění", "Nový návyk", "Aha", "Pocit", "Společnost", "👫 Rodina", "🙏 Fail", "👌 Gesto klidu", "💻 Práce", "🏡 Práce", "😴 Spánek 8h", "🏃‍♂️ Sport", "🌘 Stín", "😨 Strach", "🥱 Únava", "📜 Záměr", "🤗 Obejmutí", "🍲 Jídlo", "💭 Myšlenka", "📝 Poznámka", "🔭 Pozornost", "🚶‍♂️ Procházka","🌅 Probuzení", "🛌 Usínání","💤 Sen"]
       },
       "en": {
         "name": "Space",
         "description": "Record your current state",
-        "properties": []
+        "properties": ["💨 Long exhale, calming", "New habit", "Aha", "Feeling", "Experience", "Society", "🙏 Fail", "👌 Calm gesture", "💻 Work", "🏡 Work", "🍩 Sweet", "😴 Sleep 8h", "🏋️ Strength", "🏃‍♂️ Sport", "🌘 Shadow", "😨 Fear", "🥱 Fatigue", "📜 Intention", "🤗 Embrace", "☀️", "☕️", "🍵", "♟️", "🌅 Waking up", "🍲", "🐕", "👫 Family", "💤 Dream", "💩", "💭 Thought", "📝 Note", "🔭 Attention", "🚶‍♂️ Walk", "🛌 Falling asleep"]
       }
     },
     {

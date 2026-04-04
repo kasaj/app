@@ -7,7 +7,7 @@ import { DayEntry, ActivityDefinition } from '../types';
 import { loadMoodScale, saveMoodScale, getDefaultMoodScale, MoodScaleItem } from '../utils/moodScale';
 import { Theme, loadTheme, saveTheme } from '../utils/theme';
 import { getCachedConfig } from '../utils/config';
-import { loadVariantRegistry, removeFromRegistry, addToRegistry, saveVariantRegistry, rebuildRegistry, markModified as markRegistryModified } from '../utils/variantRegistry';
+import { loadVariantRegistry, saveVariantRegistry, rebuildRegistry, markModified as markRegistryModified } from '../utils/variantRegistry';
 
 interface ExportActivity {
   type: string;
@@ -314,14 +314,9 @@ export default function PageSettings() {
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
   const [exportTab, setExportTab] = useState<'backup' | 'config'>('backup');
   const [infoTab, setInfoTab] = useState<'info' | 'install'>('info');
-  const [viewMode, setViewMode] = useState<'default' | 'beta'>(() =>
-    (localStorage.getItem('pra_view_mode') as 'default' | 'beta') || 'default'
-  );
   const [theme, setThemeState] = useState<Theme>(loadTheme);
   const [moodScale, setMoodScale] = useState<MoodScaleItem[]>(() => loadMoodScale());
   const [editingMoodIdx, setEditingMoodIdx] = useState<number | null>(null);
-  const [variantRegistry, setVariantRegistry] = useState<string[]>(() => loadVariantRegistry());
-  const [newProperty, setNewProperty] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleThemeChange = (newTheme: Theme) => {
@@ -700,93 +695,6 @@ export default function PageSettings() {
                   {language === 'cs' ? item.labelCs : item.labelEn}
                 </span>
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Variant registry */}
-        <section className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif text-lg text-themed-primary">
-              {language === 'cs' ? 'Vlastnosti' : 'Properties'}
-            </h2>
-            <button
-              onClick={() => { const rebuilt = rebuildRegistry(); setVariantRegistry(rebuilt); }}
-              className="text-xs text-themed-faint hover:text-themed-muted"
-            >
-              Reset
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {variantRegistry.map((v) => (
-              <button
-                key={v}
-                onClick={() => {
-                  removeFromRegistry(v);
-                  setVariantRegistry(prev => prev.filter(x => x !== v));
-                }}
-                className="px-3 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-muted hover:border-themed-warn transition-colors"
-              >
-                {v}
-                <span className="ml-1.5 text-themed-faint">×</span>
-              </button>
-            ))}
-            <input
-              type="text"
-              value={newProperty}
-              onChange={(e) => setNewProperty(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const text = newProperty.trim();
-                  if (text && !variantRegistry.includes(text)) {
-                    addToRegistry(text);
-                    setVariantRegistry(prev => [...prev, text].sort((a, b) => a.localeCompare(b, language)));
-                    setNewProperty('');
-                  }
-                }
-              }}
-              placeholder="+"
-              className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input
-                       text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
-            />
-          </div>
-          <div className="flex justify-end mt-3">
-            {variantRegistry.length > 0 && (
-              <button
-                onClick={() => {
-                  saveVariantRegistry([]);
-                  markRegistryModified();
-                  setVariantRegistry([]);
-                }}
-                className="text-xs text-themed-faint hover:text-themed-warn"
-              >
-                {language === 'cs' ? 'Smazat vše' : 'Delete all'}
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* View */}
-        <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-4">View</h2>
-          <div className="flex gap-3">
-            {(['default', 'beta'] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => {
-                  setViewMode(mode);
-                  localStorage.setItem('pra_view_mode', mode);
-                }}
-                className="flex-1 py-3 px-2 rounded-xl border transition-colors text-sm"
-                style={{
-                  backgroundColor: viewMode === mode ? 'var(--accent-bg)' : 'var(--bg-input)',
-                  borderColor: viewMode === mode ? 'var(--accent-border)' : 'var(--border-light)',
-                  color: viewMode === mode ? 'var(--accent-text)' : 'var(--text-muted)',
-                }}
-              >
-                {mode === 'default' ? 'Default' : 'Beta'}
-              </button>
             ))}
           </div>
         </section>

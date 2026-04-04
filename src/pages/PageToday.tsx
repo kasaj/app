@@ -7,6 +7,7 @@ import {
   deleteActivity,
   getTranslatedActivity,
   markActivityModified,
+  getConfigProperties,
 } from '../utils/activities';
 import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById, findActivityById } from '../utils/storage';
 import { loadVariantRegistry, addToRegistry, removeFromRegistry } from '../utils/variantRegistry';
@@ -28,7 +29,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editMode, setEditMode] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
-  const viewMode = localStorage.getItem('pra_view_mode') || 'default';
+  const viewMode = localStorage.getItem('pra_view_mode') || 'beta';
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const selectedDurationRef = useRef<number | null>(null);
   const setSelectedDurationSync = (d: number | null) => { selectedDurationRef.current = d; setSelectedDuration(d); };
@@ -489,10 +490,10 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               }, 100);
             }}
           >
-            {/* Beta: properties */}
+            {/* Beta: properties from nalada config */}
             {viewMode === 'beta' && (
               <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
-                  {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
+                  {(() => { void registryVersion; const configProps = getConfigProperties('nalada'); return editMode ? [...new Set([...configProps, ...loadVariantRegistry()])] : configProps; })().slice().sort((a, b) => {
                     const aIsEmoji = /^\p{Emoji}/u.test(a);
                     const bIsEmoji = /^\p{Emoji}/u.test(b);
                     if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
