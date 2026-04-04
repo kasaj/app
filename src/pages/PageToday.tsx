@@ -321,21 +321,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     <div className={`page-container ${viewMode === 'beta' ? 'min-h-screen flex flex-col' : ''}`}>
       <div className="flex items-center justify-between mb-1.5">
           <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
-          {viewMode === 'beta' ? (
-            <button
-              onClick={() => setEditMode(!editMode)}
-              className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
-              style={{
-                backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
-                color: editMode ? 'var(--accent-text-on-solid)' : 'var(--text-secondary)',
-              }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </button>
-          ) : (
+          {viewMode !== 'beta' && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
@@ -383,7 +369,25 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
         </div>
       {(
         <section className={viewMode === 'beta' ? 'flex-1 flex flex-col justify-center' : ''}>
-          {/* Date/time - editable, beta has edit button on right */}
+          {/* Beta: edit button centered above date/time */}
+          {viewMode === 'beta' && (
+            <div className="flex justify-center mb-1">
+              <button
+                onClick={() => setEditMode(!editMode)}
+                className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
+                style={{
+                  backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
+                  color: editMode ? 'var(--accent-text-on-solid)' : 'var(--text-secondary)',
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+            </div>
+          )}
+          {/* Date/time - editable */}
           <div className="flex items-center mb-1.5">
             <div className="flex-1" />
             <div className="flex items-center gap-2">
@@ -710,25 +714,28 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       return sum + Math.round(secs / 60);
                     }, 0);
                     return (
-                      <button
-                        onClick={() => {
-                          flushMood();
-                          const now = new Date().toISOString();
-                          setSessionStart(now);
-                          localStorage.setItem('pra_session_start', now);
-                          setRefreshKey((k) => k + 1);
-                        }}
-                        className="text-xs px-2 py-0.5 rounded-full transition-colors flex items-center gap-1.5"
-                        style={{
-                          backgroundColor: allDone ? 'var(--accent-solid)' : (sessionTotal > 0 ? 'var(--accent-bg)' : 'var(--bg-input)'),
-                          color: allDone ? 'var(--accent-text-on-solid)' : (sessionTotal > 0 ? 'var(--accent-solid)' : 'var(--text-faint)'),
-                        }}
-                      >
-                        {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
+                          {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
+                        </span>
+                        <button
+                          onClick={() => {
+                            flushMood();
+                            const now = new Date().toISOString();
+                            setSessionStart(now);
+                            localStorage.setItem('pra_session_start', now);
+                            setRefreshKey((k) => k + 1);
+                          }}
+                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${allDone ? '' : 'opacity-20'}`}
+                          style={{
+                            backgroundColor: allDone ? 'var(--accent-solid)' : 'var(--text-faint)',
+                          }}
+                        >
+                          <svg className="w-3 h-3" style={{ color: allDone ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                      </div>
                     );
                   })()}
                 </div>
