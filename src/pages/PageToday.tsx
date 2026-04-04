@@ -51,6 +51,34 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       return next;
     });
   };
+  const [hiddenDurations, setHiddenDurations] = useState<Set<number>>(() => {
+    try {
+      const stored = localStorage.getItem('pra_hidden_durations');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+  const toggleHideDuration = (d: number) => {
+    setHiddenDurations(prev => {
+      const next = new Set(prev);
+      if (next.has(d)) next.delete(d); else next.add(d);
+      localStorage.setItem('pra_hidden_durations', JSON.stringify([...next]));
+      return next;
+    });
+  };
+  const [hiddenActivities, setHiddenActivities] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('pra_hidden_activities');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+  const toggleHideActivity = (type: string) => {
+    setHiddenActivities(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type); else next.add(type);
+      localStorage.setItem('pra_hidden_activities', JSON.stringify([...next]));
+      return next;
+    });
+  };
   const moodRatingRef = useRef<Rating | null>(null);
   const moodCommentRef = useRef('');
   const moodTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -467,15 +495,26 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 </div>
               </>
             )}
-            {/* Beta: duration bubbles */}
+            {/* Beta: duration bubbles (time indicators, not activities) */}
             {viewMode === 'beta' && (() => {
-              const durations = [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
+              const stored = localStorage.getItem('pra_duration_bubbles');
+              const durations: number[] = stored ? JSON.parse(stored) : [];
               return (
                 <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
-                  {durations.map(d => (
+                  {durations.filter(d => editMode || !hiddenDurations.has(d)).map(d => (
                     <button key={`dur-${d}`}
-                      onClick={() => setSelectedDurationSync(selectedDuration === d ? null : d)}
-                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${selectedDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'}`}
+                      onClick={() => {
+                        if (editMode) {
+                          toggleHideDuration(d);
+                        } else {
+                          setSelectedDurationSync(selectedDuration === d ? null : d);
+                        }
+                      }}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                        editMode
+                          ? hiddenDurations.has(d) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-faint'
+                          : selectedDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
+                      }`}
                     >{d} m</button>
                   ))}
                   {editMode && (
@@ -485,15 +524,11 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                           e.preventDefault();
                           const val = parseInt(newDurationText);
                           if (val > 0 && !durations.includes(val)) {
-                            // Create a new timed activity with this duration
-                            const newType = `timed_${val}m`;
-                            const existing = activities.find(a => a.durationMinutes === val);
-                            if (!existing) {
-                              const newAct: ActivityDefinition = { type: newType, name: `${val} min`, emoji: '⏱', description: '', durationMinutes: val };
-                              const current = loadActivities(); current.push(newAct); saveActivities(current); setActivities(current);
-                            }
-                            setNewDurationText('');
+                            const next = [...durations, val].sort((a, b) => a - b);
+                            localStorage.setItem('pra_duration_bubbles', JSON.stringify(next));
+                            setRegistryVersion(v => v + 1);
                           }
+                          setNewDurationText('');
                         }
                       }}
                       placeholder="+"
@@ -506,10 +541,12 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {/* Beta: activity bubbles */}
             {viewMode === 'beta' && (
               <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
-                {allTranslated.map((activity) => (
+                {allTranslated.filter(a => !a.core).filter(a => editMode || !hiddenActivities.has(a.type)).map((activity) => (
                   <button key={activity.type}
                     onClick={() => {
-                      if (!activity.core) {
+                      if (editMode) {
+                        toggleHideActivity(activity.type);
+                      } else {
                         if (selectedDuration) {
                           handleActivityClick({ ...activity, durationMinutes: selectedDuration });
                         } else {
@@ -518,9 +555,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       }
                     }}
                     className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                      activity.core
-                        ? (completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint')
-                        : (completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium')
+                      editMode
+                        ? hiddenActivities.has(activity.type) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-muted'
+                        : completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                     }`}
                   >{activity.emoji} {activity.name}</button>
                 ))}
@@ -571,7 +608,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               <>
                 {/* Activity records */}
                 <div className="space-y-1 mt-3">
-                  {allTranslated.map((activity) => (
+                  {allTranslated.filter(a => !a.core).map((activity) => (
                     <div key={activity.type} className="flex items-center gap-2 opacity-50">
                       <span className="text-sm">{activity.emoji}</span>
                       <span className="text-xs text-themed-muted flex-1">{activity.name}</span>
