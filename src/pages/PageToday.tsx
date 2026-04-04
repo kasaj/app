@@ -492,7 +492,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {/* Beta: separator + activity bubbles with time + session total + records */}
             {viewMode === 'beta' && allTranslated.filter(a => !a.core).length > 0 && (
               <>
-                <div className="border-t border-themed mt-3 pt-2" />
                 {/* Duration bubbles + Activity bubbles */}
                 <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                   {(() => {
