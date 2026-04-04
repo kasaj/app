@@ -351,54 +351,56 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
         </div>
       {(
         <section className={viewMode === 'beta' ? 'flex-1 flex flex-col justify-center' : ''}>
-          {/* Date/time - editable */}
-          <div className="flex items-center justify-center gap-2 mb-1.5">
-            <input
-              type="date"
-              value={(() => { const d = customTime ? new Date(customTime) : new Date(); const pad = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })()}
-              onChange={(e) => {
-                if (e.target.value) {
-                  const current = customTime ? new Date(customTime) : new Date();
-                  const [y, m, d] = e.target.value.split('-').map(Number);
-                  current.setFullYear(y, m - 1, d);
-                  setCustomTimeSync(current.toISOString());
-                }
-              }}
-              className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
-            />
-            <input
-              type="time"
-              value={(() => { const d = customTime ? new Date(customTime) : new Date(); const pad = (n: number) => n.toString().padStart(2, '0'); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; })()}
-              onChange={(e) => {
-                if (e.target.value) {
-                  const current = customTime ? new Date(customTime) : new Date();
-                  const [h, min] = e.target.value.split(':').map(Number);
-                  current.setHours(h, min);
-                  setCustomTimeSync(current.toISOString());
-                }
-              }}
-              className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
-            />
+          {/* Date/time - editable + session total on right in beta */}
+          <div className="flex items-center mb-1.5">
+            <div className="flex-1" />
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={(() => { const d = customTime ? new Date(customTime) : new Date(); const pad = (n: number) => n.toString().padStart(2, '0'); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })()}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const current = customTime ? new Date(customTime) : new Date();
+                    const [y, m, d] = e.target.value.split('-').map(Number);
+                    current.setFullYear(y, m - 1, d);
+                    setCustomTimeSync(current.toISOString());
+                  }
+                }}
+                className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
+              />
+              <input
+                type="time"
+                value={(() => { const d = customTime ? new Date(customTime) : new Date(); const pad = (n: number) => n.toString().padStart(2, '0'); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; })()}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    const current = customTime ? new Date(customTime) : new Date();
+                    const [h, min] = e.target.value.split(':').map(Number);
+                    current.setHours(h, min);
+                    setCustomTimeSync(current.toISOString());
+                  }
+                }}
+                className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
+              />
+            </div>
+            {viewMode === 'beta' ? (() => {
+              const todayEntry = getDayEntry(getTodayDate());
+              const ss = localStorage.getItem('pra_session_start') || '';
+              const sessionActivities = todayEntry?.activities.filter(act =>
+                new Date(act.completedAt || act.startedAt) >= new Date(ss)
+              ) || [];
+              const sessionTotal = sessionActivities.reduce((sum, act) => {
+                const secs = act.actualDurationSeconds || (act.durationMinutes ? act.durationMinutes * 60 : 60);
+                return sum + Math.round(secs / 60);
+              }, 0);
+              return (
+                <div className="flex-1 flex justify-end">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
+                    {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
+                  </span>
+                </div>
+              );
+            })() : <div className="flex-1" />}
           </div>
-          {/* Beta: session total - right aligned above core */}
-          {viewMode === 'beta' && (() => {
-            const todayEntry = getDayEntry(getTodayDate());
-            const ss = localStorage.getItem('pra_session_start') || '';
-            const sessionActivities = todayEntry?.activities.filter(act =>
-              new Date(act.completedAt || act.startedAt) >= new Date(ss)
-            ) || [];
-            const sessionTotal = sessionActivities.reduce((sum, act) => {
-              const secs = act.actualDurationSeconds || (act.durationMinutes ? act.durationMinutes * 60 : 60);
-              return sum + Math.round(secs / 60);
-            }, 0);
-            return (
-              <div className="flex justify-end mb-1">
-                <span className={`text-xs px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
-                  {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
-                </span>
-              </div>
-            );
-          })()}
           {/* Properties - above core for default, inside core for beta */}
           {viewMode !== 'beta' && (
           <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
@@ -502,20 +504,36 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               return (
                 <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                   {durations.filter(d => editMode || !hiddenDurations.has(d)).map(d => (
-                    <button key={`dur-${d}`}
-                      onClick={() => {
-                        if (editMode) {
-                          toggleHideDuration(d);
-                        } else {
-                          setSelectedDurationSync(selectedDuration === d ? null : d);
-                        }
-                      }}
-                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                        editMode
-                          ? hiddenDurations.has(d) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-faint'
-                          : selectedDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
-                      }`}
-                    >{d} m</button>
+                    <span key={`dur-${d}`} className="relative inline-flex">
+                      <button
+                        onClick={() => {
+                          if (editMode) {
+                            toggleHideDuration(d);
+                          } else {
+                            setSelectedDurationSync(selectedDuration === d ? null : d);
+                          }
+                        }}
+                        className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                          editMode
+                            ? hiddenDurations.has(d) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-faint'
+                            : selectedDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
+                        }`}
+                      >{d} m</button>
+                      {editMode && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const next = durations.filter(x => x !== d);
+                            localStorage.setItem('pra_duration_bubbles', JSON.stringify(next));
+                            // also remove from hidden if it was hidden
+                            if (hiddenDurations.has(d)) toggleHideDuration(d);
+                            if (selectedDuration === d) setSelectedDurationSync(null);
+                            setRegistryVersion(v => v + 1);
+                          }}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                        >✕</button>
+                      )}
+                    </span>
                   ))}
                   {editMode && (
                     <input type="number" value={newDurationText} onChange={(e) => setNewDurationText(e.target.value)}
@@ -542,24 +560,36 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {viewMode === 'beta' && (
               <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                 {allTranslated.filter(a => !a.core).filter(a => editMode || !hiddenActivities.has(a.type)).map((activity) => (
-                  <button key={activity.type}
-                    onClick={() => {
-                      if (editMode) {
-                        toggleHideActivity(activity.type);
-                      } else {
-                        if (selectedDuration) {
-                          handleActivityClick({ ...activity, durationMinutes: selectedDuration });
+                  <span key={activity.type} className="relative inline-flex">
+                    <button
+                      onClick={() => {
+                        if (editMode) {
+                          toggleHideActivity(activity.type);
                         } else {
-                          handleActivityClick(activity);
+                          if (selectedDuration) {
+                            handleActivityClick({ ...activity, durationMinutes: selectedDuration });
+                          } else {
+                            handleActivityClick(activity);
+                          }
                         }
-                      }
-                    }}
-                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                      editMode
-                        ? hiddenActivities.has(activity.type) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-muted'
-                        : completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
-                    }`}
-                  >{activity.emoji} {activity.name}</button>
+                      }}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                        editMode
+                          ? hiddenActivities.has(activity.type) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-muted'
+                          : completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                      }`}
+                    >{activity.emoji} {activity.name}</button>
+                    {editMode && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteActivity(activity.type);
+                          setActivities(loadActivities());
+                        }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                      >✕</button>
+                    )}
+                  </span>
                 ))}
                 {editMode && (
                   <button
