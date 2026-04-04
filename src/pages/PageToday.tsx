@@ -459,23 +459,25 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                        focus:outline-none focus:border-themed-accent resize-none
                        text-themed-primary placeholder:text-themed-faint text-base overflow-hidden"
             />
-            <div className="flex items-center justify-end gap-2 mt-3">
-              {viewMode === 'beta' && (() => {
-                const todayEntry = getDayEntry(getTodayDate());
-                const ss = localStorage.getItem('pra_session_start') || '';
-                const sessionActivities = todayEntry?.activities.filter(act =>
-                  new Date(act.completedAt || act.startedAt) >= new Date(ss)
-                ) || [];
-                const sessionTotal = sessionActivities.reduce((sum, act) => {
-                  const secs = act.actualDurationSeconds || (act.durationMinutes ? act.durationMinutes * 60 : 60);
-                  return sum + Math.round(secs / 60);
-                }, 0);
-                return (
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
+            {viewMode === 'beta' && (() => {
+              const todayEntry = getDayEntry(getTodayDate());
+              const ss = localStorage.getItem('pra_session_start') || '';
+              const sessionActivities = todayEntry?.activities.filter(act =>
+                new Date(act.completedAt || act.startedAt) >= new Date(ss)
+              ) || [];
+              const sessionTotal = sessionActivities.reduce((sum, act) => {
+                const secs = act.actualDurationSeconds || (act.durationMinutes ? act.durationMinutes * 60 : 60);
+                return sum + Math.round(secs / 60);
+              }, 0);
+              return (
+                <div className="flex justify-center mt-3">
+                  <span className={`text-sm px-3 py-1 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
                     {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
                   </span>
-                );
-              })()}
+                </div>
+              );
+            })()}
+            <div className="flex items-center justify-end gap-2 mt-2">
               {(totalCountPerActivity.get('nalada') || 0) > 0 && (
                   <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
                 )}
