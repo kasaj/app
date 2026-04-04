@@ -146,6 +146,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     return stored.length > 0 ? stored : getConfigProperties(activity.type);
   });
   const [disabledVariants, setDisabledVariants] = useState<Set<string>>(new Set());
+  const [deletedVariants, setDeletedVariants] = useState<Set<string>>(new Set());
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
@@ -528,7 +529,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     return stored.length > 0 ? stored : getConfigProperties('nalada');
                   })();
                   const allProps = editingVariants
-                    ? [...new Set([...configProps, ...activityProps, ...coreProps])]
+                    ? [...new Set([...configProps, ...activityProps, ...coreProps])].filter(p => !deletedVariants.has(p))
                     : activityProps;
                   return editingVariants
                     ? allProps.sort((a, b) => {
@@ -582,6 +583,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                           }
                           saveActivities(all);
                           setLocalVariants(prev => prev.filter(v => v !== prop));
+                          setDeletedVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
                           setRegistryVersion(v => v + 1);
                         }}
                         className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
@@ -650,7 +652,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     return stored.length > 0 ? stored : getConfigProperties('nalada');
                   })();
                   const allProps = editingVariants
-                    ? [...new Set([...configProps, ...activityProps, ...coreProps])]
+                    ? [...new Set([...configProps, ...activityProps, ...coreProps])].filter(p => !deletedVariants.has(p))
                     : activityProps;
                   return editingVariants
                     ? allProps.sort((a, b) => {
@@ -704,6 +706,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                           }
                           saveActivities(all);
                           setLocalVariants(prev => prev.filter(v => v !== prop));
+                          setDeletedVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
                           setRegistryVersion(v => v + 1);
                         }}
                         className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
@@ -799,7 +802,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                     return stored.length > 0 ? stored : getConfigProperties('nalada');
                   })();
                   const allProps = editingVariants
-                    ? [...new Set([...configProps, ...activityProps, ...coreProps])]
+                    ? [...new Set([...configProps, ...activityProps, ...coreProps])].filter(p => !deletedVariants.has(p))
                     : activityProps;
                   return editingVariants
                     ? allProps.sort((a, b) => {
@@ -853,6 +856,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                           }
                           saveActivities(all);
                           setLocalVariants(prev => prev.filter(v => v !== prop));
+                          setDeletedVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
                           setRegistryVersion(v => v + 1);
                         }}
                         className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
