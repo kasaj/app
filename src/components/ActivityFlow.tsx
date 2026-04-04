@@ -149,12 +149,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
-  const [hiddenProperties] = useState<Set<string>>(() => {
-    try {
-      const stored = localStorage.getItem('pra_hidden_properties');
-      return stored ? new Set(JSON.parse(stored)) : new Set();
-    } catch { return new Set(); }
-  });
 
   const persistVariants = useCallback((updated: string[]) => {
     const all = loadActivities();
@@ -535,7 +529,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   })();
                   const allProps = editingVariants
                     ? [...new Set([...configProps, ...activityProps, ...coreProps])]
-                    : activityProps.filter(prop => !hiddenProperties.has(prop));
+                    : activityProps;
                   return editingVariants
                     ? allProps.sort((a, b) => {
                         const aIsEmoji = /^\p{Emoji}/u.test(a);
@@ -657,7 +651,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   })();
                   const allProps = editingVariants
                     ? [...new Set([...configProps, ...activityProps, ...coreProps])]
-                    : activityProps.filter(prop => !hiddenProperties.has(prop));
+                    : activityProps;
                   return editingVariants
                     ? allProps.sort((a, b) => {
                         const aIsEmoji = /^\p{Emoji}/u.test(a);
@@ -806,7 +800,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   })();
                   const allProps = editingVariants
                     ? [...new Set([...configProps, ...activityProps, ...coreProps])]
-                    : activityProps.filter(prop => !hiddenProperties.has(prop));
+                    : activityProps;
                   return editingVariants
                     ? allProps.sort((a, b) => {
                         const aIsEmoji = /^\p{Emoji}/u.test(a);
