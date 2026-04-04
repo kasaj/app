@@ -382,24 +382,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
             </div>
-            {viewMode === 'beta' ? (() => {
-              const todayEntry = getDayEntry(getTodayDate());
-              const ss = localStorage.getItem('pra_session_start') || '';
-              const sessionActivities = todayEntry?.activities.filter(act =>
-                new Date(act.completedAt || act.startedAt) >= new Date(ss)
-              ) || [];
-              const sessionTotal = sessionActivities.reduce((sum, act) => {
-                const secs = act.actualDurationSeconds || (act.durationMinutes ? act.durationMinutes * 60 : 60);
-                return sum + Math.round(secs / 60);
-              }, 0);
-              return (
-                <div className="flex-1 flex justify-end pr-1">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
-                    {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
-                  </span>
-                </div>
-              );
-            })() : <div className="flex-1" />}
+            <div className="flex-1" />
           </div>
           {/* Properties - above core for default, inside core for beta */}
           {viewMode !== 'beta' && (
@@ -678,6 +661,25 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       </span>
                     </div>
                   ))}
+                </div>
+                {/* Session total - right aligned under checkboxes */}
+                <div className="flex justify-end mt-2">
+                  {(() => {
+                    const todayEntry = getDayEntry(getTodayDate());
+                    const ss = localStorage.getItem('pra_session_start') || '';
+                    const sessionActivities = todayEntry?.activities.filter(act =>
+                      new Date(act.completedAt || act.startedAt) >= new Date(ss)
+                    ) || [];
+                    const sessionTotal = sessionActivities.reduce((sum, act) => {
+                      const secs = act.actualDurationSeconds || (act.durationMinutes ? act.durationMinutes * 60 : 60);
+                      return sum + Math.round(secs / 60);
+                    }, 0);
+                    return (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
+                        {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
+                      </span>
+                    );
+                  })()}
                 </div>
               </>
             )}
