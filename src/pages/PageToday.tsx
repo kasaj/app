@@ -28,6 +28,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editMode, setEditMode] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
+  const viewMode = localStorage.getItem('pra_view_mode') || 'default';
   const [customTime, setCustomTime] = useState<string | null>(null);
   const customTimeRef = useRef<string | null>(null);
   const setCustomTimeSync = (t: string | null) => { customTimeRef.current = t; setCustomTime(t); };
@@ -344,6 +345,27 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
             />
           </div>
+          {/* Beta: activities as bubbles above properties */}
+          {viewMode === 'beta' && (
+            <>
+              <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
+                {allTranslated.filter(a => !a.core).map((activity) => (
+                  <button
+                    key={activity.type}
+                    onClick={() => handleActivityClick(activity)}
+                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                      completedTodayCounts.has(activity.type)
+                        ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                        : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                    }`}
+                  >
+                    {activity.emoji} {activity.name}
+                  </button>
+                ))}
+              </div>
+              <div className="border-t border-themed mb-1.5" />
+            </>
+          )}
           {/* Properties above core */}
           <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
             {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
@@ -442,45 +464,79 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           <div className="w-5" />
           </div>
 
-          {/* All non-core activities with move controls */}
-          <div className="mt-1.5 space-y-1.5">
-            {allTranslated.filter(a => !a.core).map((activity, idx, arr) => (
-              <div key={activity.type} className="flex items-center gap-1">
-                {editMode ? (
-                  <div className="flex flex-col w-5">
-                    <button onClick={() => handleMoveActivity(activity.type, 'up')} disabled={idx === 0} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                    </button>
-                    <button onClick={() => handleMoveActivity(activity.type, 'down')} disabled={idx === arr.length - 1} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
+          {/* All non-core activities */}
+          {viewMode === 'beta' ? (
+            <div className="mt-1.5 space-y-1.5">
+              {allTranslated.filter(a => !a.core).map((activity) => (
+                <div key={activity.type} className="card px-3 py-2 opacity-60">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">{activity.emoji}</span>
+                    <span className="font-serif text-themed-muted flex-1 text-sm">{activity.name}</span>
+                    {activity.durationMinutes ? (
+                      (totalTimePerActivity.get(activity.type) || 0) > 0 && (
+                        <span className="text-xs text-themed-faint opacity-50">
+                          {(() => { const s = totalTimePerActivity.get(activity.type) || 0; const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h} h${m > 0 ? ` ${m} m` : ''}` : `${m} m`; })()}
+                        </span>
+                      )
+                    ) : (
+                      (totalCountPerActivity.get(activity.type) || 0) > 0 && (
+                        <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get(activity.type)}</span>
+                      )
+                    )}
+                    {(completedTodayCounts.get(activity.type) || 0) >= 1 && (
+                      <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get(activity.type)}</span>
+                    )}
+                    <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
+                      completedTodayCounts.has(activity.type) ? '' : 'opacity-20'
+                    }`} style={{ backgroundColor: completedTodayCounts.has(activity.type) ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
+                      <svg className="w-2.5 h-2.5" style={{ color: completedTodayCounts.has(activity.type) ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
                   </div>
-                ) : <div className="w-5" />}
-                <div className="flex-1">
-                  <ActivityCard
-                    activity={activity}
-                    onClick={() => handleActivityClick(activity)}
-                    completedToday={completedTodayCounts.has(activity.type)}
-                    completedCount={completedTodayCounts.get(activity.type) || 0}
-                    completedYesterday={completedPreviousCounts.has(activity.type)}
-                    yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
-                    totalCount={totalCountPerActivity.get(activity.type) || 0}
-                    totalSeconds={totalTimePerActivity.get(activity.type) || 0}
-                  />
                 </div>
-                {editMode ? (
-                  <div className="flex flex-col w-5">
-                    <button onClick={() => handleMoveActivity(activity.type, 'up')} disabled={idx === 0} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                    </button>
-                    <button onClick={() => handleMoveActivity(activity.type, 'down')} disabled={idx === arr.length - 1} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-1.5 space-y-1.5">
+              {allTranslated.filter(a => !a.core).map((activity, idx, arr) => (
+                <div key={activity.type} className="flex items-center gap-1">
+                  {editMode ? (
+                    <div className="flex flex-col w-5">
+                      <button onClick={() => handleMoveActivity(activity.type, 'up')} disabled={idx === 0} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <button onClick={() => handleMoveActivity(activity.type, 'down')} disabled={idx === arr.length - 1} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+                  ) : <div className="w-5" />}
+                  <div className="flex-1">
+                    <ActivityCard
+                      activity={activity}
+                      onClick={() => handleActivityClick(activity)}
+                      completedToday={completedTodayCounts.has(activity.type)}
+                      completedCount={completedTodayCounts.get(activity.type) || 0}
+                      completedYesterday={completedPreviousCounts.has(activity.type)}
+                      yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
+                      totalCount={totalCountPerActivity.get(activity.type) || 0}
+                      totalSeconds={totalTimePerActivity.get(activity.type) || 0}
+                    />
                   </div>
-                ) : <div className="w-5" />}
-              </div>
-            ))}
-          </div>
+                  {editMode ? (
+                    <div className="flex flex-col w-5">
+                      <button onClick={() => handleMoveActivity(activity.type, 'up')} disabled={idx === 0} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <button onClick={() => handleMoveActivity(activity.type, 'down')} disabled={idx === arr.length - 1} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                    </div>
+                  ) : <div className="w-5" />}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
