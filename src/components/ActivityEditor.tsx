@@ -20,6 +20,8 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const [isTimed, setIsTimed] = useState(activity?.durationMinutes !== null);
   const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || '15');
   const [variants] = useState<string[]>(activity?.properties || []);
+  const [durationOptions, setDurationOptions] = useState<number[]>(activity?.durationOptions ?? []);
+  const [newDurText, setNewDurText] = useState('');
 
   const initialRender = useRef(true);
 
@@ -38,9 +40,10 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
       description: description.trim(),
       durationMinutes: isTimed ? parseInt(duration, 10) || 15 : null,
       properties: variants.length > 0 ? variants : undefined,
+      durationOptions: durationOptions.length > 0 ? durationOptions : undefined,
     };
     onSave(updated);
-  }, [name, emoji, description, isTimed, duration, variants]);
+  }, [name, emoji, description, isTimed, duration, variants, durationOptions]);
 
 
   const handleSubmit = () => {
@@ -53,6 +56,7 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
       description: description.trim(),
       durationMinutes: isTimed ? parseInt(duration, 10) || 15 : null,
       properties: variants.length > 0 ? variants : undefined,
+      durationOptions: durationOptions.length > 0 ? durationOptions : undefined,
     };
 
     onSave(newActivity);
@@ -111,6 +115,42 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
                        focus:outline-none focus:border-themed-accent resize-none h-16
                        text-themed-primary placeholder:text-themed-faint"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-themed-muted mb-2">Časy (m) / Duration (m)</label>
+            <div className="flex flex-wrap gap-1.5">
+              {durationOptions.map(d => (
+                <span key={d} className="relative inline-flex">
+                  <span className="px-2 py-1 text-xs rounded-full border bg-themed-input border-themed text-themed-faint">{d} m</span>
+                  <button onClick={() => setDurationOptions(prev => prev.filter(x => x !== d))}
+                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none">✕</button>
+                </span>
+              ))}
+              <input
+                type="number" min="1" max="480" value={newDurText}
+                onChange={(e) => setNewDurText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = parseInt(newDurText);
+                    if (val > 0 && !durationOptions.includes(val)) {
+                      setDurationOptions(prev => [...prev, val].sort((a, b) => a - b));
+                    }
+                    setNewDurText('');
+                  }
+                }}
+                onBlur={() => {
+                  const val = parseInt(newDurText);
+                  if (val > 0 && !durationOptions.includes(val)) {
+                    setDurationOptions(prev => [...prev, val].sort((a, b) => a - b));
+                  }
+                  setNewDurText('');
+                }}
+                placeholder="+ m"
+                className="w-16 px-2 py-1 text-xs rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent text-center"
+              />
+            </div>
           </div>
 
           <div>

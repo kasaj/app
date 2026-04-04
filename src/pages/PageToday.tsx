@@ -30,7 +30,11 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [editMode, setEditMode] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
   const viewMode = localStorage.getItem('pra_view_mode') || 'beta';
-  const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<number | null>(() => {
+    const core = loadActivities().find(a => a.core);
+    const coreDurs = core?.durationOptions ?? [15];
+    return core?.defaultDuration ?? coreDurs[0] ?? 15;
+  });
   const selectedDurationRef = useRef<number | null>(null);
   const setSelectedDurationSync = (d: number | null) => { selectedDurationRef.current = d; setSelectedDuration(d); };
   const [customTime, setCustomTime] = useState<string | null>(null);
@@ -55,26 +59,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       const next = new Set(prev);
       if (next.has(prop)) next.delete(prop); else next.add(prop);
       localStorage.setItem('pra_hidden_properties', JSON.stringify([...next]));
-      return next;
-    });
-  };
-  const [hiddenDurations, setHiddenDurations] = useState<Set<number>>(() => {
-    try {
-      const stored = localStorage.getItem('pra_hidden_durations');
-      return stored ? new Set(JSON.parse(stored)) : new Set();
-    } catch { return new Set(); }
-  });
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('pra_hidden_durations');
-      setHiddenDurations(stored ? new Set(JSON.parse(stored)) : new Set());
-    } catch { /* */ }
-  }, [refreshKey]);
-  const toggleHideDuration = (d: number) => {
-    setHiddenDurations(prev => {
-      const next = new Set(prev);
-      if (next.has(d)) next.delete(d); else next.add(d);
-      localStorage.setItem('pra_hidden_durations', JSON.stringify([...next]));
       return next;
     });
   };
@@ -164,7 +148,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     selectedPropertiesRef.current = new Set();
     setSelectedProperties(new Set());
     setCustomTimeSync(null);
-    setSelectedDurationSync(null);
+    const coreAct = loadActivities().find(a => a.core);
+    const coreDurs = coreAct?.durationOptions ?? [15];
+    setSelectedDurationSync(coreAct?.defaultDuration ?? coreDurs[0] ?? 15);
     if (moodTextareaRef.current) {
       moodTextareaRef.current.style.height = 'auto';
     }
@@ -280,11 +266,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, sessionStart]);
 
-  const [activeActivityDurationOverride, setActiveActivityDurationOverride] = useState<number | null>(null);
-
   const handleActivityClick = (activity: ActivityDefinition) => {
     flushMood();
-    setActiveActivityDurationOverride(selectedDuration);
     setActiveActivity(activity);
   };
 
@@ -657,37 +640,58 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   )}
                 </div>
             )}
-            {/* Beta: duration + activity bubbles in inner border */}
+            {/* Beta: core duration bubbles */}
             {viewMode === 'beta' && (() => {
-              const stored = localStorage.getItem('pra_duration_bubbles');
-              const durations: number[] = stored ? JSON.parse(stored) : [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
-              return (<>
+              void registryVersion;
+              const freshActivities = loadActivities();
+              const coreAct = freshActivities.find(a => a.core);
+              const coreDurs: number[] = coreAct?.durationOptions ?? [15];
+              const coreDefault: number = coreAct?.defaultDuration ?? coreDurs[0] ?? 15;
+              return (
                 <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
-                  {durations.filter(d => editMode || !hiddenDurations.has(d)).map(d => (
+                  {coreDurs.map(d => (
                     <span key={`dur-${d}`} className="relative inline-flex">
                       <button
                         onClick={() => {
                           if (editMode) {
-                            toggleHideDuration(d);
+                            // Set as default duration
+                            const all = loadActivities();
+                            const cIdx = all.findIndex(a => a.core);
+                            if (cIdx >= 0) {
+                              all[cIdx] = { ...all[cIdx], defaultDuration: d };
+                              saveActivities(all);
+                              markActivityModified(all[cIdx].type);
+                            }
+                            setSelectedDurationSync(d);
+                            setRegistryVersion(v => v + 1);
                           } else {
-                            setSelectedDurationSync(selectedDuration === d ? null : d);
+                            setSelectedDurationSync(d);
                           }
                         }}
                         className={`px-2 py-1 text-xs rounded-full border transition-colors ${
                           editMode
-                            ? hiddenDurations.has(d) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-faint'
-                            : selectedDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
+                            ? d === coreDefault
+                              ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                              : 'bg-themed-input border-themed text-themed-faint'
+                            : selectedDuration === d
+                              ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                              : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
                         }`}
                       >{d} m</button>
                       {editMode && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const next = durations.filter(x => x !== d);
-                            localStorage.setItem('pra_duration_bubbles', JSON.stringify(next));
-                            // also remove from hidden if it was hidden
-                            if (hiddenDurations.has(d)) toggleHideDuration(d);
-                            if (selectedDuration === d) setSelectedDurationSync(null);
+                            const all = loadActivities();
+                            const cIdx = all.findIndex(a => a.core);
+                            if (cIdx >= 0) {
+                              const next = coreDurs.filter(x => x !== d);
+                              const newDefault = next.includes(coreDefault) ? coreDefault : (next[0] ?? 15);
+                              all[cIdx] = { ...all[cIdx], durationOptions: next.length > 0 ? next : [15], defaultDuration: newDefault };
+                              saveActivities(all);
+                              markActivityModified(all[cIdx].type);
+                            }
+                            if (selectedDuration === d) setSelectedDurationSync(coreDurs.filter(x => x !== d)[0] ?? 15);
                             setRegistryVersion(v => v + 1);
                           }}
                           className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
@@ -701,9 +705,17 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                         if (e.key === 'Enter') {
                           e.preventDefault();
                           const val = parseInt(newDurationText);
-                          if (val > 0 && !durations.includes(val)) {
-                            const next = [...durations, val].sort((a, b) => a - b);
-                            localStorage.setItem('pra_duration_bubbles', JSON.stringify(next));
+                          if (val > 0) {
+                            const all = loadActivities();
+                            const cIdx = all.findIndex(a => a.core);
+                            if (cIdx >= 0) {
+                              const current = all[cIdx].durationOptions ?? [15];
+                              if (!current.includes(val)) {
+                                all[cIdx] = { ...all[cIdx], durationOptions: [...current, val].sort((a, b) => a - b) };
+                                saveActivities(all);
+                                markActivityModified(all[cIdx].type);
+                              }
+                            }
                             setRegistryVersion(v => v + 1);
                           }
                           setNewDurationText('');
@@ -714,6 +726,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     />
                   )}
                 </div>
+              );
+            })()}
+            {viewMode === 'beta' && (() => { return (
                 <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                 {/* Activity bubbles from config */}
                 {allTranslated.filter(a => !a.core).filter(a => editMode || !hiddenActivities.has(a.type)).map((activity) => (
@@ -751,8 +766,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   >+</button>
                 )}
               </div>
-              </>);
-            })()}
+              ); })()}
             {viewMode === 'beta' && editMode && (
               <div className="flex justify-center mb-2">
                 <button
@@ -935,10 +949,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       {activeActivity && (
         <ActivityFlow
           activity={activeActivity}
-          initialOverrideDuration={activeActivityDurationOverride}
           onClose={() => {
             setActiveActivity(null);
-            setActiveActivityDurationOverride(null);
             setActivities(loadActivities());
             setRefreshKey((k) => k + 1);
             setRegistryVersion((v) => v + 1);

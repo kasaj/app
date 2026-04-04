@@ -402,27 +402,22 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
             <div className="flex flex-wrap gap-1.5 mb-3 justify-center items-center">
               {(() => {
                 void durationVersion;
-                const stored = localStorage.getItem('pra_duration_bubbles');
-                const defaultDurations = [...new Set(loadActivities().filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
-                const durations: number[] = stored ? JSON.parse(stored) : defaultDurations;
-                const hiddenDurs: number[] = (() => { try { const s = localStorage.getItem('pra_hidden_durations'); return s ? JSON.parse(s) : []; } catch { return []; } })();
-                const hiddenSet = new Set(hiddenDurs);
-                return (editingDurations ? durations : durations.filter(d => !hiddenSet.has(d))).map(d => (
+                const durations: number[] = activity.durationOptions ?? [];
+                return durations.map(d => (
                   <span key={`dur-${d}`} className="relative inline-flex">
                     <button
                       onClick={() => {
                         if (editingDurations) {
-                          const next = hiddenSet.has(d) ? hiddenDurs.filter(x => x !== d) : [...hiddenDurs, d];
-                          localStorage.setItem('pra_hidden_durations', JSON.stringify(next));
-                          setDurationVersion(v => v + 1);
+                          // In edit mode, clicking still selects as override
+                          setOverrideDuration(overrideDuration === d ? null : d);
                         } else {
                           setOverrideDuration(overrideDuration === d ? null : d);
                         }
                       }}
                       className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                        editingDurations
-                          ? hiddenSet.has(d) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-faint'
-                          : overrideDuration === d ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
+                        overrideDuration === d
+                          ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                          : 'bg-themed-input border-themed text-themed-faint hover:border-themed-medium'
                       }`}
                     >{d} m</button>
                     {editingDurations && (
@@ -430,7 +425,13 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                         onClick={(e) => {
                           e.stopPropagation();
                           const next = durations.filter(x => x !== d);
-                          localStorage.setItem('pra_duration_bubbles', JSON.stringify(next));
+                          const all = loadActivities();
+                          const idx = all.findIndex(a => a.type === activity.type);
+                          if (idx >= 0) {
+                            all[idx] = { ...all[idx], durationOptions: next.length > 0 ? next : undefined };
+                            saveActivities(all);
+                            markActivityModified(activity.type);
+                          }
                           if (overrideDuration === d) setOverrideDuration(null);
                           setDurationVersion(v => v + 1);
                         }}
@@ -447,10 +448,16 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                       e.preventDefault();
                       const val = parseInt(newDurationText);
                       if (val > 0) {
-                        const stored = localStorage.getItem('pra_duration_bubbles');
-                        const durations: number[] = stored ? JSON.parse(stored) : [];
-                        if (!durations.includes(val)) {
-                          localStorage.setItem('pra_duration_bubbles', JSON.stringify([...durations, val].sort((a, b) => a - b)));
+                        const current = activity.durationOptions ?? [];
+                        if (!current.includes(val)) {
+                          const next = [...current, val].sort((a, b) => a - b);
+                          const all = loadActivities();
+                          const idx = all.findIndex(a => a.type === activity.type);
+                          if (idx >= 0) {
+                            all[idx] = { ...all[idx], durationOptions: next };
+                            saveActivities(all);
+                            markActivityModified(activity.type);
+                          }
                           setDurationVersion(v => v + 1);
                         }
                         setNewDurationText('');
@@ -461,12 +468,14 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   className="w-14 px-2 py-1 text-xs rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent text-center"
                 />
               )}
-              <button
-                onClick={() => setEditingDurations(!editingDurations)}
-                className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
-                  editingDurations ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
-                }`}
-              >{editingDurations ? '✓' : '✎'}</button>
+              {(activity.durationOptions !== undefined || editingDurations) && (
+                <button
+                  onClick={() => setEditingDurations(!editingDurations)}
+                  className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
+                    editingDurations ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
+                  }`}
+                >{editingDurations ? '✓' : '✎'}</button>
+              )}
             </div>
           )}
 

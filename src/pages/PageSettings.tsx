@@ -16,6 +16,8 @@ interface ExportActivity {
   description: string;
   properties?: string[];
   core?: boolean;
+  durationOptions?: number[];
+  defaultDuration?: number;
 }
 
 interface PraFile {
@@ -46,7 +48,7 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
   const exportActivities: ExportActivity[] = activities.map((a) => ({
     type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
     name: a.name, description: a.description, properties: a.properties,
-    core: a.core,
+    core: a.core, durationOptions: a.durationOptions, defaultDuration: a.defaultDuration,
   }));
 
   const cfgInfo = { ...(getCachedConfig()?.info?.[lang as 'cs' | 'en'] || {}) };
@@ -129,7 +131,7 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
   const exportActivities: ExportActivity[] = activities.map((a) => ({
     type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
     name: a.name, description: a.description, properties: a.properties,
-    core: a.core,
+    core: a.core, durationOptions: a.durationOptions, defaultDuration: a.defaultDuration,
   }));
 
   const loadNotes = (l: string) => {
@@ -161,7 +163,7 @@ function importPraFile(file: PraFile, currentLang: string): void {
     const importedMap = new Map(file.activities.map((item) => [item.type, {
       type: item.type, emoji: item.emoji, durationMinutes: item.durationMinutes,
       name: item.name, description: item.description, properties: item.properties,
-      core: item.core,
+      core: item.core, durationOptions: item.durationOptions, defaultDuration: item.defaultDuration,
     } as ActivityDefinition]));
 
     if (file.type === 'config') {

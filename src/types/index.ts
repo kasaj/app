@@ -17,6 +17,8 @@ export interface ActivityDefinition {
   durationMinutes: number | null; // null = nečasová aktivita
   properties?: string[]; // Vlastnosti aktivity
   core?: boolean; // speciální aktivita (např. nálada) - nezobrazuje se v běžném seznamu
+  durationOptions?: number[];  // seznam dostupných duration bubbles pro tuto aktivitu
+  defaultDuration?: number;    // předvybraná výchozí hodnota (pro core activity)
 }
 
 export interface ActivityComment {
