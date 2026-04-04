@@ -496,7 +496,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {/* Beta: duration bubbles (time indicators, not activities) */}
             {viewMode === 'beta' && (() => {
               const stored = localStorage.getItem('pra_duration_bubbles');
-              const durations: number[] = stored ? JSON.parse(stored) : [];
+              const durations: number[] = stored ? JSON.parse(stored) : [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
               return (
                 <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                   {durations.filter(d => editMode || !hiddenDurations.has(d)).map(d => (
