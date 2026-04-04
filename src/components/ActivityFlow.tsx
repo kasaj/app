@@ -3,7 +3,7 @@ import { Activity, ActivityDefinition, ActivityComment, Rating } from '../types'
 import { useLanguage } from '../i18n';
 import { generateId, addActivity, updateActivityById, getDayEntry, getTodayDate, findActivityById, deleteActivitiesByIds } from '../utils/storage';
 import { loadActivities, saveActivities, markActivityModified } from '../utils/activities';
-import { addToRegistry, loadVariantRegistry } from '../utils/variantRegistry';
+import { addToRegistry, removeFromRegistry, loadVariantRegistry } from '../utils/variantRegistry';
 import { getMoodEmoji } from '../utils/moodScale';
 import StarRating from './StarRating';
 import Timer from './Timer';
@@ -136,7 +136,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const isEditing = !!existingActivity;
 
   const [timedStep, setTimedStep] = useState<TimedFlowStep>(isEditing ? 'rating-after' : 'rating-before');
-  const [selectedVariant, setSelectedVariant] = useState<string | null>(existingActivity?.selectedVariant || null);
+  const [selectedVariant] = useState<string | null>(existingActivity?.selectedVariant || null);
   const ratingBefore = existingActivity?.ratingBefore || null;
   const ratingAfter = existingActivity?.ratingAfter || null;
   const rating = existingActivity?.rating || null;
@@ -144,7 +144,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
   const [localVariants, setLocalVariants] = useState<string[]>(activity.properties || []);
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
-  const [showVariantRegistry, setShowVariantRegistry] = useState(false);
+  const [registryVersion, setRegistryVersion] = useState(0);
 
   const [startedAt, setStartedAt] = useState(existingActivity?.startedAt || new Date().toISOString());
   const [completedAt, setCompletedAt] = useState(existingActivity?.completedAt || new Date().toISOString());
@@ -313,32 +313,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     }
   }, [activity.type]);
 
-  const handleAddVariant = useCallback(() => {
-    const text = newVariantText.trim();
-    if (!text || localVariants.includes(text)) return;
-    const updated = [...localVariants, text];
-    setLocalVariants(updated);
-    setNewVariantText('');
-    persistVariants(updated);
-    addToRegistry(text);
-  }, [newVariantText, localVariants, persistVariants]);
 
-  const handleRemoveVariant = useCallback((variant: string) => {
-    const updated = localVariants.filter(v => v !== variant);
-    setLocalVariants(updated);
-    if (selectedVariant === variant) setSelectedVariant(null);
-    persistVariants(updated);
-  }, [localVariants, selectedVariant, persistVariants]);
-
-  const handleVariantClick = (variant: string) => {
-    if (selectedVariant === variant) {
-      setSelectedVariant(null);
-      setNewComment((prev) => prev.replace(variant, '').replace(/^[,\s]+|[,\s]+$/g, '').replace(/\s*,\s*,\s*/g, ', '));
-    } else {
-      setSelectedVariant(variant);
-      setNewComment((prev) => prev ? `${prev}, ${variant}` : variant);
-    }
-  };
 
   const handleTimedBeforeSubmit = () => {
     setTimedStep('timer');
@@ -505,37 +480,47 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
               {(<>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {localVariants.map((variant) => (
-                    <div key={variant} className="relative">
+                  {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
+                    const aIsEmoji = /^\p{Emoji}/u.test(a);
+                    const bIsEmoji = /^\p{Emoji}/u.test(b);
+                    if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                    return a.localeCompare(b, language);
+                  }).map((prop) => (
+                    <span key={prop} className="relative inline-flex">
                       <button
-                        onClick={() => handleVariantClick(variant)}
+                        onClick={() => {
+                          if (editingVariants) return;
+                          const updated = localVariants.includes(prop)
+                            ? localVariants.filter(v => v !== prop)
+                            : [...localVariants, prop];
+                          setLocalVariants(updated);
+                          persistVariants(updated);
+                        }}
                         className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                          selectedVariant === variant
+                          localVariants.includes(prop)
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
                             : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                         }`}
                       >
-                        {variant}
+                        {prop}
                       </button>
                       {editingVariants && (
                         <button
-                          onClick={() => handleRemoveVariant(variant)}
-                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-themed-warn text-white flex items-center justify-center text-xs"
-                        >×</button>
+                          onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                        >✕</button>
                       )}
-                    </div>
+                    </span>
                   ))}
                   {editingVariants && (
-                    <div className="flex gap-1">
-                      <input
-                        value={newVariantText}
-                        onChange={(e) => setNewVariantText(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
-                        onBlur={() => handleAddVariant()}
-                        placeholder="+"
-                        className="w-20 px-2 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
-                      />
-                    </div>
+                    <input
+                      value={newVariantText}
+                      onChange={(e) => setNewVariantText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
+                      onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
+                      placeholder="+"
+                      className="w-20 px-2 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
+                    />
                   )}
                   <button
                     onClick={() => setEditingVariants(!editingVariants)}
@@ -543,39 +528,9 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                       editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                     }`}
                   >
-                    {editingVariants ? '✓' : '+'}
+                    {editingVariants ? '✓' : '✎'}
                   </button>
-                  {editingVariants && (
-                    <button
-                      onClick={() => setShowVariantRegistry(!showVariantRegistry)}
-                      className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
-                        showVariantRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
-                      }`}
-                    >
-                      {showVariantRegistry ? '▲' : '▼'}
-                    </button>
-                  )}
                 </div>
-                {editingVariants && showVariantRegistry && (() => {
-                  const registry = loadVariantRegistry().filter(v => !localVariants.includes(v));
-                  return registry.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 justify-center mt-2">
-                      {registry.map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => {
-                            const updated = [...localVariants, v];
-                            setLocalVariants(updated);
-                            persistVariants(updated);
-                          }}
-                          className="px-3 py-1.5 text-xs rounded-full border border-dashed border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid transition-colors"
-                        >
-                          + {v}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null;
-                })()}
               </>)}
 
               <CommentsBlock
@@ -610,37 +565,47 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
             <div className="space-y-3 py-2">
               {(<>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {localVariants.map((variant) => (
-                    <div key={variant} className="relative">
+                  {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
+                    const aIsEmoji = /^\p{Emoji}/u.test(a);
+                    const bIsEmoji = /^\p{Emoji}/u.test(b);
+                    if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                    return a.localeCompare(b, language);
+                  }).map((prop) => (
+                    <span key={prop} className="relative inline-flex">
                       <button
-                        onClick={() => handleVariantClick(variant)}
+                        onClick={() => {
+                          if (editingVariants) return;
+                          const updated = localVariants.includes(prop)
+                            ? localVariants.filter(v => v !== prop)
+                            : [...localVariants, prop];
+                          setLocalVariants(updated);
+                          persistVariants(updated);
+                        }}
                         className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                          selectedVariant === variant
+                          localVariants.includes(prop)
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
                             : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                         }`}
                       >
-                        {variant}
+                        {prop}
                       </button>
                       {editingVariants && (
                         <button
-                          onClick={() => handleRemoveVariant(variant)}
-                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-themed-warn text-white flex items-center justify-center text-xs"
-                        >×</button>
+                          onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                        >✕</button>
                       )}
-                    </div>
+                    </span>
                   ))}
                   {editingVariants && (
-                    <div className="flex gap-1">
-                      <input
-                        value={newVariantText}
-                        onChange={(e) => setNewVariantText(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
-                        onBlur={() => handleAddVariant()}
-                        placeholder="+"
-                        className="w-20 px-2 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
-                      />
-                    </div>
+                    <input
+                      value={newVariantText}
+                      onChange={(e) => setNewVariantText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
+                      onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
+                      placeholder="+"
+                      className="w-20 px-2 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
+                    />
                   )}
                   <button
                     onClick={() => setEditingVariants(!editingVariants)}
@@ -648,39 +613,9 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                       editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                     }`}
                   >
-                    {editingVariants ? '✓' : '+'}
+                    {editingVariants ? '✓' : '✎'}
                   </button>
-                  {editingVariants && (
-                    <button
-                      onClick={() => setShowVariantRegistry(!showVariantRegistry)}
-                      className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
-                        showVariantRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
-                      }`}
-                    >
-                      {showVariantRegistry ? '▲' : '▼'}
-                    </button>
-                  )}
                 </div>
-                {editingVariants && showVariantRegistry && (() => {
-                  const registry = loadVariantRegistry().filter(v => !localVariants.includes(v));
-                  return registry.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 justify-center mt-2">
-                      {registry.map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => {
-                            const updated = [...localVariants, v];
-                            setLocalVariants(updated);
-                            persistVariants(updated);
-                          }}
-                          className="px-3 py-1.5 text-xs rounded-full border border-dashed border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid transition-colors"
-                        >
-                          + {v}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null;
-                })()}
               </>)}
 
               <div className="pt-2 space-y-3">
@@ -744,37 +679,47 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
               {(<>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {localVariants.map((variant) => (
-                    <div key={variant} className="relative">
+                  {(() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
+                    const aIsEmoji = /^\p{Emoji}/u.test(a);
+                    const bIsEmoji = /^\p{Emoji}/u.test(b);
+                    if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                    return a.localeCompare(b, language);
+                  }).map((prop) => (
+                    <span key={prop} className="relative inline-flex">
                       <button
-                        onClick={() => handleVariantClick(variant)}
+                        onClick={() => {
+                          if (editingVariants) return;
+                          const updated = localVariants.includes(prop)
+                            ? localVariants.filter(v => v !== prop)
+                            : [...localVariants, prop];
+                          setLocalVariants(updated);
+                          persistVariants(updated);
+                        }}
                         className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                          selectedVariant === variant
+                          localVariants.includes(prop)
                             ? 'bg-themed-accent border-themed-accent text-themed-accent'
                             : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                         }`}
                       >
-                        {variant}
+                        {prop}
                       </button>
                       {editingVariants && (
                         <button
-                          onClick={() => handleRemoveVariant(variant)}
-                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-themed-warn text-white flex items-center justify-center text-xs"
-                        >×</button>
+                          onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                        >✕</button>
                       )}
-                    </div>
+                    </span>
                   ))}
                   {editingVariants && (
-                    <div className="flex gap-1">
-                      <input
-                        value={newVariantText}
-                        onChange={(e) => setNewVariantText(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddVariant(); } }}
-                        onBlur={() => handleAddVariant()}
-                        placeholder="+"
-                        className="w-20 px-2 py-1.5 text-sm rounded-full border border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
-                      />
-                    </div>
+                    <input
+                      value={newVariantText}
+                      onChange={(e) => setNewVariantText(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
+                      onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
+                      placeholder="+"
+                      className="w-20 px-2 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
+                    />
                   )}
                   <button
                     onClick={() => setEditingVariants(!editingVariants)}
@@ -782,39 +727,9 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                       editingVariants ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
                     }`}
                   >
-                    {editingVariants ? '✓' : '+'}
+                    {editingVariants ? '✓' : '✎'}
                   </button>
-                  {editingVariants && (
-                    <button
-                      onClick={() => setShowVariantRegistry(!showVariantRegistry)}
-                      className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
-                        showVariantRegistry ? 'border-themed-accent text-themed-accent' : 'border-themed text-themed-faint'
-                      }`}
-                    >
-                      {showVariantRegistry ? '▲' : '▼'}
-                    </button>
-                  )}
                 </div>
-                {editingVariants && showVariantRegistry && (() => {
-                  const registry = loadVariantRegistry().filter(v => !localVariants.includes(v));
-                  return registry.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 justify-center mt-2">
-                      {registry.map((v) => (
-                        <button
-                          key={v}
-                          onClick={() => {
-                            const updated = [...localVariants, v];
-                            setLocalVariants(updated);
-                            persistVariants(updated);
-                          }}
-                          className="px-3 py-1.5 text-xs rounded-full border border-dashed border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid transition-colors"
-                        >
-                          + {v}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null;
-                })()}
               </>)}
 
               <CommentsBlock

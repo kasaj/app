@@ -665,7 +665,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   ))}
                 </div>
                 {/* Session total bubble with dokoncit checkbox */}
-                <div className="flex justify-end mt-2">
+                <div className="flex justify-center mt-2">
                   {(() => {
                     const allDone = allTranslated.every(a => completedTodayCounts.has(a.type));
                     const todayEntry = getDayEntry(getTodayDate());
