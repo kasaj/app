@@ -160,29 +160,31 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     const idx = all.findIndex(a => a.type === activity.type);
     if (idx >= 0) {
       all[idx] = { ...all[idx], properties: updated };
-      // Bubble new properties to core activity (nalada), hidden by default
-      if (!all[idx].core) {
-        const coreIdx = all.findIndex(a => a.core);
-        if (coreIdx >= 0) {
-          const coreProps = all[coreIdx].properties || [];
-          const newForCore = updated.filter(p => !coreProps.includes(p));
-          if (newForCore.length > 0) {
-            all[coreIdx] = { ...all[coreIdx], properties: [...coreProps, ...newForCore] };
-            markActivityModified(all[coreIdx].type);
-            // Mark new ones as hidden on Today view
-            try {
-              const stored = localStorage.getItem('pra_hidden_properties');
-              const hidden: string[] = stored ? JSON.parse(stored) : [];
-              const merged = [...new Set([...hidden, ...newForCore])];
-              localStorage.setItem('pra_hidden_properties', JSON.stringify(merged));
-            } catch { /* */ }
-          }
-        }
-      }
       saveActivities(all);
       markActivityModified(activity.type);
     }
   }, [activity.type]);
+
+  const bubbleToCore = useCallback((newProp: string) => {
+    const all = loadActivities();
+    const coreIdx = all.findIndex(a => a.core);
+    if (coreIdx >= 0) {
+      const coreProps = all[coreIdx].properties || [];
+      if (!coreProps.includes(newProp)) {
+        all[coreIdx] = { ...all[coreIdx], properties: [...coreProps, newProp] };
+        saveActivities(all);
+        markActivityModified(all[coreIdx].type);
+        // Mark as hidden on Today view by default
+        try {
+          const stored = localStorage.getItem('pra_hidden_properties');
+          const hidden: string[] = stored ? JSON.parse(stored) : [];
+          if (!hidden.includes(newProp)) {
+            localStorage.setItem('pra_hidden_properties', JSON.stringify([...hidden, newProp]));
+          }
+        } catch { /* */ }
+      }
+    }
+  }, []);
 
   const [startedAt, setStartedAt] = useState(existingActivity?.startedAt || new Date().toISOString());
   const [completedAt, setCompletedAt] = useState(existingActivity?.completedAt || new Date().toISOString());
@@ -574,8 +576,8 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   <input
                     value={newVariantText}
                     onChange={(e) => setNewVariantText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
-                    onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); bubbleToCore(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
+                    onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); bubbleToCore(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
                     placeholder="+"
                     className="w-20 px-2 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
                   />
@@ -666,8 +668,8 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   <input
                     value={newVariantText}
                     onChange={(e) => setNewVariantText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
-                    onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); bubbleToCore(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
+                    onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); bubbleToCore(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
                     placeholder="+"
                     className="w-20 px-2 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
                   />
@@ -785,8 +787,8 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   <input
                     value={newVariantText}
                     onChange={(e) => setNewVariantText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
-                    onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const text = newVariantText.trim(); if (text) { addToRegistry(text); bubbleToCore(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } } }}
+                    onBlur={() => { const text = newVariantText.trim(); if (text) { addToRegistry(text); bubbleToCore(text); setNewVariantText(''); setRegistryVersion(v => v + 1); } }}
                     placeholder="+"
                     className="w-20 px-2 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
                   />
