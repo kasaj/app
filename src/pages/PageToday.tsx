@@ -534,8 +534,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {viewMode === 'beta' && (() => {
               const stored = localStorage.getItem('pra_duration_bubbles');
               const durations: number[] = stored ? JSON.parse(stored) : [...new Set(allTranslated.filter(a => !a.core && a.durationMinutes).map(a => a.durationMinutes!))].sort((a, b) => a - b);
-              return (
-                <div className="flex flex-wrap gap-1.5 mb-2 justify-center items-center">
+              return (<>
+                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                   {durations.filter(d => editMode || !hiddenDurations.has(d)).map(d => (
                     <span key={`dur-${d}`} className="relative inline-flex">
                       <button
@@ -586,6 +586,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       className="w-16 px-2 py-1 text-xs rounded-full border border-dashed border-themed bg-themed-input text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent text-center"
                     />
                   )}
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                 {/* Activity bubbles from config */}
                 {allTranslated.filter(a => !a.core).filter(a => editMode || !hiddenActivities.has(a.type)).map((activity) => (
                   <span key={activity.type} className="relative inline-flex">
@@ -625,7 +627,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     className="px-2 py-1 text-xs rounded-full border border-dashed border-themed text-themed-faint hover:border-themed-accent hover:text-themed-accent-solid transition-colors"
                   >+</button>
                 )}
-              </div>);
+              </div>
+              </>);
             })()}
             <div className="flex justify-center mb-3">
               <StarRating value={moodRating} onChange={(r) => setMoodRatingSync(r)} size="lg" />

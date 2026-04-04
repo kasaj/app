@@ -500,41 +500,50 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
 
               <div className="flex flex-wrap gap-2 justify-center">
-                {/* Normal: activity properties, click adds to comment */}
-                {!editingVariants && localVariants.filter(prop => !hiddenProperties.has(prop)).map((prop) => (
-                  <button key={prop}
-                    onClick={() => {
-                      setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
-                    }}
-                    className="px-3 py-1.5 text-sm rounded-full border transition-colors bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid"
-                  >{prop}</button>
-                ))}
-                {/* Edit: activity properties (active) + registry (grayed), click activates/deactivates */}
-                {editingVariants && (() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
-                  const aIsEmoji = /^\p{Emoji}/u.test(a);
-                  const bIsEmoji = /^\p{Emoji}/u.test(b);
-                  if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
-                  return a.localeCompare(b, language);
-                }).map((prop) => (
+                {/* Show: config properties (normal) or config+registry (edit) */}
+                {(() => {
+                  void registryVersion;
+                  const configProps = localVariants;
+                  const registry = loadVariantRegistry();
+                  const allProps = editingVariants
+                    ? [...new Set([...configProps, ...registry])]
+                    : configProps.filter(prop => !hiddenProperties.has(prop));
+                  return editingVariants
+                    ? allProps.sort((a, b) => {
+                        const aIsEmoji = /^\p{Emoji}/u.test(a);
+                        const bIsEmoji = /^\p{Emoji}/u.test(b);
+                        if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                        return a.localeCompare(b, language);
+                      })
+                    : allProps;
+                })().map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        const updated = localVariants.includes(prop)
-                          ? localVariants.filter(v => v !== prop)
-                          : [...localVariants, prop];
-                        setLocalVariants(updated);
-                        persistVariants(updated);
+                        if (editingVariants) {
+                          const updated = localVariants.includes(prop)
+                            ? localVariants.filter(v => v !== prop)
+                            : [...localVariants, prop];
+                          setLocalVariants(updated);
+                          persistVariants(updated);
+                        } else {
+                          setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
+                        }
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        localVariants.includes(prop)
-                          ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                          : 'opacity-30 bg-themed-input border-themed text-themed-faint'
+                        editingVariants
+                          ? localVariants.includes(prop)
+                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                            : 'opacity-30 bg-themed-input border-themed text-themed-faint'
+                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
                       }`}
                     >{prop}</button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
-                    >✕</button>
+                    {editingVariants && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                      >✕</button>
+                    )}
                   </span>
                 ))}
                 {editingVariants && (
@@ -578,41 +587,50 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
               <div className="pt-2 space-y-3">
               <div className="flex flex-wrap gap-2 justify-center">
-                {/* Normal: activity properties, click adds to comment */}
-                {!editingVariants && localVariants.filter(prop => !hiddenProperties.has(prop)).map((prop) => (
-                  <button key={prop}
-                    onClick={() => {
-                      setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
-                    }}
-                    className="px-3 py-1.5 text-sm rounded-full border transition-colors bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid"
-                  >{prop}</button>
-                ))}
-                {/* Edit: activity properties (active) + registry (grayed), click activates/deactivates */}
-                {editingVariants && (() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
-                  const aIsEmoji = /^\p{Emoji}/u.test(a);
-                  const bIsEmoji = /^\p{Emoji}/u.test(b);
-                  if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
-                  return a.localeCompare(b, language);
-                }).map((prop) => (
+                {/* Show: config properties (normal) or config+registry (edit) */}
+                {(() => {
+                  void registryVersion;
+                  const configProps = localVariants;
+                  const registry = loadVariantRegistry();
+                  const allProps = editingVariants
+                    ? [...new Set([...configProps, ...registry])]
+                    : configProps.filter(prop => !hiddenProperties.has(prop));
+                  return editingVariants
+                    ? allProps.sort((a, b) => {
+                        const aIsEmoji = /^\p{Emoji}/u.test(a);
+                        const bIsEmoji = /^\p{Emoji}/u.test(b);
+                        if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                        return a.localeCompare(b, language);
+                      })
+                    : allProps;
+                })().map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        const updated = localVariants.includes(prop)
-                          ? localVariants.filter(v => v !== prop)
-                          : [...localVariants, prop];
-                        setLocalVariants(updated);
-                        persistVariants(updated);
+                        if (editingVariants) {
+                          const updated = localVariants.includes(prop)
+                            ? localVariants.filter(v => v !== prop)
+                            : [...localVariants, prop];
+                          setLocalVariants(updated);
+                          persistVariants(updated);
+                        } else {
+                          setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
+                        }
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        localVariants.includes(prop)
-                          ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                          : 'opacity-30 bg-themed-input border-themed text-themed-faint'
+                        editingVariants
+                          ? localVariants.includes(prop)
+                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                            : 'opacity-30 bg-themed-input border-themed text-themed-faint'
+                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
                       }`}
                     >{prop}</button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
-                    >✕</button>
+                    {editingVariants && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                      >✕</button>
+                    )}
                   </span>
                 ))}
                 {editingVariants && (
@@ -683,41 +701,50 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
 
               <div className="flex flex-wrap gap-2 justify-center">
-                {/* Normal: activity properties, click adds to comment */}
-                {!editingVariants && localVariants.filter(prop => !hiddenProperties.has(prop)).map((prop) => (
-                  <button key={prop}
-                    onClick={() => {
-                      setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
-                    }}
-                    className="px-3 py-1.5 text-sm rounded-full border transition-colors bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid"
-                  >{prop}</button>
-                ))}
-                {/* Edit: activity properties (active) + registry (grayed), click activates/deactivates */}
-                {editingVariants && (() => { void registryVersion; return loadVariantRegistry(); })().slice().sort((a, b) => {
-                  const aIsEmoji = /^\p{Emoji}/u.test(a);
-                  const bIsEmoji = /^\p{Emoji}/u.test(b);
-                  if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
-                  return a.localeCompare(b, language);
-                }).map((prop) => (
+                {/* Show: config properties (normal) or config+registry (edit) */}
+                {(() => {
+                  void registryVersion;
+                  const configProps = localVariants;
+                  const registry = loadVariantRegistry();
+                  const allProps = editingVariants
+                    ? [...new Set([...configProps, ...registry])]
+                    : configProps.filter(prop => !hiddenProperties.has(prop));
+                  return editingVariants
+                    ? allProps.sort((a, b) => {
+                        const aIsEmoji = /^\p{Emoji}/u.test(a);
+                        const bIsEmoji = /^\p{Emoji}/u.test(b);
+                        if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
+                        return a.localeCompare(b, language);
+                      })
+                    : allProps;
+                })().map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        const updated = localVariants.includes(prop)
-                          ? localVariants.filter(v => v !== prop)
-                          : [...localVariants, prop];
-                        setLocalVariants(updated);
-                        persistVariants(updated);
+                        if (editingVariants) {
+                          const updated = localVariants.includes(prop)
+                            ? localVariants.filter(v => v !== prop)
+                            : [...localVariants, prop];
+                          setLocalVariants(updated);
+                          persistVariants(updated);
+                        } else {
+                          setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
+                        }
                       }}
                       className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        localVariants.includes(prop)
-                          ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                          : 'opacity-30 bg-themed-input border-themed text-themed-faint'
+                        editingVariants
+                          ? localVariants.includes(prop)
+                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                            : 'opacity-30 bg-themed-input border-themed text-themed-faint'
+                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
                       }`}
                     >{prop}</button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
-                    >✕</button>
+                    {editingVariants && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeFromRegistry(prop); setRegistryVersion(v => v + 1); }}
+                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                      >✕</button>
+                    )}
                   </span>
                 ))}
                 {editingVariants && (
