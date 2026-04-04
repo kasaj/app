@@ -321,7 +321,21 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     <div className={`page-container ${viewMode === 'beta' ? 'min-h-screen flex flex-col' : ''}`}>
       <div className="flex items-center justify-between mb-1.5">
           <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
-          {viewMode !== 'beta' && (
+          {viewMode === 'beta' ? (
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
+              style={{
+                backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
+                color: editMode ? 'var(--accent-text-on-solid)' : 'var(--text-secondary)',
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+          ) : (
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
@@ -364,7 +378,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               </svg>
             </button>
           </div>
-          )}
+          )
+          }
         </div>
       {(
         <section className={viewMode === 'beta' ? 'flex-1 flex flex-col justify-center' : ''}>
@@ -399,23 +414,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                 className="text-xs text-themed-faint bg-transparent border-none focus:outline-none focus:text-themed-muted cursor-pointer"
               />
             </div>
-            <div className="flex-1 flex justify-end">
-              {viewMode === 'beta' && (
-                <button
-                  onClick={() => setEditMode(!editMode)}
-                  className="px-2 py-1 text-xs rounded-xl transition-colors flex items-center"
-                  style={{
-                    backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
-                    color: editMode ? 'var(--accent-text-on-solid)' : 'var(--text-secondary)',
-                  }}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-              )}
-            </div>
+            <div className="flex-1" />
           </div>
           {/* Properties - above core for default, inside core for beta */}
           {viewMode !== 'beta' && (
