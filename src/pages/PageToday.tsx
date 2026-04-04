@@ -806,8 +806,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {viewMode === 'beta' && allTranslated.length > 0 && (
               <>
                 {/* Activity records - cumulative by icon, checkbox aligned with session checkbox */}
-                <div className="mt-3 flex flex-col items-center">
-                  <div className="flex flex-col items-end space-y-1">
+                <div className="mt-3 flex flex-col w-fit mx-auto space-y-1">
                   {(() => {
                     const todayEntry = getDayEntry(getTodayDate());
                     const todayActivities = todayEntry?.activities || [];
@@ -844,19 +843,21 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       rows.push({ key: activity.type, emoji: activity.emoji, label: activity.name, total, totalMin, sessionCount });
                     });
                     return rows.map(row => (
-                      <div key={row.key} className="flex items-center gap-2 opacity-50">
-                        <span className="text-sm">{row.emoji}</span>
-                        {row.total > 0 && (
-                          <span className="text-xs text-themed-faint">{row.total}</span>
-                        )}
-                        {row.totalMin > 0 && (
-                          <span className="text-xs text-themed-faint">
-                            {row.totalMin >= 60 ? `${Math.floor(row.totalMin / 60)} h${row.totalMin % 60 > 0 ? ` ${row.totalMin % 60} m` : ''}` : `${row.totalMin} m`}
-                          </span>
-                        )}
-                        {row.sessionCount > 0 && (
-                          <span className="text-xs font-medium text-themed-accent-solid">{row.sessionCount}</span>
-                        )}
+                      <div key={row.key} className="flex items-center gap-2 opacity-50 w-full">
+                        <div className="flex items-center gap-2 flex-1 justify-end">
+                          <span className="text-sm">{row.emoji}</span>
+                          {row.total > 0 && (
+                            <span className="text-xs text-themed-faint">{row.total}</span>
+                          )}
+                          {row.totalMin > 0 && (
+                            <span className="text-xs text-themed-faint">
+                              {row.totalMin >= 60 ? `${Math.floor(row.totalMin / 60)} h${row.totalMin % 60 > 0 ? ` ${row.totalMin % 60} m` : ''}` : `${row.totalMin} m`}
+                            </span>
+                          )}
+                          {row.sessionCount > 0 && (
+                            <span className="text-xs font-medium text-themed-accent-solid">{row.sessionCount}</span>
+                          )}
+                        </div>
                         <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${
                           row.sessionCount > 0 ? '' : 'opacity-20'
                         }`} style={{ backgroundColor: row.sessionCount > 0 ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
@@ -867,7 +868,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       </div>
                     ));
                   })()}
-                  </div>
                 </div>
               </>
             )}
