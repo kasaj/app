@@ -238,10 +238,7 @@ function ActivityRow({ activity, lang, selected, onToggleSelect, onClickEdit, on
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="text-sm">{def?.core ? getRecordEmoji(activity.selectedVariant, def.emoji) : def?.emoji}</span>
-            {def?.core && activity.selectedVariant
-              ? <span className="text-xs text-themed-muted truncate">{activity.selectedVariant.split(',')[0].trim()}</span>
-              : def?.name && <span className="text-xs text-themed-muted truncate">{def.name}</span>
-            }
+            {def?.name && <span className="text-xs text-themed-muted truncate">{def.name}</span>}
           </div>
           <div className="flex items-center gap-2">
             {linkCount > 0 && (
