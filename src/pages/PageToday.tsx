@@ -639,8 +639,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     localStorage.removeItem('pra_hidden_durations');
                     localStorage.removeItem('pra_duration_bubbles');
                     localStorage.removeItem('pra_activities');
-                    localStorage.removeItem('pra_variant_registry_modified');
-                    localStorage.removeItem('pra_variant_registry');
                     // Reload activities from config (mergeWithConfig with empty will load defaults)
                     setActivities(loadActivities());
                     setRegistryVersion(v => v + 1);
