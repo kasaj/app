@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "language": "cs",
+  "theme": "modern",
+  "activities": [
+    {
+      "type": "rozjimani",
+      "emoji": "🧎‍♂️",
+      "durationMinutes": 15,
+      "name": "Usebrání",
+      "description": "Vědomé jednání jako tiché sezení, konzumace jídel, otevřená otázka, vnitřní prostor, pozorování přírody, pocitů, myšlenek",
+      "properties": ["Meditace","Imaginace","Kontemplace","Jídlo","Čaj","Tai-chi","Procítění štěstí","Pozorování myšlenek","Soustředěné dýchání"],
+      "durationOptions": [15],
+      "defaultDuration": 15
+    },
+    {
+      "type": "sobe",
+      "emoji": "🧍‍♂️",
+      "durationMinutes": 1,
+      "name": "Pauza",
+      "description": "Na pár minut se vědomě zastavit, vnímat, pobýt sám se sebou...",
+      "properties": ["Dech nosem","Sken těla","Slunce","Pozorování","Klid gesta 👌","Energie života","Kontakt se zemí","Zastavení"],
+      "durationOptions": [1],
+      "defaultDuration": 1
+    },
+    {
+      "type": "nalada",
+      "emoji": "🌌",
+      "durationMinutes": null,
+      "core": true,
+      "name": "Prostor",
+      "description": "Zaznamenej svůj aktuální stav",
+      "properties": ["❗️","☀️","☕️","🍵","🐕","💩","💨 Dlouhý výdech, uklidnění","Nový návyk","Aha","Pocit","Společnost","👫 Rodina","🙏 Fail","👌 Gesto klidu","💻 Práce","🏡 Práce","😴 Spánek 8h","🏃‍♂️ Sport","🌘 Stín","😨 Strach","🥱 Únava","📜 Záměr","🤗 Obejmutí","🍲 Jídlo","💭 Myšlenka","📝 Poznámka","🔭 Pozornost","🚶‍♂️ Procházka","🌅 Probuzení","🛌 Usínání","💤 Sen"],
+      "defaultDuration": 15
+    },
+    {
+      "type": "vyzva",
+      "emoji": "🔥",
+      "durationMinutes": null,
+      "name": "Výzva",
+      "description": "Integrace: Vědomé čelení tomu, čemu se vyhýbám, malý krok středem, konkrétní akce k růstu",
+      "properties": ["Dlouhý výdech sss (uklidnění)","Konfrontace strachu","Přijetí bolesti nebo pocitu","Vůle jen pozorovat","Klid gesta 👌","Nový návyk","Selhání je výhrou","Malý krok v chaosu"],
+      "defaultDuration": 1
+    }
+  ],
+  "moodScale": [
+    { "value": 1, "emoji": "😡", "labelCs": "Vztek" },
+    { "value": 2, "emoji": "😰", "labelCs": "Úzkost" },
+    { "value": 3, "emoji": "🙁", "labelCs": "Sklíčenost" },
+    { "value": 4, "emoji": "😐", "labelCs": "Neutrál" },
+    { "value": 5, "emoji": "🙂", "labelCs": "Pohoda" },
+    { "value": 6, "emoji": "😊", "labelCs": "Radost" },
+    { "value": 7, "emoji": "😄", "labelCs": "Nadšení" }
+  ],
+  "info": {
+    "cs": {
+      "title": "Info",
+      "subtitle": "",
+      "quotes": [
+        { "text": "Nejsem tím, co se mi přihodilo, ale tím, čím jsem se rozhodl stát.", "author": "Carl Gustav Jung" },
+        { "text": "Žádný problém nelze vyřešit na stejné úrovni vědomí, na kterém vznikl.", "author": "Albert Einstein" },
+        { "text": "Kde vědomí (pozornost) bloudí, tam energie proudí.", "author": "Gurudéva" }
+      ],
+      "why": "Ale než se ptáme, jak na výše a co konkrétně dělat, musíme se ptát hlouběji: proč. Člověk bez zakořenění ve smyslu, směru, důvodu — nemůže žádnou praxi dlouhodobě udržet. Z čeho u tebe vše ostatní vyrůstá?",
+      "noteWhy": "Např. radost z pomoci druhým a šířením světla - dobra, pravdy, sebe.",
+      "how": "Teprve pak nastupuje jak — a zde nejde o techniku, ale o způsob bytí. Disciplína je forma lásky k tomu, čím se chceme stát. Co je tvým mostem mezi záměrem a skutečností?",
+      "noteHow": "Např. snaha být bdělý a silný přijímat skutečnost za zodpovědnost.",
+      "what": "A teprve na tomto základě má smysl mluvit o co — o metodě a konkrétní praxi. Obsah bez směru je hluk, metoda bez formy chaos. Co pro mě funguje a je transformačním?",
+      "noteWhat": "Např. vědomá tvorba a zdravý životní styl - spánek, vztahy, přirozenost.",
+      "body": "Kvalita života závisí na tom, kde jsme, co tvoříme a jak vnímáme sebe i svět kolem nás — a to se promítá zpět do světa i do nás samých. Jde o neustálý proces stávání se, jedinou jistotou je změna.\n\nMechanika života: myšlenka → slovo → čin → zvyk → charakter → osud.\n\nVědomí může vnímat realitu jako celek — fyzickou (objektivní), vnitřní (subjektivní) a společenskou (domluva, nikoli fakt). Jsme transcendentální bytosti, zároveň však teritoriální, stádoví a logicko-emoční tvorové.\n\nV psychice se zjevuje mnohé — s přijetím bez ztotožnění zůstáváme sami sebou, v té nejlepší verzi sebe sama. Svět jednoduše pracuje vždy pro nás.",
+      "featuredQuote": { "text": "Poznej sám sebe a poznáš svět (ty jsi ten svět).", "author": "Věštírna v Delfách" },
+      "bioTitle": "Biologický základ",
+      "bioText": "Praxe je ukotvena v nervovém systému: pozornost, dech a pohyb přímo regulují autonomní nervový systém, snižují kortizol, posilují parasympatikus a umožňují integraci těla a mysli.",
+      "psychTitle": "Psychologický rámec",
+      "psychText": "Pracuje s archetypy, stínem (Jung), přijetím (buddhismus, stoicismus) a sebeurčením (Maslow, Frankl).",
+      "philoTitle": "Filozofický základ",
+      "philoText": "Stojí na průniku bytí (Heidegger), přítomnosti (Tao) a etiky středu (Aristotelova mesotés — srdce mezi hlavou a emocí)."
+    }
+  }
+}
