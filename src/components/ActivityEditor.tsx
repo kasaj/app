@@ -18,7 +18,7 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const [emoji, setEmoji] = useState(activity?.emoji || '');
   const [description, setDescription] = useState(activity?.description || '');
   const [isTimed, setIsTimed] = useState(activity?.durationMinutes !== null);
-  const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || '15');
+  const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || activity?.defaultDuration?.toString() || '1');
   const [variants] = useState<string[]>(activity?.properties || []);
   const initialRender = useRef(true);
 
@@ -30,12 +30,14 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
     }
     if (isNew || !name.trim()) return;
 
+    const parsedDuration = parseInt(duration, 10) || 1;
     const updated: ActivityDefinition = {
       type: activity?.type || generateActivityType(),
       name: name.trim(),
       emoji: emoji || '✨',
       description: description.trim(),
-      durationMinutes: isTimed ? parseInt(duration, 10) || 15 : null,
+      durationMinutes: isTimed ? parsedDuration : null,
+      defaultDuration: !isTimed ? parsedDuration : undefined,
       properties: variants.length > 0 ? variants : undefined,
     };
     onSave(updated);
@@ -45,12 +47,14 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const handleSubmit = () => {
     if (!name.trim()) return;
 
+    const parsedDuration = parseInt(duration, 10) || 1;
     const newActivity: ActivityDefinition = {
       type: activity?.type || generateActivityType(),
       name: name.trim(),
       emoji: emoji || '✨',
       description: description.trim(),
-      durationMinutes: isTimed ? parseInt(duration, 10) || 15 : null,
+      durationMinutes: isTimed ? parsedDuration : null,
+      defaultDuration: !isTimed ? parsedDuration : undefined,
       properties: variants.length > 0 ? variants : undefined,
     };
 
@@ -140,21 +144,19 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
             </div>
           </div>
 
-          {isTimed && (
-            <div>
-              <label className="block text-sm text-themed-muted mb-2">{t.editor.duration}</label>
-              <input
-                type="number"
-                min="1"
-                max="120"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="w-full p-3 rounded-xl bg-themed-input border border-themed
-                         focus:outline-none focus:border-themed-accent
-                         text-themed-primary"
-              />
-            </div>
-          )}
+          <div>
+            <label className="block text-sm text-themed-muted mb-2">{t.editor.duration}</label>
+            <input
+              type="number"
+              min="1"
+              max="120"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-full p-3 rounded-xl bg-themed-input border border-themed
+                       focus:outline-none focus:border-themed-accent
+                       text-themed-primary"
+            />
+          </div>
 
         </div>
 
