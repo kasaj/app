@@ -689,8 +689,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             {/* Beta: separator + activity bubbles with time + session total + records */}
             {viewMode === 'beta' && allTranslated.length > 0 && (
               <>
-                {/* Session total bubble with checkbox - above records */}
-                <div className="flex justify-end mb-1">
+                {/* Session bubble (left) + records (right), bubble aligned to last record */}
+                <div className="flex items-end gap-3 mt-3">
+                  {/* Session total bubble with checkbox - left, bottom-aligned */}
                   {(() => {
                     const allDone = allTranslated.every(a => completedTodayCounts.has(a.type));
                     const todayEntry = getDayEntry(getTodayDate());
@@ -703,7 +704,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       return sum + Math.round(secs / 60);
                     }, 0);
                     return (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${sessionTotal > 0 ? 'text-themed-accent-solid bg-themed-accent' : 'text-themed-faint bg-themed-input'}`}>
                           {sessionTotal >= 60 ? `${Math.floor(sessionTotal / 60)} h${sessionTotal % 60 > 0 ? ` ${sessionTotal % 60} m` : ''}` : `${sessionTotal} m`}
                         </span>
@@ -725,9 +726,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       </div>
                     );
                   })()}
-                </div>
-                {/* Activity records - cumulative by icon, checkbox aligned with session checkbox */}
-                <div className="mt-1 flex flex-col w-fit ml-auto space-y-1">
+                  {/* Activity records - right side */}
+                  <div className="flex flex-col space-y-1">
                   {(() => {
                     const todayEntry = getDayEntry(getTodayDate());
                     const todayActivities = todayEntry?.activities || [];
@@ -779,6 +779,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       </div>
                     ));
                   })()}
+                  </div>
                 </div>
               </>
             )}
