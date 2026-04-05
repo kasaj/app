@@ -404,7 +404,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                             : selectedProperties.has(prop)
                               ? 'bg-themed-accent border-themed-accent text-themed-accent font-medium'
                               : usedPropertiesInSession.has(prop)
-                                ? 'bg-themed-accent border-themed-accent text-themed-accent'
+                                ? 'bg-transparent border-themed-accent text-themed-accent'
                                 : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
                         }`}
                       >
