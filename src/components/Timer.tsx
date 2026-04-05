@@ -104,6 +104,8 @@ export default function Timer({ durationMinutes, onComplete, onCancel: _onCancel
       {startedAt && (
         <div className="text-sm text-themed-faint mb-2">
           {new Date(startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {' — '}
+          {new Date(new Date(startedAt).getTime() + durationMinutes * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       )}
 
