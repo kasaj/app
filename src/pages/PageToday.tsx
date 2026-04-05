@@ -747,7 +747,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                             localStorage.setItem('pra_session_start', now);
                             setRefreshKey((k) => k + 1);
                           }}
-                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${allDone ? '' : 'opacity-20'}`}
+                          className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${allDone ? '' : 'opacity-40'}`}
                           style={{ backgroundColor: allDone ? 'var(--accent-solid)' : 'var(--text-faint)' }}
                         >
                           <svg className="w-3 h-3" style={{ color: allDone ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -758,7 +758,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                       {/* Records - right */}
                       <div className="flex flex-col space-y-1">
                         {rows.map(row => (
-                          <div key={row.key} className="flex items-center gap-2 opacity-50">
+                          <div key={row.key} className="flex items-center gap-2">
                             <div className="flex items-center gap-2 flex-1 justify-end">
                               <span className="text-base">{row.key === coreActivity?.type ? coreActivity.emoji : row.emoji}</span>
                               {row.total > 0 && <span className="text-sm text-themed-faint">{row.total}</span>}
@@ -769,7 +769,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                               )}
                               {row.sessionCount > 0 && <span className="text-sm font-medium text-themed-accent-solid">{row.sessionCount}</span>}
                             </div>
-                            <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${row.sessionCount > 0 ? '' : 'opacity-20'}`}
+                            <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center ${row.sessionCount > 0 ? '' : 'opacity-40'}`}
                               style={{ backgroundColor: row.sessionCount > 0 ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
                               <svg className="w-2.5 h-2.5" style={{ color: row.sessionCount > 0 ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
