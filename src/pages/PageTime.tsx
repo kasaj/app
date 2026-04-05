@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { loadAllData, deleteActivitiesByIds, updateActivityById, findActivityById, createLinkedActivity } from '../utils/storage';
 import { getChartColors } from '../utils/theme';
-import { getActivityByType, getTranslatedActivity, getRecordEmoji } from '../utils/activities';
+import { getActivityByType, getTranslatedActivity } from '../utils/activities';
 import { useLanguage } from '../i18n';
 import { Activity, ActivityComment, ActivityDefinition, DayEntry } from '../types';
 import { loadMoodScale, getMoodEmoji } from '../utils/moodScale';
