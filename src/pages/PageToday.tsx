@@ -10,7 +10,6 @@ import {
   getConfigProperties,
 } from '../utils/activities';
 import { getDayEntry, getTodayDate, loadAllData, generateId, addActivity, updateActivityById, findActivityById } from '../utils/storage';
-import ActivityCard from '../components/ActivityCard';
 import ActivityFlow from '../components/ActivityFlow';
 import ActivityEditor from '../components/ActivityEditor';
 import StarRating from '../components/StarRating';
@@ -28,7 +27,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editMode, setEditMode] = useState(false);
   const [registryVersion, setRegistryVersion] = useState(0);
-  const viewMode = localStorage.getItem('pra_view_mode') || 'beta';
   const [customTime, setCustomTime] = useState<string | null>(null);
   const customTimeRef = useRef<string | null>(null);
   const setCustomTimeSync = (t: string | null) => { customTimeRef.current = t; setCustomTime(t); };
@@ -208,20 +206,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey, sessionStart]);
 
-  // Previous (gray) - activities before sessionStart today
-  const completedPreviousCounts = useMemo(() => {
-    const todayEntry = getDayEntry(getTodayDate());
-    const counts = new Map<string, number>();
-    if (!todayEntry) return counts;
-    todayEntry.activities.forEach((a) => {
-      if (new Date(a.completedAt || a.startedAt) < new Date(sessionStart)) {
-        counts.set(a.type, (counts.get(a.type) || 0) + 1);
-      }
-    });
-    return counts;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey, sessionStart]);
-
   // Total time and count per activity type (all history)
   const { totalTimePerActivity, totalCountPerActivity } = useMemo(() => {
     const allData = loadAllData();
@@ -260,26 +244,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   };
 
 
-  const handleMoveActivity = useCallback((type: string, direction: 'up' | 'down') => {
-    const current = [...activities];
-    const index = current.findIndex(a => a.type === type);
-    if (index < 0) return;
-    // Skip core activities for swap targets
-    const findTarget = (from: number, dir: number): number => {
-      let i = from + dir;
-      while (i >= 0 && i < current.length) {
-        if (!current[i].core) return i;
-        i += dir;
-      }
-      return -1;
-    };
-    const target = findTarget(index, direction === 'up' ? -1 : 1);
-    if (target < 0) return;
-    [current[index], current[target]] = [current[target], current[index]];
-    saveActivities(current);
-    setActivities(current);
-  }, [activities]);
-
   const handleSaveActivity = useCallback((activity: ActivityDefinition) => {
     const current = loadActivities();
     const index = current.findIndex((a) => a.type === activity.type);
@@ -311,40 +275,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   }, [editingActivity]);
 
   return (
-    <div className={`page-container ${viewMode === 'beta' ? 'min-h-screen flex flex-col justify-center' : ''}`}>
-      <div className={`flex items-center mb-1.5 ${viewMode === 'beta' ? 'justify-center' : 'justify-between'}`}>
+    <div className="page-container min-h-screen flex flex-col justify-center">
+      <div className="flex items-center mb-1.5 justify-center">
           <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
-          {viewMode !== 'beta' && (
-          <div className="flex items-center gap-2">
+        </div>
+      <section className="flex flex-col">
+          {/* Edit button centered above date/time */}
+          <div className="flex justify-center mb-1">
             <button
-              onClick={() => {
-                flushMood();
-                const now = new Date().toISOString();
-                setSessionStart(now);
-                localStorage.setItem('pra_session_start', now);
-                setRefreshKey((k) => k + 1);
-              }}
-              className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
-              style={{ backgroundColor: 'var(--bg-input)', color: 'var(--text-secondary)' }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setShowNewActivity(true)}
-              className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
-              style={{ backgroundColor: 'var(--bg-input)', color: 'var(--text-secondary)' }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-            <button
-              onClick={() => {
-                const next = !editMode;
-                setEditMode(next);
-              }}
+              onClick={() => setEditMode(!editMode)}
               className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
               style={{
                 backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
@@ -357,29 +296,6 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               </svg>
             </button>
           </div>
-          )
-          }
-        </div>
-      {(
-        <section className={viewMode === 'beta' ? 'flex flex-col' : ''}>
-          {/* Beta: edit button centered above date/time */}
-          {viewMode === 'beta' && (
-            <div className="flex justify-center mb-1">
-              <button
-                onClick={() => setEditMode(!editMode)}
-                className="px-2.5 py-1.5 text-sm rounded-xl transition-colors flex items-center"
-                style={{
-                  backgroundColor: editMode ? 'var(--accent-solid)' : 'var(--bg-input)',
-                  color: editMode ? 'var(--accent-text-on-solid)' : 'var(--text-secondary)',
-                }}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-            </div>
-          )}
           {/* Date/time - editable */}
           <div className="flex items-center mb-1.5">
             <div className="flex-1" />
@@ -413,106 +329,10 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             </div>
             <div className="flex-1" />
           </div>
-          {/* Properties - above core for default, inside core for beta */}
-          {viewMode !== 'beta' && (
-          <div className="flex flex-wrap gap-1.5 mb-1.5 justify-center">
-            {(() => {
-              void registryVersion;
-              const fresh = loadActivities();
-              const core = fresh.find(a => a.core);
-              const coreProps = core?.properties || getConfigProperties('nalada');
-              return coreProps;
-            })().slice().sort((a, b) => {
-              const aIsEmoji = /^\p{Emoji}/u.test(a);
-              const bIsEmoji = /^\p{Emoji}/u.test(b);
-              if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
-              return a.localeCompare(b, language);
-            }).filter(prop => editMode || !hiddenProperties.has(prop)).map((prop) => (
-              <span key={prop} className="relative inline-flex">
-                <button
-                  onClick={() => editMode ? toggleHideProperty(prop) : toggleProperty(prop)}
-                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                    editMode && hiddenProperties.has(prop)
-                      ? 'opacity-30 border-themed bg-themed-input text-themed-faint'
-                      : selectedProperties.has(prop)
-                        ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                        : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
-                  }`}
-                >
-                  {prop}
-                </button>
-                {editMode && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const all = loadActivities();
-                      const coreIdx = all.findIndex(a => a.core);
-                      if (coreIdx >= 0 && all[coreIdx].properties?.includes(prop)) {
-                        all[coreIdx] = { ...all[coreIdx], properties: all[coreIdx].properties!.filter(p => p !== prop) };
-                        saveActivities(all);
-                        markActivityModified(all[coreIdx].type);
-                      }
-                      setRegistryVersion(v => v + 1);
-                    }}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
-                  >✕</button>
-                )}
-              </span>
-            ))}
-            {editMode && (
-              <input
-                type="text"
-                value={newPropertyText}
-                onChange={(e) => setNewPropertyText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const text = newPropertyText.trim();
-                    if (text) {
-                      const all = loadActivities();
-                      const coreIdx = all.findIndex(a => a.core);
-                      if (coreIdx >= 0) {
-                        const coreProps = all[coreIdx].properties || [];
-                        if (!coreProps.includes(text)) {
-                          all[coreIdx] = { ...all[coreIdx], properties: [...coreProps, text] };
-                          saveActivities(all);
-                          markActivityModified(all[coreIdx].type);
-                        }
-                      }
-                      setNewPropertyText('');
-                      setRegistryVersion(v => v + 1);
-                    }
-                  }
-                }}
-                onBlur={() => {
-                  const text = newPropertyText.trim();
-                  if (text) {
-                    const all = loadActivities();
-                    const coreIdx = all.findIndex(a => a.core);
-                    if (coreIdx >= 0) {
-                      const coreProps = all[coreIdx].properties || [];
-                      if (!coreProps.includes(text)) {
-                        all[coreIdx] = { ...all[coreIdx], properties: [...coreProps, text] };
-                        saveActivities(all);
-                        markActivityModified(all[coreIdx].type);
-                      }
-                    }
-                    setNewPropertyText('');
-                    setRegistryVersion(v => v + 1);
-                  }
-                }}
-                placeholder="+"
-                className="w-20 px-3 py-1.5 text-sm rounded-full border border-dashed border-themed bg-themed-input
-                         text-themed-primary placeholder:text-themed-faint focus:outline-none focus:border-themed-accent"
-              />
-            )}
-          </div>
-          )}
 
 
           {/* Core activity centered */}
           <div className="flex items-center gap-1">
-          {viewMode !== 'beta' && <div className="w-5" />}
           <div className="flex-1">
           <div
             className="card"
@@ -523,47 +343,45 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               }, 100);
             }}
           >
-            {/* Beta: activity bubbles from config */}
-            {viewMode === 'beta' && (() => { return (
-                <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
-                {allTranslated.filter(a => !a.core).filter(a => editMode || !hiddenActivities.has(a.type)).map((activity) => (
-                  <span key={activity.type} className="relative inline-flex">
-                    <button
-                      onClick={() => {
-                        if (editMode) {
-                          toggleHideActivity(activity.type);
-                        } else {
-                          handleActivityClick(activity);
-                        }
-                      }}
-                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        editMode
-                          ? hiddenActivities.has(activity.type) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-muted'
-                          : completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
-                      }`}
-                    >{activity.emoji} {activity.name}</button>
-                    {editMode && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteActivity(activity.type);
-                          setActivities(loadActivities());
-                        }}
-                        className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
-                      >✕</button>
-                    )}
-                  </span>
-                ))}
-                {editMode && (
+            {/* Activity bubbles from config */}
+            <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
+              {allTranslated.filter(a => !a.core).filter(a => editMode || !hiddenActivities.has(a.type)).map((activity) => (
+                <span key={activity.type} className="relative inline-flex">
                   <button
-                    onClick={() => setShowNewActivity(true)}
-                    className="px-3 py-1.5 text-sm rounded-full border border-themed-accent text-themed-accent-solid hover:bg-themed-accent transition-colors"
-                  >+</button>
-                )}
-              </div>
-              ); })()}
-            {/* Beta: properties from nalada (stored + config fallback) */}
-            {viewMode === 'beta' && (
+                    onClick={() => {
+                      if (editMode) {
+                        toggleHideActivity(activity.type);
+                      } else {
+                        handleActivityClick(activity);
+                      }
+                    }}
+                    className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                      editMode
+                        ? hiddenActivities.has(activity.type) ? 'opacity-30 bg-themed-input border-themed text-themed-faint' : 'bg-themed-input border-themed text-themed-muted'
+                        : completedTodayCounts.has(activity.type) ? 'bg-themed-accent border-themed-accent text-themed-accent' : 'bg-themed-input border-themed text-themed-muted hover:border-themed-medium'
+                    }`}
+                  >{activity.emoji} {activity.name}</button>
+                  {editMode && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteActivity(activity.type);
+                        setActivities(loadActivities());
+                      }}
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] leading-none"
+                    >✕</button>
+                  )}
+                </span>
+              ))}
+              {editMode && (
+                <button
+                  onClick={() => setShowNewActivity(true)}
+                  className="px-3 py-1.5 text-sm rounded-full border border-themed-accent text-themed-accent-solid hover:bg-themed-accent transition-colors"
+                >+</button>
+              )}
+            </div>
+            {/* Properties from nalada (stored + config fallback) */}
+            {(
               <div className="flex flex-wrap gap-1.5 mb-2 justify-center">
                   {(() => {
                     void registryVersion;
@@ -630,8 +448,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                   )}
                 </div>
             )}
-            {/* Beta: core duration setting in edit mode */}
-            {viewMode === 'beta' && editMode && (
+            {/* Core duration setting in edit mode */}
+            {editMode && (
               <div className="flex justify-center mb-2">
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-themed-faint">{language === 'cs' ? 'Délka' : 'Duration'}</label>
@@ -678,25 +496,8 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                        focus:outline-none focus:border-themed-accent resize-none
                        text-themed-primary placeholder:text-themed-faint text-base overflow-hidden"
             />
-            {viewMode !== 'beta' && (
-            <div className="flex items-center justify-end gap-2 mt-2">
-              {(totalCountPerActivity.get('nalada') || 0) > 0 && (
-                  <span className="text-xs text-themed-faint opacity-50">{totalCountPerActivity.get('nalada')}</span>
-                )}
-                {(completedTodayCounts.get('nalada') || 0) >= 1 && (
-                  <span className="text-xs font-medium text-themed-accent-solid">{completedTodayCounts.get('nalada')}</span>
-                )}
-                <span className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center ${
-                  completedTodayCounts.has('nalada') ? '' : 'opacity-20'
-                }`} style={{ backgroundColor: completedTodayCounts.has('nalada') ? 'var(--accent-solid)' : 'var(--text-faint)' }}>
-                  <svg className="w-3 h-3" style={{ color: completedTodayCounts.has('nalada') ? 'var(--accent-text-on-solid)' : 'var(--bg-card)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-            </div>
-            )}
-            {/* Beta: separator + activity bubbles with time + session total + records */}
-            {viewMode === 'beta' && allTranslated.length > 0 && (
+            {/* Session total + records */}
+            {allTranslated.length > 0 && (
               <>
                 {/* Session bubble (left, aligned to last row) + records (right) */}
                 {(() => {
@@ -785,53 +586,9 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
             )}
           </div>
           </div>
-          {viewMode !== 'beta' && <div className="w-5" />}
           </div>
 
-
-          {/* All non-core activities - default view only */}
-          {viewMode !== 'beta' && (
-            <div className="mt-1.5 space-y-1.5">
-              {allTranslated.filter(a => !a.core).map((activity, idx, arr) => (
-                <div key={activity.type} className="flex items-center gap-1">
-                  {editMode ? (
-                    <div className="flex flex-col w-5">
-                      <button onClick={() => handleMoveActivity(activity.type, 'up')} disabled={idx === 0} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                      </button>
-                      <button onClick={() => handleMoveActivity(activity.type, 'down')} disabled={idx === arr.length - 1} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                    </div>
-                  ) : <div className="w-5" />}
-                  <div className="flex-1">
-                    <ActivityCard
-                      activity={activity}
-                      onClick={() => handleActivityClick(activity)}
-                      completedToday={completedTodayCounts.has(activity.type)}
-                      completedCount={completedTodayCounts.get(activity.type) || 0}
-                      completedYesterday={completedPreviousCounts.has(activity.type)}
-                      yesterdayCount={completedPreviousCounts.get(activity.type) || 0}
-                      totalCount={totalCountPerActivity.get(activity.type) || 0}
-                      totalSeconds={totalTimePerActivity.get(activity.type) || 0}
-                    />
-                  </div>
-                  {editMode ? (
-                    <div className="flex flex-col w-5">
-                      <button onClick={() => handleMoveActivity(activity.type, 'up')} disabled={idx === 0} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                      </button>
-                      <button onClick={() => handleMoveActivity(activity.type, 'down')} disabled={idx === arr.length - 1} className="p-0.5 text-themed-faint hover:text-themed-accent-solid disabled:opacity-20">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                    </div>
-                  ) : <div className="w-5" />}
-                </div>
-              ))}
-            </div>
-          )}
         </section>
-      )}
 
       {activeActivity && (
         <ActivityFlow
