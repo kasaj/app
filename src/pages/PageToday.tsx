@@ -276,6 +276,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
   return (
     <div className="page-container min-h-screen flex flex-col justify-center">
+      <div>
       <header className="mb-1.5">
         <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
       </header>
@@ -589,6 +590,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
           </div>
 
         </section>
+      </div>
 
       {activeActivity && (
         <ActivityFlow
