@@ -365,13 +365,18 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
             </div>
           )}
           <h1 className="font-serif text-3xl text-themed-primary text-center mb-2">{activity.emoji} {activity.name}</h1>
-          <p className={`text-themed-faint text-center max-w-xs mx-auto mb-4 ${
+          <p className={`text-themed-faint text-center max-w-xs mx-auto mb-1 ${
             isOriginallyTimed && timedStep === 'rating-after' ? 'font-serif text-xl' : ''
           }`}>
             {isOriginallyTimed && timedStep === 'rating-after'
               ? (language === 'cs' ? 'Jak se teď cítíš?' : 'How do you feel now?')
               : activity.description}
           </p>
+          {isOriginallyTimed && timedStep === 'rating-before' && activity.durationMinutes && (
+            <p className="text-sm text-themed-faint text-center mb-3">
+              {new Date(new Date(startedAt).getTime() + activity.durationMinutes * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          )}
           <div className="flex flex-col items-center gap-1 mb-2">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
