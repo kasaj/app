@@ -20,7 +20,6 @@ export default function ActivityEditor({ activity, onSave, onDelete, onClose }: 
   const [isTimed, setIsTimed] = useState(activity?.durationMinutes !== null);
   const [duration, setDuration] = useState(activity?.durationMinutes?.toString() || '15');
   const [variants] = useState<string[]>(activity?.properties || []);
-
   const initialRender = useRef(true);
 
   // Auto-save on change for existing activities
