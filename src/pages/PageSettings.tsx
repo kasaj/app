@@ -45,11 +45,19 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
   const activities = loadActivities();
   const history = loadAllData();
 
-  const exportActivities: ExportActivity[] = activities.map((a) => ({
-    type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
-    name: a.name, description: a.description, properties: a.properties,
-    core: a.core, durationOptions: a.durationOptions, defaultDuration: a.defaultDuration,
-  }));
+  let hiddenActivitiesSet: Set<string> = new Set();
+  let hiddenPropertiesSet: Set<string> = new Set();
+  try { const s = localStorage.getItem('pra_hidden_activities'); if (s) hiddenActivitiesSet = new Set(JSON.parse(s)); } catch { /* */ }
+  try { const s = localStorage.getItem('pra_hidden_properties'); if (s) hiddenPropertiesSet = new Set(JSON.parse(s)); } catch { /* */ }
+
+  const exportActivities: ExportActivity[] = activities
+    .filter(a => a.core || !hiddenActivitiesSet.has(a.type))
+    .map((a) => ({
+      type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
+      name: a.name, description: a.description,
+      properties: a.properties ? a.properties.filter(p => !hiddenPropertiesSet.has(p)) : undefined,
+      core: a.core, durationOptions: a.durationOptions, defaultDuration: a.defaultDuration,
+    }));
 
   const cfgInfo = { ...(getCachedConfig()?.info?.[lang as 'cs' | 'en'] || {}) };
 
