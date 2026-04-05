@@ -312,7 +312,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
 
   return (
     <div className={`page-container ${viewMode === 'beta' ? 'min-h-screen flex flex-col justify-center' : ''}`}>
-      <div className="flex items-center justify-between mb-1.5">
+      <div className={`flex items-center mb-1.5 ${viewMode === 'beta' ? 'justify-center' : 'justify-between'}`}>
           <h1 className="font-serif text-3xl text-themed-primary">{t.today.title}</h1>
           {viewMode !== 'beta' && (
           <div className="flex items-center gap-2">
