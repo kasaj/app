@@ -145,7 +145,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
     const stored = activity.properties || [];
     return stored.length > 0 ? stored : getConfigProperties(activity.type);
   });
-  const [disabledVariants, setDisabledVariants] = useState<Set<string>>(new Set());
   const [newVariantText, setNewVariantText] = useState('');
   const [editingVariants, setEditingVariants] = useState(false);
 
@@ -503,39 +502,16 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   const allProps = editingVariants
                     ? [...new Set([...configProps, ...activityProps])]
                     : activityProps;
-                  return editingVariants
-                    ? allProps.sort((a, b) => {
-                        const aIsEmoji = /^\p{Emoji}/u.test(a);
-                        const bIsEmoji = /^\p{Emoji}/u.test(b);
-                        if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
-                        return a.localeCompare(b, language);
-                      })
-                    : allProps;
+                  return allProps;
                 })().map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        if (editingVariants) {
-                          const isActive = localVariants.includes(prop) && !disabledVariants.has(prop);
-                          if (isActive) {
-                            // Deactivate
-                            setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
-                          } else {
-                            // Activate
-                            if (!localVariants.includes(prop)) setLocalVariants(prev => [...prev, prop]);
-                            setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
-                          }
-                        } else {
+                        if (!editingVariants) {
                           setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
                         }
                       }}
-                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        editingVariants
-                          ? localVariants.includes(prop) && !disabledVariants.has(prop)
-                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                            : 'opacity-30 bg-themed-input border-themed text-themed-faint'
-                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
-                      }`}
+                      className="px-3 py-1.5 text-sm rounded-full border transition-colors bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid"
                     >{prop}</button>
                     {editingVariants && (
                       <button
@@ -567,12 +543,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 )}
                 <button
                   onClick={() => {
-                    if (editingVariants) {
-                      const active = localVariants.filter(v => !disabledVariants.has(v));
-                      persistVariants(active);
-                      setLocalVariants(active);
-                      setDisabledVariants(new Set());
-                    }
                     setEditingVariants(!editingVariants);
                   }}
                   className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
@@ -611,39 +581,16 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   const allProps = editingVariants
                     ? [...new Set([...configProps, ...activityProps])]
                     : activityProps;
-                  return editingVariants
-                    ? allProps.sort((a, b) => {
-                        const aIsEmoji = /^\p{Emoji}/u.test(a);
-                        const bIsEmoji = /^\p{Emoji}/u.test(b);
-                        if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
-                        return a.localeCompare(b, language);
-                      })
-                    : allProps;
+                  return allProps;
                 })().map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        if (editingVariants) {
-                          const isActive = localVariants.includes(prop) && !disabledVariants.has(prop);
-                          if (isActive) {
-                            // Deactivate
-                            setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
-                          } else {
-                            // Activate
-                            if (!localVariants.includes(prop)) setLocalVariants(prev => [...prev, prop]);
-                            setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
-                          }
-                        } else {
+                        if (!editingVariants) {
                           setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
                         }
                       }}
-                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        editingVariants
-                          ? localVariants.includes(prop) && !disabledVariants.has(prop)
-                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                            : 'opacity-30 bg-themed-input border-themed text-themed-faint'
-                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
-                      }`}
+                      className="px-3 py-1.5 text-sm rounded-full border transition-colors bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid"
                     >{prop}</button>
                     {editingVariants && (
                       <button
@@ -675,12 +622,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 )}
                 <button
                   onClick={() => {
-                    if (editingVariants) {
-                      const active = localVariants.filter(v => !disabledVariants.has(v));
-                      persistVariants(active);
-                      setLocalVariants(active);
-                      setDisabledVariants(new Set());
-                    }
                     setEditingVariants(!editingVariants);
                   }}
                   className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
@@ -746,39 +687,16 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                   const allProps = editingVariants
                     ? [...new Set([...configProps, ...activityProps])]
                     : activityProps;
-                  return editingVariants
-                    ? allProps.sort((a, b) => {
-                        const aIsEmoji = /^\p{Emoji}/u.test(a);
-                        const bIsEmoji = /^\p{Emoji}/u.test(b);
-                        if (aIsEmoji !== bIsEmoji) return aIsEmoji ? 1 : -1;
-                        return a.localeCompare(b, language);
-                      })
-                    : allProps;
+                  return allProps;
                 })().map((prop) => (
                   <span key={prop} className="relative inline-flex">
                     <button
                       onClick={() => {
-                        if (editingVariants) {
-                          const isActive = localVariants.includes(prop) && !disabledVariants.has(prop);
-                          if (isActive) {
-                            // Deactivate
-                            setDisabledVariants(prev => { const n = new Set(prev); n.add(prop); return n; });
-                          } else {
-                            // Activate
-                            if (!localVariants.includes(prop)) setLocalVariants(prev => [...prev, prop]);
-                            setDisabledVariants(prev => { const n = new Set(prev); n.delete(prop); return n; });
-                          }
-                        } else {
+                        if (!editingVariants) {
                           setNewComment((prev) => prev ? `${prev}, ${prop}` : prop);
                         }
                       }}
-                      className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                        editingVariants
-                          ? localVariants.includes(prop) && !disabledVariants.has(prop)
-                            ? 'bg-themed-accent border-themed-accent text-themed-accent'
-                            : 'opacity-30 bg-themed-input border-themed text-themed-faint'
-                          : 'bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid'
-                      }`}
+                      className="px-3 py-1.5 text-sm rounded-full border transition-colors bg-themed-input border-themed text-themed-muted hover:border-themed-accent hover:text-themed-accent-solid"
                     >{prop}</button>
                     {editingVariants && (
                       <button
@@ -810,12 +728,6 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
                 )}
                 <button
                   onClick={() => {
-                    if (editingVariants) {
-                      const active = localVariants.filter(v => !disabledVariants.has(v));
-                      persistVariants(active);
-                      setLocalVariants(active);
-                      setDisabledVariants(new Set());
-                    }
                     setEditingVariants(!editingVariants);
                   }}
                   className={`w-7 h-7 text-xs rounded-full border flex items-center justify-center transition-colors ${
