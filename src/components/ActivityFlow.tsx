@@ -196,7 +196,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
       durationMinutes: isOriginallyTimed ? activity.durationMinutes : null,
       actualDurationSeconds: isOriginallyTimed
         ? actualDurationRef.current || (activity.durationMinutes || 0) * 60
-        : undefined,
+        : activity.defaultDuration ? activity.defaultDuration * 60 : undefined,
       selectedVariant: selectedVariant || undefined,
       ratingBefore: isOriginallyTimed ? (ratingBefore || undefined) : undefined,
       ratingAfter: isOriginallyTimed ? (ratingAfter || undefined) : undefined,
@@ -306,7 +306,7 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
           completedAt,
           selectedVariant: selectedVariant || undefined,
           comments: finalComments.length > 0 ? finalComments : undefined,
-          actualDurationSeconds: actualDurationRef.current || (isTimed ? (activity.durationMinutes || 0) * 60 : Math.max(60, Math.round((new Date(completedAt).getTime() - new Date(startedAt).getTime()) / 1000))),
+          actualDurationSeconds: actualDurationRef.current || (isTimed ? (activity.durationMinutes || 0) * 60 : activity.defaultDuration ? activity.defaultDuration * 60 : Math.max(60, Math.round((new Date(completedAt).getTime() - new Date(startedAt).getTime()) / 1000))),
         });
       }
     } else if (finalComments.length > 0 || (isTimed && actualDurationRef.current > 0)) {

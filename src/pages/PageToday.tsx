@@ -109,13 +109,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
       .sort((a, b) => new Date(b.completedAt || b.startedAt).getTime() - new Date(a.completedAt || a.startedAt).getTime())
       [0];
 
+    const coreAct = loadActivities().find(a => a.core);
+    const coreDur = coreAct?.defaultDuration ?? 1;
     addActivity({
       id,
       type: 'nalada',
       startedAt: now,
       completedAt: now,
-      durationMinutes: 15,
-      actualDurationSeconds: 15 * 60,
+      durationMinutes: null,
+      actualDurationSeconds: coreDur * 60,
       comments: [{
         id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
         text: [props.length > 0 ? props.join(', ') : '', c.trim()].filter(Boolean).join(' — '),
