@@ -856,7 +856,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
                     return rows.map(row => (
                       <div key={row.key} className="flex items-center gap-2 opacity-50 w-full">
                         <div className="flex items-center gap-2 flex-1 justify-end">
-                          <span className="text-sm">{row.emoji}</span>
+                          <span className="text-sm">{row.key.startsWith('core_') || row.key === coreActivity?.type ? '' : row.emoji}</span>
                           {row.total > 0 && (
                             <span className="text-xs text-themed-faint">{row.total}</span>
                           )}

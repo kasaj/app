@@ -136,14 +136,27 @@ function generateConfigExport(lang: string, currentTheme: string, profileName: s
   // Export only visible activities; for core activity, only visible properties
   const exportActivities: ExportActivity[] = activities
     .filter(a => a.core || !hiddenActivitiesSet.has(a.type))
-    .map((a) => ({
-      type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
-      name: a.name, description: a.description,
-      properties: a.core && a.properties
-        ? a.properties.filter(p => !hiddenPropertiesSet.has(p))
-        : a.properties,
-      core: a.core, durationOptions: a.durationOptions, defaultDuration: a.defaultDuration,
-    }));
+    .map((a) => {
+      // Ensure durationOptions is always populated with a sensible default
+      let durationOptions = a.durationOptions;
+      if (!durationOptions || durationOptions.length === 0) {
+        if (a.core) {
+          durationOptions = [a.defaultDuration ?? 15];
+        } else if (a.durationMinutes) {
+          durationOptions = [a.durationMinutes];
+        } else {
+          durationOptions = [1]; // moment activity
+        }
+      }
+      return {
+        type: a.type, emoji: a.emoji, durationMinutes: a.durationMinutes,
+        name: a.name, description: a.description,
+        properties: a.core && a.properties
+          ? a.properties.filter(p => !hiddenPropertiesSet.has(p))
+          : a.properties,
+        core: a.core, durationOptions, defaultDuration: a.defaultDuration ?? durationOptions[0],
+      };
+    });
 
   const loadNotes = (l: string) => {
     try { const s = localStorage.getItem(`pra_info_notes_${l}`); if (s) return JSON.parse(s); } catch {}
