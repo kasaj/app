@@ -144,7 +144,15 @@ export default function ActivityFlow({ activity, onClose, onEdit, existingActivi
 
   const [localVariants, setLocalVariants] = useState<string[]>(() => {
     const stored = activity.properties || [];
-    return stored.length > 0 ? stored : getConfigProperties(activity.type);
+    const all = stored.length > 0 ? stored : getConfigProperties(activity.type);
+    if (activity.core) {
+      try {
+        const s = localStorage.getItem('pra_hidden_properties');
+        const hidden: Set<string> = s ? new Set(JSON.parse(s)) : new Set();
+        return all.filter(p => !hidden.has(p));
+      } catch { /* */ }
+    }
+    return all;
   });
   const [disabledVariants, setDisabledVariants] = useState<Set<string>>(new Set());
   const [deletedVariants, setDeletedVariants] = useState<Set<string>>(new Set());
