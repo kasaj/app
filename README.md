@@ -9,6 +9,7 @@
 **[Česky](README.cs.md)** | English
 
 **[Launch App](https://kasaj.github.io/app/)**
+
 **[kasaj.github.io/app](https://kasaj.github.io/app/)**
 
 <p align="center">

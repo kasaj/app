@@ -9,6 +9,7 @@
 Česky | **[English](README.md)**
 
 **[Spustit aplikaci](https://kasaj.github.io/app/)**
+
 **[kasaj.github.io/app](https://kasaj.github.io/app/)**
 
 <p align="center">
