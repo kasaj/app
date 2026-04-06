@@ -30,43 +30,66 @@ Each user can write their own answers to these questions directly in the app (In
 
 ## Activities
 
-PRA comes with six default activities plus a core mood tracker:
+PRA comes with a default set of activities, fully customizable or replaceable with your own:
 
 | Activity | Type | Description |
 |----------|------|-------------|
-| 📊 **Mood** | Core | Quick mood rating with emoji scale and comment — always at the top of the Today page |
-| 🧍‍♂️ **Pause** | Timed (1 min) | Consciously stop, breathe, observe, be present |
-| 🏃‍♂️ **Movement - Activity** | Timed (30 min) | Get energy flowing — sport, stretching, yoga, balance |
-| 🧎‍♂️ **Contemplation - Nourishment** | Timed (15 min) | Meditation, mindful eating, imagination, observing thoughts |
-| 📜 **Comment - Note** | Moment | Self-reflection, intention, anchoring a thought or feeling |
-| 👫 **Embrace - Relationships** | Moment | Conscious contact — sharing, family, understanding, community |
-| 🔥 **Challenge - Courage** | Moment | Facing what you avoid — fear, pain, new habits, small steps |
+| 🌌 **Space** | Core | Foundation of the Today page — star rating, properties, and comment |
+| 🗃️ **Records** | Moment | Quick note or intention |
+| ⏸️ **Pause** | Timed (2 min) | Conscious stop, breath, presence |
+| 🔥 **Change** | Moment | A deliberate step toward change — facing a habit, a small brave act |
+| 🧎 **Recollection** | Moment | Brief self-reflection, stillness, returning to yourself |
 
-All activities are fully customizable — name, emoji, description, duration, and properties. Changes auto-save. Core activities (like Mood) are hidden from the regular list and have their own dedicated UI.
+All activities are fully customizable — name, emoji, description, duration, and properties. Changes auto-save. Activities can be added and deleted directly from the Today page (edit mode).
 
 ## Features
 
-- **Quick mood tracking** — emoji scale + comment directly on the Today page, auto-saves on selection
-- **Session management** — "Done" button starts a new session, resetting completion markers. Repeating an activity within a session auto-links records
-- **Timed practice** — countdown timer with gong, pause/resume, finish early, "Done" for retroactive recording
-- **Moments** — quick records without timer
-- **Unified comment system** — all activity interactions are timestamped comments with mood rating
-- **Properties** — clickable chips on activities, editable inline (add/remove directly during recording). Central property registry in Settings
-- **Mood scale** — customizable 7-level emoji scale for state tracking
-- **Activity linking** — automatic linking within sessions, manual linking with +, navigate with arrows
-- **Record views** — browse by date (last 10 records) or by session (sorted by link count)
-- **Daily mood emoji** — average mood displayed next to each day's date header
-- **Statistics** — day/week/month trend chart (area gradient for mood + bars for count), streak, average per day, top 2 activities, day-specific stats on calendar selection
-- **Monthly calendar** — color-coded days by activity count, click to filter records and update stats
-- **Info page** — philosophical context (Why/How/What) with personal notes, quotes, scientific foundations
-- **Smart sync** — detects config changes, auto-merges new activities while preserving user edits
-- **Configuration** — JSON config drives activities, properties, mood scale, info content, language and theme
-- **Backup** — full backup with history, ratings, comments, properties, mood scale. Config export aligned with config file format. Import always merges
-- **Themes** — Auto (follows system light/dark), Classic (warm earth tones), Dark
-- **Auto-save** — all settings, ratings, and comments save instantly
+- **Today page** — central screen: activity bubbles, properties, star rating, comment, session summary and records
+- **Properties** — clickable tags for context (state, theme, situation). Used in session show accent border, currently selected are filled
+- **Session** — time spent in practice since last reset; resetting starts a new session. Records sorted by total duration
+- **Timed activities** — countdown with planned end time, gong, pause/resume, finish early
+- **Moment activities** — instant record without timer
+- **State rating** — 1–5 star scale with optional comment, timestamped
+- **Mood scale** — customizable emoji scale for emotional state tracking
+- **Activity linking** — automatic linking within sessions, navigate with arrows
+- **Time page** — chronological record history, daily/weekly/monthly mood trend, color-coded calendar, statistics
+- **Info page** — philosophical context (Why/How/What) with personal notes and quotes
+- **Settings** — manage activities, language (Czech/English), theme (Auto/Classic/Dark), backup and import
+- **Configuration** — separate JSON files for Czech (`default-config-cs.json`) and English (`default-config-en.json`). Config export always uses the current language
+- **Backup** — full data export (records + config) as JSON, import always merges
+- **Smart sync** — detects config changes, adds new activities while preserving user edits
 - **Bilingual** — Czech and English with per-language properties and notes
-- **Offline** — works without internet as a PWA
+- **Offline / PWA** — works without internet, installable on phone home screen
 - **CI/CD** — push to main auto-deploys via GitHub Actions
+
+## Use Case: Tracking Bad Habits and Replacing Them
+
+> **Intent:** Systematically record moments when a bad habit or impulse occurs, consciously name them, and observe how the pattern changes over time.
+
+**Setup (one-time):**
+
+1. In Settings → Activities, add activities matching the situations you want to track — e.g.:
+   - `📱 Screen` — I reached for the phone without intention
+   - `🍬 Impulse` — a craving or urge arrived
+   - `🔁 Replacement` — I consciously replaced the habit with another action
+2. Set properties for context: `Stress`, `Boredom`, `Fatigue`, `Automatism`
+3. Set the core activity (Space) duration to your preference — e.g. 1–2 min
+
+**Daily practice:**
+
+- Morning: rate your mood with stars and write your day's intention as a comment
+- During the day: whenever a situation occurs — open the app, tap the activity, select the property (what triggered it), save
+- Repeated occurrences within a session are automatically linked and shown as a series
+- Evening or anytime: on the Time page, review patterns — when, under what conditions, how often
+
+**What the app will show:**
+
+- Frequency of each situation over time (Time page, calendar)
+- Correlation between mood and occurrence (star ratings)
+- Evolution of the "habit vs. replacement" ratio session by session
+- Total time spent in conscious practice
+
+The app doesn't judge or remind. It's a quiet mirror — the records speak for themselves.
 
 ## Install on Mobile
 
@@ -78,38 +101,34 @@ Works offline. All data stays on your device.
 
 ## Configuration
 
-The app is driven by `public/default-config.json`:
+The app is driven by separate files `public/default-config-cs.json` and `public/default-config-en.json`. Format is flat — one language per file:
 
 ```json
 {
   "version": 1,
   "name": "default",
-  "language": "cs",
+  "language": "en",
   "theme": "modern",
   "activities": [
     {
-      "type": "sobe",
-      "emoji": "🧍‍♂️",
-      "durationMinutes": 1,
-      "cs": { "name": "...", "properties": [...] },
-      "en": { "name": "...", "properties": [...] }
+      "type": "pause",
+      "emoji": "⏸️",
+      "durationMinutes": 2,
+      "name": "Pause",
+      "description": "Conscious stop",
+      "properties": ["Breath", "Silence"]
     }
   ],
-  "properties": {
-    "cs": ["Meditace", "Dech nosem", ...],
-    "en": ["Meditation", "Nose breathing", ...]
-  },
   "moodScale": [
-    { "value": 1, "emoji": "😡", "labelCs": "Vztek", "labelEn": "Anger" }
+    { "value": 1, "emoji": "😡", "labelEn": "Anger" }
   ],
   "info": {
-    "cs": { "intro": "...", "quotes": [...], "why": "...", "how": "...", "what": "..." },
-    "en": { ... }
+    "en": { "intro": "...", "why": "...", "how": "...", "what": "..." }
   }
 }
 ```
 
-Edit config → push to main → auto-deploy. New activities and properties appear for users automatically. User-edited activities are never overwritten.
+Edit config → push to main → auto-deploy. New activities appear for users automatically. User-edited activities are never overwritten.
 
 ## Privacy
 

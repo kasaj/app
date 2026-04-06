@@ -30,43 +30,66 @@ Každý uživatel si může zapsat vlastní odpovědi na tyto otázky přímo v 
 
 ## Aktivity
 
-PRA obsahuje šest výchozích aktivit a jednu základní pro sledování nálady:
+PRA obsahuje výchozí sadu aktivit, které lze libovolně upravit nebo doplnit vlastními:
 
 | Aktivita | Typ | Popis |
 |----------|-----|-------|
-| 📊 **Nálada** | Základní | Rychlé hodnocení nálady emoji škálou a komentářem — vždy nahoře na stránce Dnes |
-| 🧍‍♂️ **Vyrovnání - Pauza** | Časová (1 min) | Vědomě se zastavit, dýchat, vnímat, být přítomný |
-| 🏃‍♂️ **Pohyb - Aktivita** | Časová (30 min) | Rozproudit energii — sport, protažení, jóga, rovnováha |
-| 🧎‍♂️ **Usebrání - Výživa** | Časová (15 min) | Meditace, vědomé jídlo, imaginace, pozorování myšlenek |
-| 📜 **Komentář - Informace** | Okamžik | Sebereflexe, záměr, ukotvení myšlenky nebo pocitu |
-| 👫 **Vztahy - Interakce** | Okamžik | Vědomý kontakt — sdílení, rodina, pochopení, komunita |
-| 🔥 **Výzvy - Integrace** | Okamžik | Čelení tomu, čemu se vyhýbám — strach, bolest, nové návyky |
+| 🌌 **Prostor** | Základní (core) | Základ stránky Dnes — hodnocení nálady hvězdičkami, vlastnosti (properties) a komentář |
+| 🗃️ **Záznamy** | Okamžik | Rychlý záznam poznámky nebo záměru |
+| ⏸️ **Pauza** | Časová (2 min) | Vědomé zastavení, dech, přítomnost |
+| 🔥 **Změna** | Okamžik | Vědomý krok ke změně — čelení zlozvyku, nový návyk, malý odvážný čin |
+| 🧎 **Usebrání** | Okamžik | Krátká sebereflexe, ztišení, návrat k sobě |
 
-Všechny aktivity jsou plně přizpůsobitelné — název, emoji, popis, doba trvání a vlastnosti. Změny se ukládají automaticky. Základní aktivity (jako Nálada) se nezobrazují v běžném seznamu a mají vlastní UI.
+Všechny aktivity jsou plně přizpůsobitelné — název, emoji, popis, délka trvání a vlastnosti. Změny se ukládají automaticky. Aktivity lze přidávat a mazat přímo ze stránky Dnes (režim úprav).
 
 ## Funkce
 
-- **Rychlé sledování nálady** — emoji škála + komentář přímo na stránce Dnes, automatické uložení při výběru
-- **Správa relací** — tlačítko "Dokončeno" spustí novou relaci, resetuje označení dokončení. Opakování aktivity v rámci relace automaticky propojí záznamy
-- **Časová praxe** — odpočítávání s gongem, pauza/pokračování, předčasné dokončení, "Hotovo" pro zpětný záznam
-- **Okamžiky** — rychlé záznamy bez časovače
-- **Jednotný systém komentářů** — veškerá interakce s aktivitami jsou komentáře s časovým razítkem a hodnocením nálady
-- **Vlastnosti** — klikatelné štítky u aktivit, editovatelné přímo při záznamu (přidání/odebrání). Centrální registr vlastností v Nastavení
-- **Škála nálady** — přizpůsobitelná 7úrovňová emoji škála pro sledování stavu
-- **Propojování aktivit** — automatické propojení v rámci relace, manuální propojení tlačítkem +, navigace šipkami
-- **Pohledy záznamů** — podle data (posledních 10 záznamů) nebo podle relace (řazeno dle počtu propojení)
-- **Denní emoji nálady** — průměrná nálada zobrazena vedle data každého dne
-- **Statistiky** — denní/týdenní/měsíční trend (gradientová plocha pro náladu + sloupce pro počet), série dní, průměr za den, top 2 aktivity, statistiky vybraného dne v kalendáři
-- **Měsíční kalendář** — barevně zvýrazněné dny podle počtu aktivit, kliknutím filtruje záznamy a aktualizuje statistiky
-- **Stránka Info** — filozofický kontext (Proč/Jak/Co) s osobními poznámkami, citáty, vědecké základy
-- **Chytrá synchronizace** — detekuje změny konfigurace, automaticky přidá nové aktivity a zachová uživatelské úpravy
-- **Konfigurace** — JSON soubor řídí aktivity, vlastnosti, škálu nálady, obsah info, jazyk a téma
-- **Záloha** — kompletní záloha s historií, hodnocením, komentáři, vlastnostmi, škálou nálady. Export konfigurace zarovnán s formátem konfiguračního souboru. Import vždy merguje
-- **Témata** — Auto (sleduje systém light/dark), Klasické (teplé zemité tóny), Tmavé
-- **Automatické ukládání** — všechna nastavení, hodnocení a komentáře se ukládají okamžitě
+- **Stránka Dnes** — centrální obrazovka: bubliny aktivit, vlastnosti (properties), hodnocení hvězdičkami, komentář, přehled relace a záznamů
+- **Vlastnosti (properties)** — klikatelné štítky pro kontext záznamu (stav, téma, situace). Použité v relaci mají accent rámeček, aktuálně vybrané jsou vyplněné
+- **Relace** — čas strávený praxí od posledního resetování; resetování spustí novou relaci. Záznamy aktivit jsou seřazeny dle celkové doby
+- **Časové aktivity** — odpočítávání s plánovaným časem ukončení, gong, pauza/pokračování, předčasné dokončení
+- **Okamžikové aktivity** — okamžitý záznam bez časovače
+- **Hodnocení stavu** — hvězdičková škála 1–5 s volitelným komentářem; vše propojeno s časovou značkou
+- **Škála nálady** — přizpůsobitelná emoji škála pro sledování emočního stavu
+- **Propojování aktivit** — automatické propojení záznamů v rámci relace, navigace šipkami
+- **Stránka Čas** — chronologický přehled záznamů, denní/týdenní/měsíční trend nálady, kalendář s barevným kódováním, statistiky
+- **Stránka Info** — filozofický kontext (Proč/Jak/Co) s osobními poznámkami a citáty
+- **Nastavení** — správa aktivit, jazyk (čeština/angličtina), téma (Auto/Klasické/Tmavé), záloha a import
+- **Konfigurace** — oddělené JSON soubory pro češtinu (`default-config-cs.json`) a angličtinu (`default-config-en.json`). Export konfigurace je vždy v aktuálním jazyce
+- **Záloha** — kompletní export dat (záznamy + konfigurace) ve formátu JSON, import vždy merguje
+- **Chytrá synchronizace** — detekuje změny konfigurace, přidá nové aktivity a zachová uživatelské úpravy
 - **Dvojjazyčné** — čeština a angličtina s oddělenými vlastnostmi a poznámkami dle jazyka
-- **Offline** — funguje bez internetu jako PWA
+- **Offline / PWA** — funguje bez internetu, instalovatelná na plochu telefonu
 - **CI/CD** — push na main automaticky nasadí přes GitHub Actions
+
+## Příklad použití: Sledování zlozvyků a jejich nahrazování
+
+> **Záměr:** Systematicky zaznamenávat momenty, kdy dochází k zlozvyku nebo impulzu, vědomě je pojmenovávat a sledovat, jak se vzorec v čase mění.
+
+**Nastavení (jednorázové):**
+
+1. V Nastavení → Aktivity přidej aktivity odpovídající situacím, které chceš sledovat — např.:
+   - `📱 Obrazovka` — sáhl jsem po telefonu bez záměru
+   - `🍬 Impulz` — přišla chuť nebo nutkání
+   - `🔁 Náhrada` — zlozvyk jsem vědomě nahradil jinou akcí
+2. Jako vlastnosti (properties) nastav kontexty: `Stres`, `Nuda`, `Únava`, `Automatismus`
+3. Délku trvání core aktivity (Prostor) nastav dle potřeby — třeba 1–2 min
+
+**Každodenní praxe:**
+
+- Ráno: ohodnoť náladu hvězdičkami a zapiš záměr dne jako komentář
+- Během dne: při každém výskytu situace — otevřeš aplikaci, klepneš na aktivitu, vybereš property (co to spustilo) a uložíš
+- Opakovaný výskyt v rámci relace se automaticky propojí a zobrazí jako série
+- Večer nebo kdykoliv: na stránce Čas prohlédni vzorce — kdy, za jakých podmínek, jak často
+
+**Co aplikace ukáže:**
+
+- Frekvenci jednotlivých situací v čase (stránka Čas, kalendář)
+- Korelaci mezi náladou a výskytem (hodnocení hvězdičkami)
+- Vývoj poměru „zlozvyk vs. náhrada" session po session
+- Celkový čas strávený vědomou praxí
+
+Aplikace nehodnotí ani neupomíná. Je to tiché zrcadlo — záznamy mluví samy.
 
 ## Instalace na mobil
 
@@ -78,7 +101,7 @@ Funguje offline. Všechna data zůstávají na vašem zařízení.
 
 ## Konfigurace
 
-Aplikaci řídí soubor `public/default-config.json`:
+Aplikaci řídí oddělené soubory `public/default-config-cs.json` a `public/default-config-en.json`. Formát je plochý (flat) — jeden jazyk na soubor:
 
 ```json
 {
@@ -88,28 +111,24 @@ Aplikaci řídí soubor `public/default-config.json`:
   "theme": "modern",
   "activities": [
     {
-      "type": "sobe",
-      "emoji": "🧍‍♂️",
-      "durationMinutes": 1,
-      "cs": { "name": "...", "properties": [...] },
-      "en": { "name": "...", "properties": [...] }
+      "type": "pauza",
+      "emoji": "⏸️",
+      "durationMinutes": 2,
+      "name": "Pauza",
+      "description": "Vědomé zastavení",
+      "properties": ["Dech", "Ticho"]
     }
   ],
-  "properties": {
-    "cs": ["Meditace", "Dech nosem", ...],
-    "en": ["Meditation", "Nose breathing", ...]
-  },
   "moodScale": [
-    { "value": 1, "emoji": "😡", "labelCs": "Vztek", "labelEn": "Anger" }
+    { "value": 1, "emoji": "😡", "labelCs": "Vztek" }
   ],
   "info": {
-    "cs": { "intro": "...", "quotes": [...], "why": "...", "how": "...", "what": "..." },
-    "en": { ... }
+    "cs": { "intro": "...", "why": "...", "how": "...", "what": "..." }
   }
 }
 ```
 
-Úprava configu → push na main → automatické nasazení. Nové aktivity a vlastnosti se uživatelům objeví automaticky. Uživatelem upravené aktivity se nikdy nepřepisují.
+Úprava configu → push na main → automatické nasazení. Nové aktivity se uživatelům přidají automaticky. Uživatelem upravené aktivity se nikdy nepřepisují.
 
 ## Soukromí
 
