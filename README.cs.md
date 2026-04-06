@@ -8,7 +8,8 @@
 
 Česky | **[English](README.md)**
 
-**[Spustit aplikaci - kasaj.github.io/app](https://kasaj.github.io/app/)**
+**[Spustit aplikaci](https://kasaj.github.io/app/)**
+**[kasaj.github.io/app](https://kasaj.github.io/app/)**
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/kasaj/app/main/public/screenshot.png" alt="PRA – ukázka aplikace" width="100%" />
