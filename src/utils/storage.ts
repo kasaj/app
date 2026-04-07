@@ -121,6 +121,12 @@ export const createLinkedActivity = (originalId: string, type: string): Activity
 };
 
 export const deleteActivitiesByIds = (ids: string[]): void => {
+  // Track deleted IDs as tombstones for sync
+  try {
+    const existing: string[] = JSON.parse(localStorage.getItem('pra_deleted_record_ids') || '[]');
+    localStorage.setItem('pra_deleted_record_ids', JSON.stringify([...new Set([...existing, ...ids])]));
+  } catch { /* */ }
+
   const data = loadAllData();
   const idSet = new Set(ids);
 

@@ -39,6 +39,8 @@ interface PraFile {
   hiddenActivities?: string[];
   hiddenDurations?: number[];
   durationBubbles?: number[];
+  deletedRecordIds?: string[];
+  userDeleted?: string[];
 }
 
 function generateBackup(lang: string, currentTheme: string, profileName: string): PraFile {
@@ -68,6 +70,12 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
 
   let userModified: string[] = [];
   try { const s = localStorage.getItem('pra_user_modified_activities'); if (s) userModified = JSON.parse(s); } catch {}
+
+  let deletedRecordIds: string[] = [];
+  try { const s = localStorage.getItem('pra_deleted_record_ids'); if (s) deletedRecordIds = JSON.parse(s); } catch {}
+
+  let userDeleted: string[] = [];
+  try { const s = localStorage.getItem('pra_user_deleted_activities'); if (s) userDeleted = JSON.parse(s); } catch {}
 
   // Compute per-activity stats from history
   const activityStats: Record<string, { count: number; totalSeconds: number; avgRating?: number; avgMood?: number; totalLinks?: number }> = {};
@@ -133,6 +141,8 @@ function generateBackup(lang: string, currentTheme: string, profileName: string)
     hiddenActivities: (() => { try { const s = localStorage.getItem('pra_hidden_activities'); return s ? JSON.parse(s) : undefined; } catch { return undefined; } })(),
     hiddenDurations: (() => { try { const s = localStorage.getItem('pra_hidden_durations'); return s ? JSON.parse(s) : undefined; } catch { return undefined; } })(),
     durationBubbles: (() => { try { const s = localStorage.getItem('pra_duration_bubbles'); return s ? JSON.parse(s) : undefined; } catch { return undefined; } })(),
+    deletedRecordIds: deletedRecordIds.length > 0 ? deletedRecordIds : undefined,
+    userDeleted: userDeleted.length > 0 ? userDeleted : undefined,
   } as PraFile;
 }
 
@@ -330,6 +340,36 @@ function importPraFile(file: PraFile, currentLang: string): void {
     if (file.hiddenActivities) localStorage.setItem('pra_hidden_activities', JSON.stringify(file.hiddenActivities));
     if (file.hiddenDurations) localStorage.setItem('pra_hidden_durations', JSON.stringify(file.hiddenDurations));
     if (file.durationBubbles) localStorage.setItem('pra_duration_bubbles', JSON.stringify(file.durationBubbles));
+  }
+  // Deletion tombstones (backup only) — propagate deletes from other client
+  if (file.type === 'backup') {
+    // Deleted activity records
+    if (file.deletedRecordIds && file.deletedRecordIds.length > 0) {
+      let local: string[] = [];
+      try { const s = localStorage.getItem('pra_deleted_record_ids'); if (s) local = JSON.parse(s); } catch { /* */ }
+      localStorage.setItem('pra_deleted_record_ids', JSON.stringify([...new Set([...local, ...file.deletedRecordIds])]));
+      const idSet = new Set(file.deletedRecordIds);
+      const data = loadAllData();
+      const cleaned = data
+        .map(d => ({ ...d, activities: d.activities.filter(a => !idSet.has(a.id)) }))
+        .filter(d => d.activities.length > 0);
+      saveAllData(cleaned);
+    }
+    // Deleted activity types
+    if (file.userDeleted && file.userDeleted.length > 0) {
+      let local: string[] = [];
+      try { const s = localStorage.getItem('pra_user_deleted_activities'); if (s) local = JSON.parse(s); } catch { /* */ }
+      localStorage.setItem('pra_user_deleted_activities', JSON.stringify([...new Set([...local, ...file.userDeleted])]));
+      const typeSet = new Set(file.userDeleted);
+      const acts = loadActivities();
+      const filtered = acts.filter(a => !typeSet.has(a.type));
+      if (filtered.length !== acts.length) saveActivities(filtered);
+      const data = loadAllData();
+      const cleaned = data
+        .map(d => ({ ...d, activities: d.activities.filter(a => !typeSet.has(a.type)) }))
+        .filter(d => d.activities.length > 0);
+      saveAllData(cleaned);
+    }
   }
 }
 
