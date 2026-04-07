@@ -4,7 +4,7 @@
 
 <h1 align="center">PRA</h1>
 
-<p align="center">Vědomý prostor pro každodenní praxi.</p>
+Vědomý prostor pro každodenní praxi.
 
 Česky | **[English](README.md)**
 
