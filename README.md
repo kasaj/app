@@ -4,7 +4,7 @@
 
 <h1 align="center">PRA</h1>
 
-<p align="center">A conscious space for daily practice.</p>
+A conscious space for daily practice.
 
 **[Česky](README.cs.md)** | English
 
