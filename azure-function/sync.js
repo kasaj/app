@@ -42,13 +42,27 @@ function mergeHistory(localDays, remoteDays, deletedRecordIds, deletedActivityTy
 }
 
 // Merge ActivityDefinition[] by type, filter out deleted types
-// Stored (remote) wins for existing types — only add new types from incoming (local)
+// For existing types: stored (remote) wins for most fields, properties[] are unioned
+// New types from incoming (local) are added
 function mergeActivities(local, remote, deletedTypes) {
   const deletedSet = new Set(deletedTypes || []);
-  const map = new Map();
-  (local || []).forEach(item => map.set(item.type, item));
-  (remote || []).forEach(item => map.set(item.type, item)); // stored overwrites incoming
-  return Array.from(map.values()).filter(item => !deletedSet.has(item.type));
+  const localMap = new Map((local || []).map(item => [item.type, item]));
+  const remoteMap = new Map((remote || []).map(item => [item.type, item]));
+  const allTypes = new Set([...localMap.keys(), ...remoteMap.keys()]);
+  const result = [];
+  for (const type of allTypes) {
+    if (deletedSet.has(type)) continue;
+    const l = localMap.get(type);
+    const r = remoteMap.get(type);
+    if (!r) { result.push(l); continue; }
+    if (!l) { result.push(r); continue; }
+    // Both exist: stored wins for all fields, but union properties[]
+    const props = (l.properties || r.properties)
+      ? [...new Set([...(r.properties || []), ...(l.properties || [])])]
+      : undefined;
+    result.push({ ...r, properties: props });
+  }
+  return result;
 }
 
 // Merge notes objects ({cs?: {...}, en?: {...}})
