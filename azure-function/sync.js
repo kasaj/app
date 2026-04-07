@@ -46,34 +46,24 @@ function mergePra(local, remote) {
   };
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 app.http('sync', {
-  methods: ['GET', 'POST'],
+  methods: ['POST'],
   authLevel: 'anonymous',
   handler: async (request, context) => {
-    if (request.method === 'OPTIONS') {
-      return { status: 204, headers: corsHeaders, body: '' };
-    }
-
     let body;
     try {
       body = await request.json();
     } catch (e) {
-      return { status: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Invalid JSON' }) };
+      return { status: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
     }
 
     if (!SYNC_SECRET || body.secret !== SYNC_SECRET) {
-      return { status: 401, headers: corsHeaders, body: JSON.stringify({ error: 'Unauthorized' }) };
+      return { status: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
     }
 
     const incoming = body.data;
     if (!incoming) {
-      return { status: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Missing data' }) };
+      return { status: 400, body: JSON.stringify({ error: 'Missing data' }) };
     }
 
     try {
@@ -102,12 +92,11 @@ app.http('sync', {
         conditions: {},
       });
 
-      return { status: 200, headers: corsHeaders, body: mergedStr };
+      return { status: 200, body: mergedStr };
     } catch (e) {
       context.error('Sync error:', e);
       return {
         status: 500,
-        headers: corsHeaders,
         body: JSON.stringify({ error: 'Internal error', detail: e.message }),
       };
     }
