@@ -6,22 +6,61 @@ const SYNC_SECRET = process.env.SYNC_SECRET;
 const CONTAINER_NAME = process.env.CONTAINER_NAME || 'pra-sync';
 const BLOB_NAME = process.env.BLOB_NAME || 'sync.json';
 
-function mergeArrayById(local, remote) {
-  const map = new Map();
-  (remote || []).forEach(item => map.set(item.id, item));
-  (local || []).forEach(item => map.set(item.id, item));
-  return Array.from(map.values());
+function mergeSet(local, remote) {
+  return Array.from(new Set([...(remote || []), ...(local || [])]));
 }
 
-function mergeArrayByType(local, remote) {
+// Merge DayEntry[] by date, Activity[] within each day by id, apply tombstones
+function mergeHistory(localDays, remoteDays, deletedRecordIds, deletedActivityTypes) {
+  const deletedIds = new Set(deletedRecordIds || []);
+  const deletedTypes = new Set(deletedActivityTypes || []);
+  const dayMap = new Map();
+
+  for (const days of [remoteDays || [], localDays || []]) {
+    for (const day of days) {
+      const existing = dayMap.get(day.date);
+      if (!existing) {
+        dayMap.set(day.date, { ...day, activities: [...(day.activities || [])] });
+      } else {
+        const actMap = new Map(existing.activities.map(a => [a.id, a]));
+        for (const act of (day.activities || [])) {
+          if (!actMap.has(act.id)) actMap.set(act.id, act);
+        }
+        existing.activities = Array.from(actMap.values());
+      }
+    }
+  }
+
+  const result = [];
+  for (const day of dayMap.values()) {
+    const filtered = (day.activities || []).filter(
+      a => !deletedIds.has(a.id) && !deletedTypes.has(a.type)
+    );
+    if (filtered.length > 0) result.push({ ...day, activities: filtered });
+  }
+  return result.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// Merge ActivityDefinition[] by type, filter out deleted types
+function mergeActivities(local, remote, deletedTypes) {
+  const deletedSet = new Set(deletedTypes || []);
   const map = new Map();
   (remote || []).forEach(item => map.set(item.type, item));
   (local || []).forEach(item => map.set(item.type, item));
-  return Array.from(map.values());
+  return Array.from(map.values()).filter(item => !deletedSet.has(item.type));
 }
 
-function mergeSet(local, remote) {
-  return Array.from(new Set([...(remote || []), ...(local || [])]));
+// Merge notes objects ({cs?: {...}, en?: {...}})
+function mergeNotes(local, remote) {
+  if (!local && !remote) return undefined;
+  const result = {};
+  for (const lang of ['cs', 'en']) {
+    const l = (local || {})[lang] || {};
+    const r = (remote || {})[lang] || {};
+    const merged = { ...r, ...l }; // local wins per key
+    if (Object.keys(merged).length > 0) result[lang] = merged;
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 function mergePra(local, remote) {
@@ -32,17 +71,42 @@ function mergePra(local, remote) {
   const remoteTime = remote.exportedAt ? new Date(remote.exportedAt).getTime() : 0;
   const newer = localTime >= remoteTime ? local : remote;
 
+  // Tombstones — union from both sides
+  const deletedRecordIds = mergeSet(local.deletedRecordIds, remote.deletedRecordIds);
+  const userDeleted = mergeSet(local.userDeleted, remote.userDeleted);
+
+  // Session: keep the more recent start time
+  let sessionStart = local.sessionStart || remote.sessionStart;
+  if (local.sessionStart && remote.sessionStart) {
+    sessionStart = local.sessionStart > remote.sessionStart
+      ? local.sessionStart
+      : remote.sessionStart;
+  }
+
   return {
     version: newer.version || 1,
     exportedAt: new Date().toISOString(),
     language: newer.language,
     theme: newer.theme,
     name: newer.name,
-    history: mergeArrayById(local.history, remote.history),
-    activities: mergeArrayByType(local.activities, remote.activities),
-    hiddenDefaultActivities: mergeSet(local.hiddenDefaultActivities, remote.hiddenDefaultActivities),
+    sessionStart,
+    // History: merge by date+id, filter tombstones
+    history: mergeHistory(local.history, remote.history, deletedRecordIds, userDeleted),
+    // Activity definitions: merge by type, filter deleted
+    activities: mergeActivities(local.activities, remote.activities, userDeleted),
+    // Sets: union
+    hiddenActivities: mergeSet(local.hiddenActivities, remote.hiddenActivities),
+    hiddenProperties: mergeSet(local.hiddenProperties, remote.hiddenProperties),
+    hiddenDurations: mergeSet(local.hiddenDurations, remote.hiddenDurations),
+    durationBubbles: mergeSet(local.durationBubbles, remote.durationBubbles),
+    userModified: mergeSet(local.userModified, remote.userModified),
+    // Newer wins
     moodScale: newer.moodScale,
     info: newer.info,
+    notes: mergeNotes(local.notes, remote.notes),
+    // Tombstones
+    deletedRecordIds,
+    userDeleted,
   };
 }
 
