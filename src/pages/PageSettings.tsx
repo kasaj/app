@@ -401,6 +401,37 @@ export default function PageSettings() {
     if (name) saveSettings({ language, name });
   }, [language, name]);
 
+  // Sync state
+  const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('pra_sync_url') || '');
+  const [syncSecret, setSyncSecret] = useState(() => localStorage.getItem('pra_sync_secret') || '');
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('pra_last_synced'));
+
+  const handleAzureSync = useCallback(async () => {
+    if (!syncUrl || !syncSecret) return;
+    setSyncStatus('syncing');
+    try {
+      const backup = generateBackup(language, theme, name);
+      const response = await fetch(syncUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: syncSecret, data: backup }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const merged = await response.json() as PraFile;
+      importPraFile(merged, language);
+      const now = new Date().toISOString();
+      localStorage.setItem('pra_last_synced', now);
+      setLastSynced(now);
+      setSyncStatus('success');
+      setTimeout(() => { window.scrollTo(0, 0); window.location.reload(); }, 1500);
+    } catch (e) {
+      console.error('Sync failed:', e);
+      setSyncStatus('error');
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    }
+  }, [syncUrl, syncSecret, language, theme, name]);
+
   const handleExportBackup = useCallback(() => {
     const backup = generateBackup(language, theme, name);
     const content = generatePraFileContent(backup);
@@ -655,6 +686,61 @@ export default function PageSettings() {
               {importStatus === 'success' ? t.settings.importSuccess : t.settings.importError}
             </div>
           )}
+        </section>
+
+        {/* Sync */}
+        <section className="card">
+          <h2 className="font-serif text-lg text-themed-primary mb-4">
+            {language === 'cs' ? 'Synchronizace' : 'Sync'}
+          </h2>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm text-themed-muted mb-1">
+                {language === 'cs' ? 'Endpoint URL' : 'Endpoint URL'}
+              </label>
+              <input
+                type="url"
+                value={syncUrl}
+                onChange={(e) => { setSyncUrl(e.target.value); localStorage.setItem('pra_sync_url', e.target.value); }}
+                placeholder="https://..."
+                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-themed-muted mb-1">Secret</label>
+              <input
+                type="password"
+                value={syncSecret}
+                onChange={(e) => { setSyncSecret(e.target.value); localStorage.setItem('pra_sync_secret', e.target.value); }}
+                placeholder="••••••••"
+                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-themed-faint">
+                {lastSynced
+                  ? `${language === 'cs' ? 'Poslední sync' : 'Last sync'}: ${new Date(lastSynced).toLocaleString(language === 'cs' ? 'cs-CZ' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}`
+                  : (language === 'cs' ? 'Zatím nesynchronizováno' : 'Never synced')}
+              </div>
+              <button
+                onClick={handleAzureSync}
+                disabled={!syncUrl || !syncSecret || syncStatus === 'syncing'}
+                className="px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-40"
+                style={{
+                  backgroundColor: syncStatus === 'success' ? 'var(--accent-solid)' : syncStatus === 'error' ? '#ef4444' : 'var(--accent-solid)',
+                  color: 'var(--accent-text-on-solid)',
+                }}
+              >
+                {syncStatus === 'syncing'
+                  ? (language === 'cs' ? 'Synchronizuji…' : 'Syncing…')
+                  : syncStatus === 'success'
+                    ? '✓'
+                    : syncStatus === 'error'
+                      ? (language === 'cs' ? 'Chyba' : 'Error')
+                      : (language === 'cs' ? 'Synchronizovat' : 'Sync')}
+              </button>
+            </div>
+          </div>
         </section>
 
         {/* Jazyk */}
