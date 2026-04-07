@@ -688,61 +688,6 @@ export default function PageSettings() {
           )}
         </section>
 
-        {/* Sync */}
-        <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-4">
-            {language === 'cs' ? 'Synchronizace' : 'Sync'}
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm text-themed-muted mb-1">
-                {language === 'cs' ? 'Endpoint URL' : 'Endpoint URL'}
-              </label>
-              <input
-                type="url"
-                value={syncUrl}
-                onChange={(e) => { setSyncUrl(e.target.value); localStorage.setItem('pra_sync_url', e.target.value); }}
-                placeholder="https://..."
-                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-themed-muted mb-1">Secret</label>
-              <input
-                type="password"
-                value={syncSecret}
-                onChange={(e) => { setSyncSecret(e.target.value); localStorage.setItem('pra_sync_secret', e.target.value); }}
-                placeholder="••••••••"
-                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs text-themed-faint">
-                {lastSynced
-                  ? `${language === 'cs' ? 'Poslední sync' : 'Last sync'}: ${new Date(lastSynced).toLocaleString(language === 'cs' ? 'cs-CZ' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}`
-                  : (language === 'cs' ? 'Zatím nesynchronizováno' : 'Never synced')}
-              </div>
-              <button
-                onClick={handleAzureSync}
-                disabled={!syncUrl || !syncSecret || syncStatus === 'syncing'}
-                className="px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-40"
-                style={{
-                  backgroundColor: syncStatus === 'success' ? 'var(--accent-solid)' : syncStatus === 'error' ? '#ef4444' : 'var(--accent-solid)',
-                  color: 'var(--accent-text-on-solid)',
-                }}
-              >
-                {syncStatus === 'syncing'
-                  ? (language === 'cs' ? 'Synchronizuji…' : 'Syncing…')
-                  : syncStatus === 'success'
-                    ? '✓'
-                    : syncStatus === 'error'
-                      ? (language === 'cs' ? 'Chyba' : 'Error')
-                      : (language === 'cs' ? 'Synchronizovat' : 'Sync')}
-              </button>
-            </div>
-          </div>
-        </section>
-
         {/* Jazyk */}
         <section className="card">
           <h2 className="font-serif text-lg text-themed-primary mb-4">
@@ -843,6 +788,61 @@ export default function PageSettings() {
                 </span>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Azure Sync */}
+        <section className="card">
+          <h2 className="font-serif text-lg text-themed-primary mb-4">
+            {language === 'cs' ? 'Synchronizace' : 'Sync'}
+          </h2>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm text-themed-muted mb-1">
+                {language === 'cs' ? 'Endpoint URL' : 'Endpoint URL'}
+              </label>
+              <input
+                type="url"
+                value={syncUrl}
+                onChange={(e) => { setSyncUrl(e.target.value); localStorage.setItem('pra_sync_url', e.target.value); }}
+                placeholder="https://..."
+                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-themed-muted mb-1">Secret</label>
+              <input
+                type="password"
+                value={syncSecret}
+                onChange={(e) => { setSyncSecret(e.target.value); localStorage.setItem('pra_sync_secret', e.target.value); }}
+                placeholder="••••••••"
+                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-themed-faint">
+                {lastSynced
+                  ? `${language === 'cs' ? 'Poslední sync' : 'Last sync'}: ${new Date(lastSynced).toLocaleString(language === 'cs' ? 'cs-CZ' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}`
+                  : (language === 'cs' ? 'Zatím nesynchronizováno' : 'Never synced')}
+              </div>
+              <button
+                onClick={handleAzureSync}
+                disabled={!syncUrl || !syncSecret || syncStatus === 'syncing'}
+                className="px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-40"
+                style={{
+                  backgroundColor: syncStatus === 'success' ? 'var(--accent-solid)' : syncStatus === 'error' ? '#ef4444' : 'var(--accent-solid)',
+                  color: 'var(--accent-text-on-solid)',
+                }}
+              >
+                {syncStatus === 'syncing'
+                  ? (language === 'cs' ? 'Synchronizuji…' : 'Syncing…')
+                  : syncStatus === 'success'
+                    ? '✓'
+                    : syncStatus === 'error'
+                      ? (language === 'cs' ? 'Chyba' : 'Error')
+                      : (language === 'cs' ? 'Synchronizovat' : 'Sync')}
+              </button>
+            </div>
           </div>
         </section>
 
