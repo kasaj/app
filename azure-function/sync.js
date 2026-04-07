@@ -42,11 +42,12 @@ function mergeHistory(localDays, remoteDays, deletedRecordIds, deletedActivityTy
 }
 
 // Merge ActivityDefinition[] by type, filter out deleted types
+// Stored (remote) wins for existing types — only add new types from incoming (local)
 function mergeActivities(local, remote, deletedTypes) {
   const deletedSet = new Set(deletedTypes || []);
   const map = new Map();
-  (remote || []).forEach(item => map.set(item.type, item));
   (local || []).forEach(item => map.set(item.type, item));
+  (remote || []).forEach(item => map.set(item.type, item)); // stored overwrites incoming
   return Array.from(map.values()).filter(item => !deletedSet.has(item.type));
 }
 
