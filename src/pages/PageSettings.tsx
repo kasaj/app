@@ -7,6 +7,7 @@ import { DayEntry, ActivityDefinition } from '../types';
 import { loadMoodScale, saveMoodScale, getDefaultMoodScale, MoodScaleItem } from '../utils/moodScale';
 import { Theme, loadTheme, saveTheme } from '../utils/theme';
 import { getCachedConfig } from '../utils/config';
+import { uploadSync, downloadSync } from '../utils/sync';
 
 interface ExportActivity {
   type: string;
@@ -373,26 +374,6 @@ function importPraFile(file: PraFile, currentLang: string): void {
   }
 }
 
-// Full replacement import used after sync — applies server's merged result as-is
-function applyFullSync(file: PraFile): void {
-  if (file.history) saveAllData(file.history);
-  if (file.activities) saveActivities(file.activities);
-  if (file.language) localStorage.setItem('pra_language', file.language);
-  if (file.theme) saveTheme(file.theme as Theme);
-  if (file.name) { const s = loadSettings(); saveSettings({ ...s, name: file.name }); }
-  if (file.sessionStart) localStorage.setItem('pra_session_start', file.sessionStart);
-  if (file.moodScale && file.moodScale.length > 0) saveMoodScale(file.moodScale);
-  localStorage.setItem('pra_hidden_activities', JSON.stringify(file.hiddenActivities || []));
-  localStorage.setItem('pra_hidden_properties', JSON.stringify(file.hiddenProperties || []));
-  localStorage.setItem('pra_hidden_durations', JSON.stringify(file.hiddenDurations || []));
-  localStorage.setItem('pra_duration_bubbles', JSON.stringify(file.durationBubbles || []));
-  localStorage.setItem('pra_user_modified_activities', JSON.stringify(file.userModified || []));
-  localStorage.setItem('pra_user_deleted_activities', JSON.stringify(file.userDeleted || []));
-  localStorage.setItem('pra_deleted_record_ids', JSON.stringify(file.deletedRecordIds || []));
-  if (file.notes?.cs) localStorage.setItem('pra_info_notes_cs', JSON.stringify(file.notes.cs));
-  if (file.notes?.en) localStorage.setItem('pra_info_notes_en', JSON.stringify(file.notes.en));
-}
-
 function generatePraFileContent(data: PraFile): string {
   return JSON.stringify(data, null, 2);
 }
@@ -464,33 +445,39 @@ export default function PageSettings() {
   // Sync state
   const [syncUrl, setSyncUrl] = useState(() => localStorage.getItem('pra_sync_url') || '');
   const [syncSecret, setSyncSecret] = useState(() => localStorage.getItem('pra_sync_secret') || '');
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
+  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
   const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('pra_last_synced'));
 
-  const handleAzureSync = useCallback(async () => {
-    if (!syncUrl || !syncSecret) return;
-    setSyncStatus('syncing');
+  const handleUpload = useCallback(async () => {
+    if (!syncUrl || !syncSecret || uploadStatus === 'busy') return;
+    setUploadStatus('busy');
     try {
-      const backup = generateBackup(language, theme, name);
-      const response = await fetch(syncUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: syncSecret, data: backup }),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const merged = await response.json() as PraFile;
-      applyFullSync(merged);
-      const now = new Date().toISOString();
-      localStorage.setItem('pra_last_synced', now);
-      setLastSynced(now);
-      setSyncStatus('success');
-      setTimeout(() => { window.scrollTo(0, 0); window.location.reload(); }, 1500);
+      await uploadSync(language, theme, name);
+      setLastSynced(localStorage.getItem('pra_last_synced'));
+      setUploadStatus('success');
+      setTimeout(() => setUploadStatus('idle'), 2000);
     } catch (e) {
-      console.error('Sync failed:', e);
-      setSyncStatus('error');
-      setTimeout(() => setSyncStatus('idle'), 3000);
+      console.error('Upload failed:', e);
+      setUploadStatus('error');
+      setTimeout(() => setUploadStatus('idle'), 3000);
     }
-  }, [syncUrl, syncSecret, language, theme, name]);
+  }, [syncUrl, syncSecret, language, theme, name, uploadStatus]);
+
+  const handleDownload = useCallback(async () => {
+    if (!syncUrl || !syncSecret || downloadStatus === 'busy') return;
+    setDownloadStatus('busy');
+    try {
+      await downloadSync();
+      setLastSynced(localStorage.getItem('pra_last_synced'));
+      setDownloadStatus('success');
+      setTimeout(() => { window.scrollTo(0, 0); window.location.reload(); }, 1000);
+    } catch (e) {
+      console.error('Download failed:', e);
+      setDownloadStatus('error');
+      setTimeout(() => setDownloadStatus('idle'), 3000);
+    }
+  }, [syncUrl, syncSecret, downloadStatus]);
 
   const handleExportBackup = useCallback(() => {
     const backup = generateBackup(language, theme, name);
@@ -851,16 +838,14 @@ export default function PageSettings() {
           </div>
         </section>
 
-        {/* Azure Sync */}
+        {/* Sync */}
         <section className="card">
           <h2 className="font-serif text-lg text-themed-primary mb-4">
             {language === 'cs' ? 'Synchronizace' : 'Sync'}
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm text-themed-muted mb-1">
-                {language === 'cs' ? 'Endpoint URL' : 'Endpoint URL'}
-              </label>
+              <label className="block text-sm text-themed-muted mb-1">Endpoint URL</label>
               <input
                 type="url"
                 value={syncUrl}
@@ -885,23 +870,26 @@ export default function PageSettings() {
                   ? `${language === 'cs' ? 'Poslední sync' : 'Last sync'}: ${new Date(lastSynced).toLocaleString(language === 'cs' ? 'cs-CZ' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}`
                   : (language === 'cs' ? 'Zatím nesynchronizováno' : 'Never synced')}
               </div>
-              <button
-                onClick={handleAzureSync}
-                disabled={!syncUrl || !syncSecret || syncStatus === 'syncing'}
-                className="px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-40"
-                style={{
-                  backgroundColor: syncStatus === 'success' ? 'var(--accent-solid)' : syncStatus === 'error' ? '#ef4444' : 'var(--accent-solid)',
-                  color: 'var(--accent-text-on-solid)',
-                }}
-              >
-                {syncStatus === 'syncing'
-                  ? (language === 'cs' ? 'Synchronizuji…' : 'Syncing…')
-                  : syncStatus === 'success'
-                    ? '✓'
-                    : syncStatus === 'error'
-                      ? (language === 'cs' ? 'Chyba' : 'Error')
-                      : (language === 'cs' ? 'Synchronizovat' : 'Sync')}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleUpload}
+                  disabled={!syncUrl || !syncSecret || uploadStatus === 'busy'}
+                  className="px-3 py-2 rounded-xl text-lg transition-colors disabled:opacity-40"
+                  title={language === 'cs' ? 'Nahrát na server' : 'Upload to server'}
+                  style={{ color: uploadStatus === 'error' ? '#ef4444' : 'var(--text-muted)' }}
+                >
+                  {uploadStatus === 'busy' ? '…' : uploadStatus === 'success' ? '✓' : '⬆️'}
+                </button>
+                <button
+                  onClick={handleDownload}
+                  disabled={!syncUrl || !syncSecret || downloadStatus === 'busy'}
+                  className="px-3 py-2 rounded-xl text-lg transition-colors disabled:opacity-40"
+                  title={language === 'cs' ? 'Stáhnout ze serveru' : 'Download from server'}
+                  style={{ color: downloadStatus === 'error' ? '#ef4444' : 'var(--text-muted)' }}
+                >
+                  {downloadStatus === 'busy' ? '…' : downloadStatus === 'success' ? '✓' : '⬇️'}
+                </button>
+              </div>
             </div>
           </div>
         </section>

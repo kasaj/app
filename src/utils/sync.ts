@@ -103,19 +103,34 @@ export function applyFullSync(file: PraFile): void {
   if (file.notes?.en) localStorage.setItem('pra_info_notes_en', JSON.stringify(file.notes.en));
 }
 
-export async function runSync(lang: string, theme: string, name: string): Promise<void> {
+function getSyncConfig() {
   const url = localStorage.getItem('pra_sync_url');
   const secret = localStorage.getItem('pra_sync_secret');
   if (!url || !secret) throw new Error('Sync not configured');
+  return { url, secret };
+}
 
+export async function uploadSync(lang: string, theme: string, name: string): Promise<void> {
+  const { url, secret } = getSyncConfig();
   const backup = generateBackup(lang, theme, name);
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ secret, data: backup }),
+    body: JSON.stringify({ secret, action: 'upload', data: backup }),
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const merged = await response.json() as PraFile;
-  applyFullSync(merged);
+  localStorage.setItem('pra_last_synced', new Date().toISOString());
+}
+
+export async function downloadSync(): Promise<void> {
+  const { url, secret } = getSyncConfig();
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ secret, action: 'download' }),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json() as PraFile;
+  applyFullSync(data);
   localStorage.setItem('pra_last_synced', new Date().toISOString());
 }
