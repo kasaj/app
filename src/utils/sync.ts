@@ -122,15 +122,20 @@ export async function uploadSync(lang: string, theme: string, name: string): Pro
   localStorage.setItem('pra_last_synced', new Date().toISOString());
 }
 
-export async function downloadSync(): Promise<void> {
+export async function downloadSync(): Promise<{ status: number }> {
   const { url, secret } = getSyncConfig();
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ secret, action: 'download' }),
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status}`) as Error & { status: number };
+    err.status = response.status;
+    throw err;
+  }
   const data = await response.json() as PraFile;
   applyFullSync(data);
   localStorage.setItem('pra_last_synced', new Date().toISOString());
+  return { status: response.status };
 }

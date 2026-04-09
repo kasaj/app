@@ -30,6 +30,7 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const syncConfigured = !!(localStorage.getItem('pra_sync_url') && localStorage.getItem('pra_sync_secret'));
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
+  const [downloadErrorStatus, setDownloadErrorStatus] = useState<number | null>(null);
 
   const handleUpload = useCallback(async () => {
     if (uploadStatus === 'busy') return;
@@ -49,13 +50,16 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
   const handleDownload = useCallback(async () => {
     if (downloadStatus === 'busy') return;
     setDownloadStatus('busy');
+    setDownloadErrorStatus(null);
     try {
       await downloadSync();
       setDownloadStatus('success');
       setTimeout(() => { window.scrollTo(0, 0); window.location.reload(); }, 800);
-    } catch {
+    } catch (e) {
+      const status = (e as { status?: number }).status ?? null;
+      setDownloadErrorStatus(status);
       setDownloadStatus('error');
-      setTimeout(() => setDownloadStatus('idle'), 3000);
+      setTimeout(() => { setDownloadStatus('idle'); setDownloadErrorStatus(null); }, 5000);
     }
   }, [downloadStatus]);
   const [registryVersion, setRegistryVersion] = useState(0);
@@ -361,6 +365,15 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               </button>
             </>)}
           </div>
+          {downloadStatus === 'error' && (
+            <div className="text-center text-xs mb-1" style={{ color: '#ef4444' }}>
+              {downloadErrorStatus === 404
+                ? (language === 'cs' ? 'Server nemá žádná data — nejdříve nahrajte (⬆)' : 'No data on server — upload first (⬆)')
+                : downloadErrorStatus === 401
+                  ? (language === 'cs' ? 'Chybný secret' : 'Wrong secret')
+                  : (language === 'cs' ? `Chyba serveru ${downloadErrorStatus ?? ''}` : `Server error ${downloadErrorStatus ?? ''}`)}
+            </div>
+          )}
           {/* Date/time - editable */}
           <div className="flex items-center mb-1.5">
             <div className="flex-1" />

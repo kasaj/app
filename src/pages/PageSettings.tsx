@@ -447,6 +447,7 @@ export default function PageSettings() {
   const [syncSecret, setSyncSecret] = useState(() => localStorage.getItem('pra_sync_secret') || '');
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
+  const [downloadErrorStatus, setDownloadErrorStatus] = useState<number | null>(null);
   const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('pra_last_synced'));
 
   const handleUpload = useCallback(async () => {
@@ -467,6 +468,7 @@ export default function PageSettings() {
   const handleDownload = useCallback(async () => {
     if (!syncUrl || !syncSecret || downloadStatus === 'busy') return;
     setDownloadStatus('busy');
+    setDownloadErrorStatus(null);
     try {
       await downloadSync();
       setLastSynced(localStorage.getItem('pra_last_synced'));
@@ -474,8 +476,10 @@ export default function PageSettings() {
       setTimeout(() => { window.scrollTo(0, 0); window.location.reload(); }, 1000);
     } catch (e) {
       console.error('Download failed:', e);
+      const status = (e as { status?: number }).status ?? null;
+      setDownloadErrorStatus(status);
       setDownloadStatus('error');
-      setTimeout(() => setDownloadStatus('idle'), 3000);
+      setTimeout(() => { setDownloadStatus('idle'); setDownloadErrorStatus(null); }, 5000);
     }
   }, [syncUrl, syncSecret, downloadStatus]);
 
@@ -799,9 +803,18 @@ export default function PageSettings() {
                   </button>
                 </div>
               </div>
-              {(uploadStatus === 'error' || downloadStatus === 'error') && (
+              {downloadStatus === 'error' && (
                 <div className="text-xs text-red-500 text-right">
-                  {language === 'cs' ? 'Chyba — zkontrolujte URL a secret, nebo nejdříve nahrajte data (⬆️)' : 'Error — check URL & secret, or upload data first (⬆️)'}
+                  {downloadErrorStatus === 404
+                    ? (language === 'cs' ? 'Server nemá žádná data — nejdříve nahrajte (⬆)' : 'No data on server — upload first (⬆)')
+                    : downloadErrorStatus === 401
+                      ? (language === 'cs' ? 'Chybný secret' : 'Wrong secret')
+                      : (language === 'cs' ? `Chyba ${downloadErrorStatus ?? ''} — zkontrolujte URL a secret` : `Error ${downloadErrorStatus ?? ''} — check URL & secret`)}
+                </div>
+              )}
+              {uploadStatus === 'error' && (
+                <div className="text-xs text-red-500 text-right">
+                  {language === 'cs' ? 'Upload selhal — zkontrolujte URL a secret' : 'Upload failed — check URL & secret'}
                 </div>
               )}
             </div>
