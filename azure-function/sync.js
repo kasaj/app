@@ -32,7 +32,7 @@ app.http('sync', {
 
       // --- UPLOAD: store client data as-is ---
       if (action === 'upload') {
-        if (!body.data) return { status: 400, body: JSON.stringify({ error: 'Missing data' }) };
+        if (!body.data) return { status: 400, body: JSON.stringify({ error: 'Missing data', action_received: action, body_keys: Object.keys(body) }) };
         const str = JSON.stringify(body.data);
         await blobClient.upload(str, Buffer.byteLength(str), {
           blobHTTPHeaders: { blobContentType: 'application/json' },
@@ -52,7 +52,7 @@ app.http('sync', {
         return { status: 200, body: Buffer.concat(chunks).toString('utf-8') };
       }
 
-      return { status: 400, body: JSON.stringify({ error: `unknown action: ${action}` }) };
+      return { status: 400, body: JSON.stringify({ error: `unknown action: ${action}`, body_keys: Object.keys(body) }) };
     } catch (e) {
       context.error('Sync error:', e);
       return { status: 500, body: JSON.stringify({ error: 'Internal error', detail: e.message }) };
