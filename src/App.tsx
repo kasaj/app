@@ -53,7 +53,13 @@ function App() {
   useEffect(() => {
     applyTheme(loadTheme());
     const cleanup = watchSystemTheme();
-    loadConfig().then(() => setReady(true));
+
+    // Apply theme immediately, show UI right away — don't block on config fetch
+    setReady(true);
+
+    // Load config in background; components handle missing config gracefully
+    loadConfig().catch(() => { /* ignore — app already visible */ });
+
     return cleanup;
   }, []);
 

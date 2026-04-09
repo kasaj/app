@@ -115,7 +115,10 @@ export async function loadConfig(): Promise<AppConfig> {
 
 async function fetchConfig(): Promise<AppConfig> {
   try {
-    const res = await fetch(getConfigUrl(), { cache: 'no-cache' });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(getConfigUrl(), { cache: 'no-cache', signal: controller.signal });
+    clearTimeout(timeout);
     const text = await res.text();
     const parsed = JSON.parse(text);
 
@@ -136,8 +139,12 @@ async function fetchConfig(): Promise<AppConfig> {
 // Check for config updates (call on visibility change / interval)
 export async function checkConfigUpdate(): Promise<boolean> {
   const oldHash = localStorage.getItem(CONFIG_HASH_KEY);
+  const prev = cachedConfig;
   cachedConfig = null; // force re-fetch
-  await fetchConfig();
+  await fetchConfig().catch(() => {
+    // Network failed — restore previous config, don't break the app
+    if (prev) cachedConfig = prev;
+  });
   const newHash = localStorage.getItem(CONFIG_HASH_KEY);
   return oldHash !== newHash;
 }
