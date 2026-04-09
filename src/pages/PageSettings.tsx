@@ -233,12 +233,8 @@ function importPraFile(file: PraFile, currentLang: string): void {
       try { const s = localStorage.getItem('pra_user_modified_activities'); if (s) userMod = JSON.parse(s); } catch { /* */ }
       localStorage.setItem('pra_user_modified_activities', JSON.stringify([...new Set([...userMod, ...allImportedTypes])]));
     } else {
-      // Backup import: only add new activities (don't overwrite existing)
-      const existingTypes = new Set(existing.map(a => a.type));
-      const newActivities = Array.from(importedMap.values()).filter(a => !existingTypes.has(a.type));
-      if (newActivities.length > 0) {
-        saveActivities([...existing, ...newActivities]);
-      }
+      // Backup import: full replacement — imported activities win (including properties)
+      saveActivities(file.activities);
     }
   }
   // User modified tracking - merge
@@ -448,6 +444,7 @@ export default function PageSettings() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
   const [downloadStatus, setDownloadStatus] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
   const [downloadErrorStatus, setDownloadErrorStatus] = useState<number | null>(null);
+  const [downloadErrorBody, setDownloadErrorBody] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<string | null>(() => localStorage.getItem('pra_last_synced'));
 
   const handleUpload = useCallback(async () => {
@@ -477,9 +474,11 @@ export default function PageSettings() {
     } catch (e) {
       console.error('Download failed:', e);
       const status = (e as { status?: number }).status ?? null;
+      const msg = (e as Error).message ?? null;
       setDownloadErrorStatus(status);
+      setDownloadErrorBody(msg);
       setDownloadStatus('error');
-      setTimeout(() => { setDownloadStatus('idle'); setDownloadErrorStatus(null); }, 5000);
+      setTimeout(() => { setDownloadStatus('idle'); setDownloadErrorStatus(null); setDownloadErrorBody(null); }, 8000);
     }
   }, [syncUrl, syncSecret, downloadStatus]);
 
@@ -804,12 +803,15 @@ export default function PageSettings() {
                 </div>
               </div>
               {downloadStatus === 'error' && (
-                <div className="text-xs text-red-500 text-right">
-                  {downloadErrorStatus === 404
-                    ? (language === 'cs' ? 'Server nemá žádná data — nejdříve nahrajte (⬆)' : 'No data on server — upload first (⬆)')
-                    : downloadErrorStatus === 401
-                      ? (language === 'cs' ? 'Chybný secret' : 'Wrong secret')
-                      : (language === 'cs' ? `Chyba ${downloadErrorStatus ?? ''} — zkontrolujte URL a secret` : `Error ${downloadErrorStatus ?? ''} — check URL & secret`)}
+                <div className="text-xs text-red-500 text-right space-y-0.5">
+                  <div>
+                    {downloadErrorStatus === 404
+                      ? (language === 'cs' ? 'Server nemá žádná data — nejdříve nahrajte (⬆)' : 'No data on server — upload first (⬆)')
+                      : downloadErrorStatus === 401
+                        ? (language === 'cs' ? 'Chybný secret' : 'Wrong secret')
+                        : (language === 'cs' ? `Chyba ${downloadErrorStatus ?? ''}` : `Error ${downloadErrorStatus ?? ''}`)}
+                  </div>
+                  {downloadErrorBody && <div className="opacity-70 break-all">{downloadErrorBody}</div>}
                 </div>
               )}
               {uploadStatus === 'error' && (
