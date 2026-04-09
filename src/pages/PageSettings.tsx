@@ -414,7 +414,7 @@ export default function PageSettings() {
   const { language, setLanguage, t } = useLanguage();
   const [name, setName] = useState('');
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
-  const [exportTab, setExportTab] = useState<'backup' | 'config'>('backup');
+  const [exportTab, setExportTab] = useState<'backup' | 'config' | 'sync'>('backup');
   const [infoTab, setInfoTab] = useState<'info' | 'install'>('info');
   const [theme, setThemeState] = useState<Theme>(loadTheme);
   const [moodScale, setMoodScale] = useState<MoodScaleItem[]>(() => loadMoodScale());
@@ -676,6 +676,16 @@ export default function PageSettings() {
               >
                 {t.settings.exportConfig}
               </button>
+              <button
+                onClick={() => setExportTab('sync')}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  exportTab === 'sync'
+                    ? 'bg-themed-card text-themed-accent shadow-sm'
+                    : 'text-themed-faint hover:text-themed-secondary'
+                }`}
+              >
+                Sync
+              </button>
             </div>
           </div>
 
@@ -724,7 +734,80 @@ export default function PageSettings() {
             </div>
           )}
 
-          {importStatus && (
+          {exportTab === 'sync' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-themed-muted mb-1">Endpoint URL</label>
+                <input
+                  type="url"
+                  value={syncUrl}
+                  onChange={(e) => { setSyncUrl(e.target.value); localStorage.setItem('pra_sync_url', e.target.value); }}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-themed-muted mb-1">Secret</label>
+                <input
+                  type="password"
+                  value={syncSecret}
+                  onChange={(e) => { setSyncSecret(e.target.value); localStorage.setItem('pra_sync_secret', e.target.value); }}
+                  placeholder="••••••••"
+                  className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-themed-faint">
+                  {lastSynced
+                    ? `${language === 'cs' ? 'Poslední sync' : 'Last sync'}: ${new Date(lastSynced).toLocaleString(language === 'cs' ? 'cs-CZ' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}`
+                    : (language === 'cs' ? 'Zatím nesynchronizováno' : 'Never synced')}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleUpload}
+                    disabled={!syncUrl || !syncSecret || uploadStatus === 'busy'}
+                    className="p-1 transition-colors disabled:opacity-40"
+                    title={language === 'cs' ? 'Nahrát na server' : 'Upload to server'}
+                    style={{ color: uploadStatus === 'error' ? '#ef4444' : uploadStatus === 'success' ? 'var(--accent-solid)' : 'var(--text-faint)' }}
+                  >
+                    <svg className={`w-5 h-5${uploadStatus === 'busy' ? ' animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      {uploadStatus === 'success'
+                        ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        : uploadStatus === 'error'
+                          ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          : uploadStatus === 'busy'
+                            ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8v4m0-4a8 8 0 010 16v-4m0 4" />
+                            : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />}
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    disabled={!syncUrl || !syncSecret || downloadStatus === 'busy'}
+                    className="p-1 transition-colors disabled:opacity-40"
+                    title={language === 'cs' ? 'Stáhnout ze serveru' : 'Download from server'}
+                    style={{ color: downloadStatus === 'error' ? '#ef4444' : downloadStatus === 'success' ? 'var(--accent-solid)' : 'var(--text-faint)' }}
+                  >
+                    <svg className={`w-5 h-5${downloadStatus === 'busy' ? ' animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      {downloadStatus === 'success'
+                        ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        : downloadStatus === 'error'
+                          ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          : downloadStatus === 'busy'
+                            ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8v4m0-4a8 8 0 010 16v-4m0 4" />
+                            : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />}
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              {(uploadStatus === 'error' || downloadStatus === 'error') && (
+                <div className="text-xs text-red-500 text-right">
+                  {language === 'cs' ? 'Chyba — zkontrolujte URL a secret, nebo nejdříve nahrajte data (⬆️)' : 'Error — check URL & secret, or upload data first (⬆️)'}
+                </div>
+              )}
+            </div>
+          )}
+
+          {importStatus && exportTab !== 'sync' && (
             <div className={`p-3 rounded-xl text-sm mt-3 ${
               importStatus === 'success'
                 ? 'bg-themed-accent text-themed-accent'
@@ -838,63 +921,7 @@ export default function PageSettings() {
           </div>
         </section>
 
-        {/* Sync */}
-        <section className="card">
-          <h2 className="font-serif text-lg text-themed-primary mb-4">
-            {language === 'cs' ? 'Synchronizace' : 'Sync'}
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm text-themed-muted mb-1">Endpoint URL</label>
-              <input
-                type="url"
-                value={syncUrl}
-                onChange={(e) => { setSyncUrl(e.target.value); localStorage.setItem('pra_sync_url', e.target.value); }}
-                placeholder="https://..."
-                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-themed-muted mb-1">Secret</label>
-              <input
-                type="password"
-                value={syncSecret}
-                onChange={(e) => { setSyncSecret(e.target.value); localStorage.setItem('pra_sync_secret', e.target.value); }}
-                placeholder="••••••••"
-                className="w-full px-3 py-2 rounded-xl bg-themed-input border border-themed focus:outline-none focus:border-themed-accent text-themed-primary placeholder:text-themed-faint text-sm"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs text-themed-faint">
-                {lastSynced
-                  ? `${language === 'cs' ? 'Poslední sync' : 'Last sync'}: ${new Date(lastSynced).toLocaleString(language === 'cs' ? 'cs-CZ' : 'en-US', { dateStyle: 'short', timeStyle: 'short' })}`
-                  : (language === 'cs' ? 'Zatím nesynchronizováno' : 'Never synced')}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleUpload}
-                  disabled={!syncUrl || !syncSecret || uploadStatus === 'busy'}
-                  className="px-3 py-2 rounded-xl text-lg transition-colors disabled:opacity-40"
-                  title={language === 'cs' ? 'Nahrát na server' : 'Upload to server'}
-                  style={{ color: uploadStatus === 'error' ? '#ef4444' : 'var(--text-muted)' }}
-                >
-                  {uploadStatus === 'busy' ? '…' : uploadStatus === 'success' ? '✓' : '⬆️'}
-                </button>
-                <button
-                  onClick={handleDownload}
-                  disabled={!syncUrl || !syncSecret || downloadStatus === 'busy'}
-                  className="px-3 py-2 rounded-xl text-lg transition-colors disabled:opacity-40"
-                  title={language === 'cs' ? 'Stáhnout ze serveru' : 'Download from server'}
-                  style={{ color: downloadStatus === 'error' ? '#ef4444' : 'var(--text-muted)' }}
-                >
-                  {downloadStatus === 'busy' ? '…' : downloadStatus === 'success' ? '✓' : '⬇️'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Sync */}
+        {/* Sync config reload */}
         <section className="card" style={{ border: '1.5px solid var(--accent-solid)' }}>
           <button
             onClick={handleSync}

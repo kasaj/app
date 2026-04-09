@@ -328,18 +328,36 @@ export default function PageToday({ onNavigate }: { onNavigate?: (page: string) 
               <button
                 onClick={handleUpload}
                 disabled={uploadStatus === 'busy'}
-                className="p-1 text-base leading-none transition-opacity disabled:opacity-40"
+                className="p-1 transition-colors disabled:opacity-40"
+                style={{ color: uploadStatus === 'error' ? '#ef4444' : uploadStatus === 'success' ? 'var(--accent-solid)' : 'var(--text-faint)' }}
                 title={language === 'cs' ? 'Nahrát na server' : 'Upload to server'}
               >
-                {uploadStatus === 'busy' ? '…' : uploadStatus === 'success' ? '✓' : uploadStatus === 'error' ? '✕' : '⬆️'}
+                <svg className={`w-5 h-5${uploadStatus === 'busy' ? ' animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {uploadStatus === 'success'
+                    ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    : uploadStatus === 'error'
+                      ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      : uploadStatus === 'busy'
+                        ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8v4m0-4a8 8 0 010 16v-4m0 4" />
+                        : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />}
+                </svg>
               </button>
               <button
                 onClick={handleDownload}
                 disabled={downloadStatus === 'busy'}
-                className="p-1 text-base leading-none transition-opacity disabled:opacity-40"
+                className="p-1 transition-colors disabled:opacity-40"
+                style={{ color: downloadStatus === 'error' ? '#ef4444' : downloadStatus === 'success' ? 'var(--accent-solid)' : 'var(--text-faint)' }}
                 title={language === 'cs' ? 'Stáhnout ze serveru' : 'Download from server'}
               >
-                {downloadStatus === 'busy' ? '…' : downloadStatus === 'success' ? '✓' : downloadStatus === 'error' ? '✕' : '⬇️'}
+                <svg className={`w-5 h-5${downloadStatus === 'busy' ? ' animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {downloadStatus === 'success'
+                    ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    : downloadStatus === 'error'
+                      ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      : downloadStatus === 'busy'
+                        ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8v4m0-4a8 8 0 010 16v-4m0 4" />
+                        : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />}
+                </svg>
               </button>
             </>)}
           </div>
