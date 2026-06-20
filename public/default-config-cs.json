@@ -2,7 +2,7 @@
   "version": 1,
   "language": "cs",
   "theme": "modern",
-  "infoActivity": { "emoji": "🌀", "name": "Teď uvědomování", "comment": "✨ Vnímám... skyrz smysli, jen si všímám. Rád poznávám podstatu a pomáhám tou svou." },
+  "infoActivity": { "emoji": "🌀", "name": "Teď uvědomování", "comment": "✨ Vnímám... skrz smysly jsem si vědom... Rád poznávám podstatu a pomáhám tou svou." },
   "activities": [
     {
       "type": "rozjimani",
